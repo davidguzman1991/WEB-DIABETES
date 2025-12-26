@@ -1,4 +1,5 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+const BASE_URL = API_URL.replace(/\/$/, "");
 
 function getToken(role) {
   return typeof window === "undefined" ? null : localStorage.getItem(`token_${role}`);
@@ -17,10 +18,13 @@ function clearToken(role) {
 }
 
 async function request(path, { method = "GET", body, token } = {}) {
+  if (!BASE_URL) {
+    throw new Error("NEXT_PUBLIC_API_URL is not set");
+  }
   const headers = { "Content-Type": "application/json" };
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetch(`${BASE_URL}${path}`, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined

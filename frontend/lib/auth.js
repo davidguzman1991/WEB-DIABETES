@@ -56,7 +56,7 @@ export async function apiFetch(path, options = {}) {
 }
 
 export async function fetchMe() {
-  const res = await apiFetch("/auth/me");
+  const res = await apiFetch("/auth/admin/me");
   let data = null;
   try {
     data = await res.json();

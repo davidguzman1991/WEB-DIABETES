@@ -20,6 +20,10 @@ export default function AdminPatients() {
   const [currentConsultation, setCurrentConsultation] = useState(null);
   const [searchError, setSearchError] = useState("");
   const [searchLoading, setSearchLoading] = useState(false);
+  const [resetCedula, setResetCedula] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetError, setResetError] = useState("");
+  const [tempPassword, setTempPassword] = useState("");
 
   if (loading) {
     return (
@@ -73,6 +77,36 @@ export default function AdminPatients() {
       setSearchError(err.message || "No se pudo cargar medicacion actual");
     } finally {
       setSearchLoading(false);
+    }
+  };
+
+  const onResetPassword = async (event) => {
+    event.preventDefault();
+    setResetError("");
+    setTempPassword("");
+    const cedula = resetCedula.trim();
+    if (!cedula) {
+      setResetError("Cedula requerida");
+      return;
+    }
+    const confirmed = window.confirm(
+      `Restablecer password para el paciente ${cedula}?`
+    );
+    if (!confirmed) return;
+    setResetLoading(true);
+    try {
+      const data = await adminRequest(
+        `/admin/patients/${encodeURIComponent(cedula)}/reset-password`,
+        { method: "POST", token: getAdminToken() }
+      );
+      setTempPassword(data?.temporary_password || "");
+      if (!data?.temporary_password) {
+        setResetError("No se pudo generar el password temporal");
+      }
+    } catch (err) {
+      setResetError(err.message || "No se pudo restablecer el password");
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -154,6 +188,23 @@ export default function AdminPatients() {
             </div>
           </div>
         )}
+      </section>
+
+      <section className="panel">
+        <h2>Reset password paciente</h2>
+        {resetError && <div className="error">{resetError}</div>}
+        {tempPassword && (
+          <div className="success">Password temporal: {tempPassword}</div>
+        )}
+        <form onSubmit={onResetPassword} className="form">
+          <label>
+            Cedula
+            <input value={resetCedula} onChange={(e) => setResetCedula(e.target.value)} />
+          </label>
+          <button type="submit" disabled={resetLoading}>
+            {resetLoading ? "Restableciendo..." : "Reset password"}
+          </button>
+        </form>
       </section>
     </div>
   );

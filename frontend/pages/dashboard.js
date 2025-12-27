@@ -68,6 +68,9 @@ export default function Dashboard() {
     notas_medicas: "",
     indicaciones_generales: "",
   });
+  const [patientInfo, setPatientInfo] = useState(null);
+  const [patientLookupStatus, setPatientLookupStatus] = useState("idle");
+  const [patientLookupMessage, setPatientLookupMessage] = useState("");
   const medIdRef = useRef(0);
   const createMedicamento = () => {
     const id = String((medIdRef.current += 1));
@@ -95,6 +98,53 @@ export default function Dashboard() {
       logout(router, "/login?type=admin");
     }
   }, [router, user]);
+
+  useEffect(() => {
+    const cedula = consultaForm.patient_username.trim();
+    if (!cedula) {
+      setPatientInfo(null);
+      setPatientLookupStatus("idle");
+      setPatientLookupMessage("");
+      return;
+    }
+    const timer = setTimeout(() => {
+      setPatientLookupStatus("loading");
+      setPatientLookupMessage("");
+      apiFetch(`/admin/patients?cedula=${encodeURIComponent(cedula)}`)
+        .then(async (res) => {
+          if (res.status === 401 || res.status === 403) {
+            logout(router, "/login?type=admin");
+            return;
+          }
+          if (res.status === 404) {
+            setPatientInfo(null);
+            setPatientLookupStatus("missing");
+            setPatientLookupMessage("Paciente no existe. Debe crearlo primero.");
+            return;
+          }
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            setPatientInfo(null);
+            setPatientLookupStatus("error");
+            setPatientLookupMessage(data.detail || "No se pudo validar el paciente.");
+            return;
+          }
+          const data = await res.json().catch(() => null);
+          setPatientInfo(data);
+          setPatientLookupStatus("found");
+          setPatientLookupMessage("Paciente encontrado");
+        })
+        .catch(() => {
+          setPatientInfo(null);
+          setPatientLookupStatus("error");
+          setPatientLookupMessage("No se pudo validar el paciente.");
+        });
+    }, 400);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [consultaForm.patient_username, router]);
 
   useEffect(() => {
     if (!user) return;
@@ -432,6 +482,10 @@ export default function Dashboard() {
       setConsultaError("Cedula requerida");
       return;
     }
+    if (patientLookupStatus !== "found") {
+      setConsultaError(patientLookupMessage || "Paciente no existe. Debe crearlo primero.");
+      return;
+    }
     const filteredMeds = medicamentos.filter((med) => med.nombre.trim());
     if (!filteredMeds.length) {
       setConsultaError("Agrega al menos un medicamento");
@@ -581,6 +635,23 @@ export default function Dashboard() {
               onChange={onConsultaChange}
               required
             />
+          </label>
+          {patientLookupStatus === "loading" && (
+            <div className="muted">Validando paciente...</div>
+          )}
+          {patientLookupStatus === "found" && (
+            <div className="success">{patientLookupMessage}</div>
+          )}
+          {patientLookupStatus !== "found" && patientLookupMessage && (
+            <div className="error">{patientLookupMessage}</div>
+          )}
+          <label>
+            Nombres
+            <input value={patientInfo?.nombres || ""} disabled readOnly />
+          </label>
+          <label>
+            Apellidos
+            <input value={patientInfo?.apellidos || ""} disabled readOnly />
           </label>
           <label>
             Diagnostico
@@ -800,7 +871,9 @@ export default function Dashboard() {
               <option key={option} value={option} />
             ))}
           </datalist>
-          <button type="submit">Guardar consulta</button>
+          <button type="submit" disabled={patientLookupStatus !== "found"}>
+            Guardar consulta
+          </button>
         </form>
         <button type="button" onClick={loadConsultas}>
           Consultas recientes del paciente

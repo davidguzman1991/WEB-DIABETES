@@ -63,11 +63,17 @@ export default function PortalHistorial() {
         {message && <div className="muted">{message}</div>}
         <div className="list">
           {items.map((item) => (
-            <Link key={item.id} className="list-item" href={`/portal/consultas/${item.id}`}>
-              <div className="list-title">
+            <Link
+              key={item.id}
+              className="history-card"
+              href={`/portal/consultas/${item.id}`}
+            >
+              <div className="history-date">
                 {new Date(item.created_at).toLocaleDateString()}
               </div>
-              {item.diagnosis && <div className="list-meta">Diagnostico: {item.diagnosis}</div>}
+              {item.diagnosis && (
+                <div className="history-diagnosis">{item.diagnosis}</div>
+              )}
             </Link>
           ))}
         </div>

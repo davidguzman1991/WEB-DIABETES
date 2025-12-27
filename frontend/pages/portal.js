@@ -65,38 +65,40 @@ export default function Portal() {
         {error && <div className="error">{error}</div>}
         {message && <div className="muted">{message}</div>}
         {current && (
-          <>
-            <p className="muted">Medicacion actual</p>
-            <div className="list">
-              <div className="list-item">
-                <div className="list-title">
-                  {new Date(current.created_at).toLocaleDateString()}
-                </div>
-                {current.diagnosis && (
-                  <div className="list-meta">Diagnostico: {current.diagnosis}</div>
-                )}
-                {current.indications && (
-                  <div className="list-meta">Indicaciones: {current.indications}</div>
-                )}
-                <div className="list">
-                  {current.medications.map((med) => (
-                    <div key={med.id} className="list-item">
-                      <div className="list-title">{med.drug_name}</div>
-                      {med.quantity !== null && med.quantity !== undefined && (
-                        <div className="list-meta">Cantidad: {med.quantity}</div>
-                      )}
-                      {med.description && (
-                        <div className="list-meta">Descripcion: {med.description}</div>
-                      )}
-                      {med.duration_days !== null && med.duration_days !== undefined && (
-                        <div className="list-meta">Duracion: {med.duration_days} dias</div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
+          <div className="consultation-card">
+            <div className="consultation-date">
+              {new Date(current.created_at).toLocaleDateString()}
             </div>
-          </>
+            {current.diagnosis && (
+              <div className="consultation-diagnosis">{current.diagnosis}</div>
+            )}
+            {current.indications && (
+              <div className="consultation-notes">{current.indications}</div>
+            )}
+            <div className="section-title">Medicacion</div>
+            <div className="medications-list">
+              {current.medications.map((med) => {
+                const metaParts = [];
+                if (med.quantity !== null && med.quantity !== undefined) {
+                  metaParts.push(`Cantidad ${med.quantity}`);
+                }
+                if (med.duration_days !== null && med.duration_days !== undefined) {
+                  metaParts.push(`Duracion ${med.duration_days} dias`);
+                }
+                return (
+                  <div key={med.id} className="medication-card">
+                    <div className="medication-name">{med.drug_name}</div>
+                    {!!metaParts.length && (
+                      <div className="medication-meta">{metaParts.join(" · ")}</div>
+                    )}
+                    {med.description && (
+                      <div className="medication-description">{med.description}</div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         )}
         <Link className="button" href="/portal/historial">
           Ver historial

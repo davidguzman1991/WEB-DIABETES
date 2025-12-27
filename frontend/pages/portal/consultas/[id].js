@@ -80,46 +80,57 @@ export default function ConsultaDetalle() {
         {error && <div className="error">{error}</div>}
         {consulta && (
           <>
-            <div className="list-meta">
-              {new Date(consulta.created_at).toLocaleDateString()}
+            <div className="consultation-card">
+              <div className="consultation-date">
+                {new Date(consulta.created_at).toLocaleDateString()}
+              </div>
+              {consulta.diagnosis && (
+                <div className="consultation-diagnosis">{consulta.diagnosis}</div>
+              )}
+              {consulta.notes && (
+                <div className="consultation-notes">{consulta.notes}</div>
+              )}
+              {consulta.indications && (
+                <div className="consultation-notes">{consulta.indications}</div>
+              )}
+              <div className="section-title">Medicacion</div>
+              <div className="medications-list">
+                {consulta.medications.map((med) => {
+                  const metaParts = [];
+                  if (med.quantity !== null && med.quantity !== undefined) {
+                    metaParts.push(`Cantidad ${med.quantity}`);
+                  }
+                  if (med.duration_days !== null && med.duration_days !== undefined) {
+                    metaParts.push(`Duracion ${med.duration_days} dias`);
+                  }
+                  return (
+                    <div key={med.id} className="medication-card">
+                      <div className="medication-name">{med.drug_name}</div>
+                      {!!metaParts.length && (
+                        <div className="medication-meta">{metaParts.join(" · ")}</div>
+                      )}
+                      {med.description && (
+                        <div className="medication-description">{med.description}</div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            {consulta.diagnosis && (
-              <div className="list-meta">Diagnostico: {consulta.diagnosis}</div>
-            )}
-            {consulta.notes && (
-              <div className="list-meta">Notas: {consulta.notes}</div>
-            )}
-            {consulta.indications && (
-              <div className="list-meta">Indicaciones: {consulta.indications}</div>
-            )}
-            <div className="list">
-              {consulta.medications.map((med) => (
-                <div key={med.id} className="list-item">
-                  <div className="list-title">{med.drug_name}</div>
-                  {med.quantity !== null && med.quantity !== undefined && (
-                    <div className="list-meta">Cantidad: {med.quantity}</div>
-                  )}
-                  {med.description && (
-                    <div className="list-meta">Descripcion: {med.description}</div>
-                  )}
-                  {med.duration_days !== null && med.duration_days !== undefined && (
-                    <div className="list-meta">Duracion: {med.duration_days} dias</div>
-                  )}
-                </div>
-              ))}
-            </div>
-            <h2>Laboratorios</h2>
+            <div className="section-title">Laboratorios</div>
             {labsMessage && <div className="muted">{labsMessage}</div>}
-            <div className="list">
+            <div className="lab-list">
               {labs.map((lab) => (
-                <div key={lab.id} className="list-item">
-                  <div className="list-title">{lab.lab_nombre}</div>
-                  <div className="list-meta">
-                    {lab.valor_num ?? lab.valor_texto}
-                    {lab.unidad_snapshot ? ` ${lab.unidad_snapshot}` : ""}
+                <div key={lab.id} className="lab-card">
+                  <div className="lab-row">
+                    <div className="lab-name">{lab.lab_nombre}</div>
+                    <div className="lab-value">
+                      {lab.valor_num ?? lab.valor_texto}
+                      {lab.unidad_snapshot ? ` ${lab.unidad_snapshot}` : ""}
+                    </div>
                   </div>
                   {lab.rango_ref_snapshot && (
-                    <div className="list-meta">Rango: {lab.rango_ref_snapshot}</div>
+                    <div className="lab-range">Rango: {lab.rango_ref_snapshot}</div>
                   )}
                 </div>
               ))}

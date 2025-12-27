@@ -179,6 +179,152 @@ button.ghost, .ghost {
   word-break: break-word;
 }
 
+.section-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.consultation-card {
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+  max-width: 100%;
+}
+
+.consultation-date {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.consultation-diagnosis {
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.5;
+  word-break: normal;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+.consultation-notes {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #2f2f2f;
+  white-space: pre-wrap;
+  word-break: normal;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+.medications-list {
+  display: grid;
+  gap: 12px;
+}
+
+.medication-card {
+  border: 1px solid var(--border);
+  background: #f8fafc;
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: grid;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.medication-name {
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.5;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+.medication-meta {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.medication-description {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #2f2f2f;
+  white-space: pre-wrap;
+  word-break: normal;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+.lab-list {
+  display: grid;
+  gap: 10px;
+}
+
+.lab-card {
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.lab-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.lab-name {
+  font-weight: 600;
+  word-break: normal;
+  overflow-wrap: break-word;
+  max-width: 70%;
+}
+
+.lab-value {
+  font-weight: 600;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.lab-range {
+  font-size: 12px;
+  color: var(--muted);
+  word-break: break-word;
+}
+
+.history-card {
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: grid;
+  gap: 6px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.history-date {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.history-diagnosis {
+  font-weight: 600;
+  line-height: 1.5;
+  word-break: normal;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
 .error {
   background: #fee2e2;
   color: #991b1b;

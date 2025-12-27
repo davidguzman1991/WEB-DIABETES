@@ -404,7 +404,7 @@ export default function Dashboard() {
         return;
       }
 
-      if (!res.ok) {
+      if (res.status >= 400) {
         const data = await res.json().catch(() => ({}));
         setError(data.detail || "Error al crear paciente");
         return;

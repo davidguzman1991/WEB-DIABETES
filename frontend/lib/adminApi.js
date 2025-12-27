@@ -52,7 +52,7 @@ export async function adminRequest(
   if (res.status === 204) return null;
 
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
+  if (res.status >= 400) {
     const detail = data?.detail ? `${res.status}: ${data.detail}` : `Error ${res.status}`;
     throw new Error(detail);
   }

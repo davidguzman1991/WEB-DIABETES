@@ -8,6 +8,7 @@ export function useAuthGuard(options = {}) {
   const mode = options.mode || "me";
   const redirectTo = options.redirectTo || "/login";
   const [user, setUser] = useState(null);
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,10 +33,12 @@ export function useAuthGuard(options = {}) {
       .then((data) => {
         if (!active) return;
         setUser(data);
+        setError("");
         setLoading(false);
       })
-      .catch(() => {
+      .catch((err) => {
         if (!active) return;
+        setError(err?.message || "No se pudo validar la sesion");
         clearToken();
         router.replace(redirectTo);
         setLoading(false);
@@ -46,5 +49,5 @@ export function useAuthGuard(options = {}) {
     };
   }, [mode, redirectTo, router]);
 
-  return { user, loading };
+  return { user, loading, error };
 }

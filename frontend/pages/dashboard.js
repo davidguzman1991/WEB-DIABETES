@@ -50,7 +50,7 @@ const canSubmit = (form, dateError) => {
 
 export default function Dashboard() {
   const router = useRouter();
-  const { user, loading } = useAuthGuard();
+  const { user, loading, error: authError } = useAuthGuard();
   const [form, setForm] = useState({
     cedula: "",
     password: "",
@@ -136,6 +136,17 @@ export default function Dashboard() {
         <div className="card">
           <h1>Dashboard</h1>
           <p className="muted">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (authError) {
+    return (
+      <div className="page">
+        <div className="card">
+          <h1>Dashboard</h1>
+          <div className="error">{authError}</div>
         </div>
       </div>
     );

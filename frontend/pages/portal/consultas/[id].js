@@ -96,12 +96,15 @@ export default function ConsultaDetalle() {
               {consulta.medications.map((med) => (
                 <div key={med.id} className="list-item">
                   <div className="list-title">{med.drug_name}</div>
-                  <div className="list-meta">
-                    {[med.dose, med.frequency, med.route, med.duration]
-                      .filter(Boolean)
-                      .join(" / ")}
-                  </div>
-                  {med.indications && <div className="list-meta">{med.indications}</div>}
+                  {med.quantity !== null && med.quantity !== undefined && (
+                    <div className="list-meta">Cantidad: {med.quantity}</div>
+                  )}
+                  {med.description && (
+                    <div className="list-meta">Descripcion: {med.description}</div>
+                  )}
+                  {med.duration_days !== null && med.duration_days !== undefined && (
+                    <div className="list-meta">Duracion: {med.duration_days} dias</div>
+                  )}
                 </div>
               ))}
             </div>

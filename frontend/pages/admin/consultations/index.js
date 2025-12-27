@@ -6,11 +6,9 @@ import { adminRequest, getAdminToken } from "../../../lib/adminApi";
 const emptyMedication = (seed) => ({
   id: `${Date.now()}-${seed}`,
   drug_name: "",
-  dose: "",
-  route: "",
-  frequency: "",
-  duration: "",
-  indications: "",
+  quantity: "",
+  description: "",
+  duration_days: "",
 });
 
 export default function AdminConsultations() {
@@ -67,15 +65,27 @@ export default function AdminConsultations() {
       .map((med) => ({
         ...med,
         drug_name: med.drug_name.trim(),
-        dose: med.dose.trim(),
+        quantity: String(med.quantity || "").trim(),
+        description: (med.description || "").trim(),
+        duration_days: String(med.duration_days || "").trim(),
       }))
-      .filter((med) => med.drug_name || med.dose);
+      .filter((med) => med.drug_name || med.quantity);
 
     if (!cleaned.length) return "Agrega al menos un medicamento";
 
     for (const med of cleaned) {
-      if (!med.drug_name) return "drug_name es obligatorio";
-      if (!med.dose) return "dose es obligatorio";
+      if (!med.drug_name) return "Medicamento es obligatorio";
+      if (!med.quantity) return "Cantidad es obligatoria";
+      const quantity = Number(med.quantity);
+      if (!Number.isInteger(quantity) || quantity <= 0) {
+        return "Cantidad debe ser un numero entero positivo";
+      }
+      if (med.duration_days) {
+        const duration = Number(med.duration_days);
+        if (!Number.isInteger(duration) || duration <= 0) {
+          return "Duracion debe ser un numero entero positivo";
+        }
+      }
     }
     return null;
   };
@@ -98,14 +108,12 @@ export default function AdminConsultations() {
         notes: form.notes || null,
         indications: form.indications || null,
         medications: medications
-          .filter((med) => med.drug_name.trim() || med.dose.trim())
+          .filter((med) => med.drug_name.trim() || String(med.quantity || "").trim())
           .map((med, index) => ({
             drug_name: med.drug_name.trim(),
-            dose: med.dose.trim(),
-            route: med.route || null,
-            frequency: med.frequency || null,
-            duration: med.duration || null,
-            indications: med.indications || null,
+            quantity: Number(med.quantity),
+            description: med.description.trim() || null,
+            duration_days: med.duration_days ? Number(med.duration_days) : null,
             sort_order: index + 1,
           })),
       };
@@ -170,52 +178,44 @@ export default function AdminConsultations() {
           <h2>Medicamentos</h2>
           <div className="list">
             {medications.map((med) => (
-              <div key={med.id} className="list-item">
-                <label>
-                  Medicamento
-                  <input
-                    value={med.drug_name}
-                    onChange={(e) => updateMedication(med.id, "drug_name", e.target.value)}
-                  />
-                </label>
-                <label>
-                  Dosis
-                  <input
-                    value={med.dose}
-                    onChange={(e) => updateMedication(med.id, "dose", e.target.value)}
-                  />
-                </label>
-                <label>
-                  Via
-                  <input
-                    value={med.route}
-                    onChange={(e) => updateMedication(med.id, "route", e.target.value)}
-                  />
-                </label>
-                <label>
-                  Frecuencia
-                  <input
-                    value={med.frequency}
-                    onChange={(e) => updateMedication(med.id, "frequency", e.target.value)}
-                  />
-                </label>
-                <label>
-                  Duracion
-                  <input
-                    value={med.duration}
-                    onChange={(e) => updateMedication(med.id, "duration", e.target.value)}
-                  />
-                </label>
-                <label>
-                  Indicaciones
-                  <input
-                    value={med.indications}
-                    onChange={(e) => updateMedication(med.id, "indications", e.target.value)}
-                  />
-                </label>
-                <button type="button" onClick={() => removeMedication(med.id)}>
-                  Eliminar medicamento
-                </button>
+              <div key={med.id} className="item-block">
+                <div className="form two">
+                  <label>
+                    Medicamento
+                    <input
+                      value={med.drug_name}
+                      onChange={(e) => updateMedication(med.id, "drug_name", e.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Cantidad
+                    <input
+                      type="number"
+                      value={med.quantity}
+                      onChange={(e) => updateMedication(med.id, "quantity", e.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Descripcion
+                    <textarea
+                      value={med.description}
+                      onChange={(e) => updateMedication(med.id, "description", e.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Duracion (dias)
+                    <input
+                      type="number"
+                      value={med.duration_days}
+                      onChange={(e) => updateMedication(med.id, "duration_days", e.target.value)}
+                    />
+                  </label>
+                </div>
+                <div className="row-actions">
+                  <button type="button" className="ghost" onClick={() => removeMedication(med.id)}>
+                    Eliminar medicamento
+                  </button>
+                </div>
               </div>
             ))}
           </div>

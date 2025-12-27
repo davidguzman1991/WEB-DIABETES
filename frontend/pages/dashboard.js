@@ -4,7 +4,6 @@ import { apiFetch, logout } from "../lib/auth";
 import { useAuthGuard } from "../hooks/useAuthGuard";
 
 const LAB_VALUE_EMPTY = "";
-const MEDICATION_OPTIONS = ["Metformina", "Atorvastatina", "Losartan", "AAS", "Omeprazol"];
 
 const computeAge = (dateStr) => {
   if (!dateStr) return { age: null, error: null };
@@ -66,8 +65,6 @@ export default function Dashboard() {
   const [consultaError, setConsultaError] = useState("");
   const [consultaSuccess, setConsultaSuccess] = useState("");
   const [consultas, setConsultas] = useState([]);
-  const [activeMedId, setActiveMedId] = useState(null);
-  const [activeMedIndex, setActiveMedIndex] = useState(-1);
   const [labCatalog, setLabCatalog] = useState([]);
   const [labCatalogError, setLabCatalogError] = useState("");
   const [labs, setLabs] = useState([]);
@@ -217,61 +214,6 @@ export default function Dashboard() {
   const onMedicamentoChange = (index, event) => {
     const { name, value } = event.target;
     updateMedicamentoField(index, name, value);
-    if (name === "nombre") {
-      setActiveMedId(medicamentos[index]?.id);
-      setActiveMedIndex(-1);
-    }
-  };
-
-  const getMedicationMatches = (value) => {
-    const term = (value || "").trim().toLowerCase();
-    if (!term) return MEDICATION_OPTIONS;
-    return MEDICATION_OPTIONS.filter((option) => option.toLowerCase().includes(term));
-  };
-
-  const handleMedicationKeyDown = (event, index, med) => {
-    const matches = getMedicationMatches(med.nombre);
-    if (!matches.length) return;
-
-    if (event.key === "ArrowDown") {
-      event.preventDefault();
-      setActiveMedId(med.id);
-      setActiveMedIndex((prev) => {
-        if (prev < 0) return 0;
-        return (prev + 1) % matches.length;
-      });
-      return;
-    }
-
-    if (event.key === "ArrowUp") {
-      event.preventDefault();
-      setActiveMedId(med.id);
-      setActiveMedIndex((prev) => {
-        if (prev <= 0) return matches.length - 1;
-        return prev - 1;
-      });
-      return;
-    }
-
-    if (event.key === "Enter" && activeMedId === med.id && activeMedIndex >= 0) {
-      event.preventDefault();
-      const selected = matches[activeMedIndex];
-      updateMedicamentoField(index, "nombre", selected);
-      setActiveMedId(null);
-      setActiveMedIndex(-1);
-      return;
-    }
-
-    if (event.key === "Escape") {
-      setActiveMedId(null);
-      setActiveMedIndex(-1);
-    }
-  };
-
-  const handleMedicationSelect = (index, option) => {
-    updateMedicamentoField(index, "nombre", option);
-    setActiveMedId(null);
-    setActiveMedIndex(-1);
   };
 
   const addMedicamento = () => {
@@ -481,6 +423,23 @@ export default function Dashboard() {
       setConsultaError("Completa medicamento y cantidad en cada fila");
       return;
     }
+    const invalidQuantity = touchedMeds.find((med) => {
+      const quantity = Number(med.cantidad);
+      return !Number.isInteger(quantity) || quantity <= 0;
+    });
+    if (invalidQuantity) {
+      setConsultaError("Cantidad debe ser un numero entero positivo");
+      return;
+    }
+    const invalidDuration = touchedMeds.find((med) => {
+      if (!med.duracion_dias) return false;
+      const duration = Number(med.duracion_dias);
+      return !Number.isInteger(duration) || duration <= 0;
+    });
+    if (invalidDuration) {
+      setConsultaError("Duracion debe ser un numero entero positivo");
+      return;
+    }
     try {
       if (labs.length && !labCatalog.length) {
         setLabsError("No se pudo cargar catalogo de laboratorios");
@@ -500,20 +459,13 @@ export default function Dashboard() {
           notes: consultaForm.notas_medicas || null,
           indications: consultaForm.indicaciones_generales || null,
           medications: touchedMeds.map((med, index) => {
-            const detail = [
-              `Cantidad: ${med.cantidad}`,
-              med.descripcion ? `Descripcion: ${med.descripcion}` : null,
-              med.duracion_dias ? `Duracion: ${med.duracion_dias} dias` : null,
-            ]
-              .filter(Boolean)
-              .join(" | ");
+            const quantity = Number(med.cantidad);
+            const durationDays = med.duracion_dias ? Number(med.duracion_dias) : null;
             return {
               drug_name: med.nombre,
-              dose: med.cantidad,
-              route: null,
-              frequency: null,
-              duration: med.duracion_dias ? `${med.duracion_dias} dias` : null,
-              indications: detail || null,
+              quantity,
+              description: med.descripcion || null,
+              duration_days: durationDays,
               sort_order: index,
             };
           }),
@@ -691,73 +643,48 @@ export default function Dashboard() {
             <div id="meds-section">
               <div className="list">
                 {medicamentos.map((med, index) => (
-                  <div key={med.id} className="list-item">
-                    <label>
-                      Medicamento
-                      <input
-                        name="nombre"
-                        value={med.nombre}
-                        onChange={(e) => onMedicamentoChange(index, e)}
-                        onFocus={() => {
-                          setActiveMedId(med.id);
-                          setActiveMedIndex(-1);
-                        }}
-                        onBlur={() => {
-                          setTimeout(() => {
-                            setActiveMedId((current) => (current === med.id ? null : current));
-                            setActiveMedIndex(-1);
-                          }, 100);
-                        }}
-                        onKeyDown={(event) => handleMedicationKeyDown(event, index, med)}
-                      />
-                      {activeMedId === med.id && getMedicationMatches(med.nombre).length > 0 && (
-                        <div className="list">
-                          {getMedicationMatches(med.nombre).map((option, optionIndex) => (
-                            <button
-                              type="button"
-                              key={option}
-                              className="list-item"
-                              onMouseDown={(event) => {
-                                event.preventDefault();
-                                handleMedicationSelect(index, option);
-                              }}
-                              onMouseEnter={() => setActiveMedIndex(optionIndex)}
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </label>
-                    <label>
-                      Cantidad
-                      <input
-                        type="number"
-                        name="cantidad"
-                        value={med.cantidad}
-                        onChange={(e) => onMedicamentoChange(index, e)}
-                      />
-                    </label>
-                    <label>
-                      Descripcion
-                      <textarea
-                        name="descripcion"
-                        value={med.descripcion}
-                        onChange={(e) => onMedicamentoChange(index, e)}
-                      />
-                    </label>
-                    <label>
-                      Duracion (dias)
-                      <input
-                        type="number"
-                        name="duracion_dias"
-                        value={med.duracion_dias}
-                        onChange={(e) => onMedicamentoChange(index, e)}
-                      />
-                    </label>
-                    <button type="button" onClick={() => removeMedicamento(index)}>
-                      Quitar
-                    </button>
+                  <div key={med.id} className="item-block">
+                    <div className="form two">
+                      <label>
+                        Medicamento
+                        <input
+                          name="nombre"
+                          value={med.nombre}
+                          onChange={(e) => onMedicamentoChange(index, e)}
+                        />
+                      </label>
+                      <label>
+                        Cantidad
+                        <input
+                          type="number"
+                          name="cantidad"
+                          value={med.cantidad}
+                          onChange={(e) => onMedicamentoChange(index, e)}
+                        />
+                      </label>
+                      <label>
+                        Descripcion
+                        <textarea
+                          name="descripcion"
+                          value={med.descripcion}
+                          onChange={(e) => onMedicamentoChange(index, e)}
+                        />
+                      </label>
+                      <label>
+                        Duracion (dias)
+                        <input
+                          type="number"
+                          name="duracion_dias"
+                          value={med.duracion_dias}
+                          onChange={(e) => onMedicamentoChange(index, e)}
+                        />
+                      </label>
+                    </div>
+                    <div className="row-actions">
+                      <button type="button" className="ghost" onClick={() => removeMedicamento(index)}>
+                        Quitar
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

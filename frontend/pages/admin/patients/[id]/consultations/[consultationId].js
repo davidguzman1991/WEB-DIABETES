@@ -7,11 +7,9 @@ import { api } from "../../../../../lib/api";
 
 const emptyMedication = {
   drug_name: "",
-  dose: "",
-  route: "",
-  frequency: "",
-  duration: "",
-  indications: "",
+  quantity: "",
+  description: "",
+  duration_days: "",
   sort_order: ""
 };
 
@@ -28,40 +26,44 @@ const MedicationRow = memo(function MedicationRow({ item, onSave, onDelete }) {
   };
 
   return (
-    <div className="list-item">
-      <label>
-        Medicamento
-        <input name="drug_name" value={form.drug_name || ""} onChange={onChange} />
-      </label>
-      <label>
-        Dosis
-        <input name="dose" value={form.dose || ""} onChange={onChange} />
-      </label>
-      <label>
-        Via
-        <input name="route" value={form.route || ""} onChange={onChange} />
-      </label>
-      <label>
-        Frecuencia
-        <input name="frequency" value={form.frequency || ""} onChange={onChange} />
-      </label>
-      <label>
-        Duracion
-        <input name="duration" value={form.duration || ""} onChange={onChange} />
-      </label>
-      <label>
-        Indicaciones
-        <input name="indications" value={form.indications || ""} onChange={onChange} />
-      </label>
-      <label>
-        Orden
-        <input
-          type="number"
-          name="sort_order"
-          value={form.sort_order ?? ""}
-          onChange={onChange}
-        />
-      </label>
+    <div className="item-block">
+      <div className="form two">
+        <label>
+          Medicamento
+          <input name="drug_name" value={form.drug_name || ""} onChange={onChange} />
+        </label>
+        <label>
+          Cantidad
+          <input
+            type="number"
+            name="quantity"
+            value={form.quantity ?? ""}
+            onChange={onChange}
+          />
+        </label>
+        <label>
+          Descripcion
+          <textarea name="description" value={form.description || ""} onChange={onChange} />
+        </label>
+        <label>
+          Duracion (dias)
+          <input
+            type="number"
+            name="duration_days"
+            value={form.duration_days ?? ""}
+            onChange={onChange}
+          />
+        </label>
+        <label>
+          Orden
+          <input
+            type="number"
+            name="sort_order"
+            value={form.sort_order ?? ""}
+            onChange={onChange}
+          />
+        </label>
+      </div>
       <div className="row-actions">
         <button type="button" className="button small" onClick={() => onSave(item, form)}>
           Guardar
@@ -125,17 +127,35 @@ export default function ConsultationMedications() {
       setError("Medicamento requerido");
       return;
     }
+    const quantityText = String(form.quantity ?? "").trim();
+    if (!quantityText) {
+      setError("Cantidad requerida");
+      return;
+    }
+    const quantity = Number(quantityText);
+    if (!Number.isInteger(quantity) || quantity <= 0) {
+      setError("Cantidad debe ser un numero entero positivo");
+      return;
+    }
+    let durationDays = null;
+    const durationText = String(form.duration_days ?? "").trim();
+    if (durationText) {
+      const durationValue = Number(durationText);
+      if (!Number.isInteger(durationValue) || durationValue <= 0) {
+        setError("Duracion debe ser un numero entero positivo");
+        return;
+      }
+      durationDays = durationValue;
+    }
     const sortOrder =
       form.sort_order === "" || form.sort_order === null || form.sort_order === undefined
         ? null
         : Number(form.sort_order);
     const payload = {
       drug_name: drugName,
-      dose: form.dose || null,
-      route: form.route || null,
-      frequency: form.frequency || null,
-      duration: form.duration || null,
-      indications: form.indications || null,
+      quantity,
+      description: (form.description || "").trim() || null,
+      duration_days: durationDays,
       sort_order: Number.isNaN(sortOrder) ? null : sortOrder
     };
 

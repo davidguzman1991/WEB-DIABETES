@@ -180,9 +180,15 @@ export default function PatientDashboard() {
             {medication.medications.map((med) => (
               <div key={med.id} className="list-item">
                 <div className="list-title">{med.drug_name}</div>
-                {med.dose && <div className="list-meta">Dosis: {med.dose}</div>}
-                {med.frequency && <div className="list-meta">Frecuencia: {med.frequency}</div>}
-                {med.indications && <div className="list-meta">Indicaciones: {med.indications}</div>}
+                {med.quantity !== null && med.quantity !== undefined && (
+                  <div className="list-meta">Cantidad: {med.quantity}</div>
+                )}
+                {med.description && (
+                  <div className="list-meta">Descripcion: {med.description}</div>
+                )}
+                {med.duration_days !== null && med.duration_days !== undefined && (
+                  <div className="list-meta">Duracion: {med.duration_days} dias</div>
+                )}
               </div>
             ))}
           </div>

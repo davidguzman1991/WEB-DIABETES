@@ -150,22 +150,18 @@ export default function ConsultationPrint() {
                 <thead>
                   <tr>
                     <th>Medicamento</th>
-                    <th>Dosis</th>
-                    <th>Horario</th>
-                    <th>Via</th>
-                    <th>Duracion</th>
-                    <th>Notas</th>
+                    <th>Cantidad</th>
+                    <th>Descripcion</th>
+                    <th>Duracion (dias)</th>
                   </tr>
                 </thead>
                 <tbody>
                   {medications.map((med, index) => (
                     <tr key={`${med.drug_name}-${index}`}>
                       <td>{med.drug_name}</td>
-                      <td>{med.dose || "--"}</td>
-                      <td>{med.frequency || "--"}</td>
-                      <td>{med.route || "--"}</td>
-                      <td>{med.duration || "--"}</td>
-                      <td>{med.indications || "--"}</td>
+                      <td>{med.quantity ?? "--"}</td>
+                      <td>{med.description || "--"}</td>
+                      <td>{med.duration_days ?? "--"}</td>
                     </tr>
                   ))}
                 </tbody>

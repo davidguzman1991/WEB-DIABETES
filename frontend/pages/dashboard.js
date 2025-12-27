@@ -373,8 +373,8 @@ export default function Dashboard() {
         return;
       }
 
-      if (res.status === 409 || res.status === 400) {
-        setError("Ya existe ese paciente");
+      if (res.status === 409) {
+        setError("El paciente ya existe");
         return;
       }
 

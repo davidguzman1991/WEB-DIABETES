@@ -40,6 +40,11 @@ export default function PatientDashboard() {
           setLoading(false);
           return;
         }
+        if (!data || String(data.role).toLowerCase() !== "patient") {
+          if (!active) return;
+          logout(router, "/patient/login");
+          return;
+        }
         if (!active) return;
         setUser(data);
         setError("");

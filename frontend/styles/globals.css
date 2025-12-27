@@ -197,6 +197,33 @@ button.ghost, .ghost {
   max-width: 100%;
 }
 
+.portal-detail-card {
+  max-width: 680px;
+  margin: 32px auto 0;
+}
+
+.consultation-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.consultation-patient {
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.5;
+  word-break: normal;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+.consultation-meta {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 .consultation-date {
   font-size: 12px;
   color: var(--muted);
@@ -236,12 +263,44 @@ button.ghost, .ghost {
   max-width: 100%;
 }
 
+.accordion-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.accordion-body {
+  display: grid;
+  gap: 6px;
+}
+
+.accordion-icon {
+  flex-shrink: 0;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.lab-toggle {
+  margin-top: 6px;
+}
+
 .medication-name {
   font-weight: 700;
   font-size: 15px;
   line-height: 1.5;
   word-break: normal;
   overflow-wrap: break-word;
+  min-width: 0;
 }
 
 .medication-meta {

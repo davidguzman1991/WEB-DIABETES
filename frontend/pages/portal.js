@@ -11,6 +11,18 @@ export default function Portal() {
   const [loadingCurrent, setLoadingCurrent] = useState(true);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [patientName, setPatientName] = useState("");
+
+  const formatDate = (value) => {
+    if (!value) return "";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleDateString("es-EC", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -47,6 +59,33 @@ export default function Portal() {
       });
   }, [router, user]);
 
+  useEffect(() => {
+    if (!current?.id) return;
+    let active = true;
+    apiFetch(`/consultations/${current.id}/print`)
+      .then(async (res) => {
+        if (res.status === 401 || res.status === 403) {
+          logout(router, "/login");
+          return;
+        }
+        if (!res.ok) return;
+        const data = await res.json().catch(() => null);
+        if (!active || !data?.patient) return;
+        const fullName = [data.patient.nombres, data.patient.apellidos]
+          .filter(Boolean)
+          .join(" ")
+          .trim();
+        if (fullName) {
+          setPatientName(fullName);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, [current?.id, router]);
+
   if (loading || loadingCurrent) {
     return (
       <div className="page">
@@ -62,41 +101,16 @@ export default function Portal() {
     <div className="page">
       <div className="card">
         <h1>Portal</h1>
+        <div className="portal-welcome">
+          Bienvenido {patientName || user?.username || ""}
+        </div>
         {error && <div className="error">{error}</div>}
         {message && <div className="muted">{message}</div>}
+        <div className="section-title">Tratamiento o plan actual</div>
         {current && (
           <div className="consultation-card">
             <div className="consultation-date">
-              {new Date(current.created_at).toLocaleDateString()}
-            </div>
-            {current.diagnosis && (
-              <div className="consultation-diagnosis">{current.diagnosis}</div>
-            )}
-            {current.indications && (
-              <div className="consultation-notes">{current.indications}</div>
-            )}
-            <div className="section-title">Medicacion</div>
-            <div className="medications-list">
-              {current.medications.map((med) => {
-                const metaParts = [];
-                if (med.quantity !== null && med.quantity !== undefined) {
-                  metaParts.push(`Cantidad ${med.quantity}`);
-                }
-                if (med.duration_days !== null && med.duration_days !== undefined) {
-                  metaParts.push(`Duracion ${med.duration_days} dias`);
-                }
-                return (
-                  <div key={med.id} className="medication-card">
-                    <div className="medication-name">{med.drug_name}</div>
-                    {!!metaParts.length && (
-                      <div className="medication-meta">{metaParts.join(" · ")}</div>
-                    )}
-                    {med.description && (
-                      <div className="medication-description">{med.description}</div>
-                    )}
-                  </div>
-                );
-              })}
+              Consulta {formatDate(current.created_at)}
             </div>
           </div>
         )}

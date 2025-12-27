@@ -12,6 +12,17 @@ export default function PortalHistorial() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  const formatDate = (value) => {
+    if (!value) return "";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleDateString("es-EC", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
   useEffect(() => {
     if (!user) return;
     if (String(user.role).toLowerCase() !== "patient") {
@@ -68,12 +79,9 @@ export default function PortalHistorial() {
               className="history-card"
               href={`/portal/consultas/${item.id}`}
             >
-              <div className="history-date">
-                {new Date(item.created_at).toLocaleDateString()}
+              <div className="history-diagnosis">
+                Consulta {formatDate(item.created_at)}
               </div>
-              {item.diagnosis && (
-                <div className="history-diagnosis">{item.diagnosis}</div>
-              )}
             </Link>
           ))}
         </div>

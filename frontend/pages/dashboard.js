@@ -3,22 +3,8 @@ import { useRouter } from "next/router";
 import { apiFetch, logout } from "../lib/auth";
 import { useAuthGuard } from "../hooks/useAuthGuard";
 
-const ROUTE_OTHER = "OTRA";
 const LAB_VALUE_EMPTY = "";
 const MEDICATION_OPTIONS = ["Metformina", "Atorvastatina", "Losartan", "AAS", "Omeprazol"];
-const DOSE_OPTIONS = ["1 tab", "1/2 tab", "2 tab", "5 mg", "10 mg", "25 mg", "50 mg", "500 mg", "850 mg", "1000 mg", "20 UI", "10 UI"];
-const FREQUENCY_OPTIONS = [
-  "Cada 24 h",
-  "Cada 12 h",
-  "Cada 8 h",
-  "Cada 6 h",
-  "Cada semana",
-  "Cada mes",
-  "Noche",
-  "Manana",
-];
-const DURATION_OPTIONS = ["5 dias", "7 dias", "10 dias", "14 dias", "30 dias", "60 dias", "90 dias", "Cronico"];
-const ROUTE_OPTIONS = ["VO", "SC", "IM", "IV", "SL", "Topica", "Inhalatoria", "Oftalmica", "Otica", "Rectal"];
 
 const computeAge = (dateStr) => {
   if (!dateStr) return { age: null, error: null };
@@ -74,7 +60,7 @@ export default function Dashboard() {
   const medIdRef = useRef(0);
   const createMedicamento = () => {
     const id = String((medIdRef.current += 1));
-    return { id, nombre: "", dosis: "", horario: "", via: "", via_otro: "", duracion: "", notas: "" };
+    return { id, nombre: "", cantidad: "", descripcion: "", duracion_dias: "" };
   };
   const [medicamentos, setMedicamentos] = useState(() => [createMedicamento()]);
   const [consultaError, setConsultaError] = useState("");
@@ -224,9 +210,6 @@ export default function Dashboard() {
     setMedicamentos((prev) => {
       const next = [...prev];
       next[index] = { ...next[index], [name]: value };
-      if (name === "via" && value !== ROUTE_OTHER) {
-        next[index].via_otro = "";
-      }
       return next;
     });
   };
@@ -238,13 +221,6 @@ export default function Dashboard() {
       setActiveMedId(medicamentos[index]?.id);
       setActiveMedIndex(-1);
     }
-  };
-
-  const getRouteValue = (med) => {
-    if (med.via === ROUTE_OTHER) {
-      return med.via_otro?.trim() || null;
-    }
-    return med.via || null;
   };
 
   const getMedicationMatches = (value) => {
@@ -486,9 +462,23 @@ export default function Dashboard() {
       setConsultaError(patientLookupMessage || "Paciente no existe. Debe crearlo primero.");
       return;
     }
-    const filteredMeds = medicamentos.filter((med) => med.nombre.trim());
-    if (!filteredMeds.length) {
+    const normalizedMeds = medicamentos.map((med) => ({
+      ...med,
+      nombre: med.nombre.trim(),
+      cantidad: String(med.cantidad || "").trim(),
+      descripcion: (med.descripcion || "").trim(),
+      duracion_dias: String(med.duracion_dias || "").trim(),
+    }));
+    const touchedMeds = normalizedMeds.filter(
+      (med) => med.nombre || med.cantidad || med.descripcion || med.duracion_dias
+    );
+    if (!touchedMeds.length) {
       setConsultaError("Agrega al menos un medicamento");
+      return;
+    }
+    const invalidMed = touchedMeds.find((med) => !med.nombre || !med.cantidad);
+    if (invalidMed) {
+      setConsultaError("Completa medicamento y cantidad en cada fila");
       return;
     }
     try {
@@ -509,15 +499,24 @@ export default function Dashboard() {
           diagnosis: consultaForm.diagnostico || null,
           notes: consultaForm.notas_medicas || null,
           indications: consultaForm.indicaciones_generales || null,
-          medications: filteredMeds.map((med, index) => ({
-            drug_name: med.nombre,
-            dose: med.dosis || null,
-            route: getRouteValue(med),
-            frequency: med.horario || null,
-            duration: med.duracion || null,
-            indications: med.notas || null,
-            sort_order: index,
-          })),
+          medications: touchedMeds.map((med, index) => {
+            const detail = [
+              `Cantidad: ${med.cantidad}`,
+              med.descripcion ? `Descripcion: ${med.descripcion}` : null,
+              med.duracion_dias ? `Duracion: ${med.duracion_dias} dias` : null,
+            ]
+              .filter(Boolean)
+              .join(" | ");
+            return {
+              drug_name: med.nombre,
+              dose: med.cantidad,
+              route: null,
+              frequency: null,
+              duration: med.duracion_dias ? `${med.duracion_dias} dias` : null,
+              indications: detail || null,
+              sort_order: index,
+            };
+          }),
         },
       });
 
@@ -615,7 +614,7 @@ export default function Dashboard() {
             />
           </label>
           {dateError && <div className="error">{dateError}</div>}
-          {!dateError && age !== null && <div className="muted">Edad: {age} anos</div>}
+          {!dateError && age !== null && <div className="muted">Edad: {age} años</div>}
           {!dateError && age === null && form.fecha_nacimiento && <div className="muted">Edad: -</div>}
           <button type="submit" disabled={!canSubmit(form, dateError)}>
             Crear
@@ -731,57 +730,30 @@ export default function Dashboard() {
                       )}
                     </label>
                     <label>
-                      Dosis
+                      Cantidad
                       <input
-                        name="dosis"
-                        list="dose-options"
-                        value={med.dosis}
+                        type="number"
+                        name="cantidad"
+                        value={med.cantidad}
                         onChange={(e) => onMedicamentoChange(index, e)}
                       />
                     </label>
                     <label>
-                      Horario
-                      <input
-                        name="horario"
-                        list="frequency-options"
-                        value={med.horario}
+                      Descripcion
+                      <textarea
+                        name="descripcion"
+                        value={med.descripcion}
                         onChange={(e) => onMedicamentoChange(index, e)}
                       />
                     </label>
                     <label>
-                      Via
-                      <select name="via" value={med.via} onChange={(e) => onMedicamentoChange(index, e)}>
-                        <option value="">Seleccionar</option>
-                        {ROUTE_OPTIONS.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                        <option value={ROUTE_OTHER}>Otra...</option>
-                      </select>
-                    </label>
-                    {med.via === ROUTE_OTHER && (
-                      <label>
-                        Via (otra)
-                        <input
-                          name="via_otro"
-                          value={med.via_otro}
-                          onChange={(e) => onMedicamentoChange(index, e)}
-                        />
-                      </label>
-                    )}
-                    <label>
-                      Duracion
+                      Duracion (dias)
                       <input
-                        name="duracion"
-                        list="duration-options"
-                        value={med.duracion}
+                        type="number"
+                        name="duracion_dias"
+                        value={med.duracion_dias}
                         onChange={(e) => onMedicamentoChange(index, e)}
                       />
-                    </label>
-                    <label>
-                      Notas
-                      <input name="notas" value={med.notas} onChange={(e) => onMedicamentoChange(index, e)} />
                     </label>
                     <button type="button" onClick={() => removeMedicamento(index)}>
                       Quitar
@@ -856,21 +828,6 @@ export default function Dashboard() {
               </button>
             </div>
           )}
-          <datalist id="dose-options">
-            {DOSE_OPTIONS.map((option) => (
-              <option key={option} value={option} />
-            ))}
-          </datalist>
-          <datalist id="frequency-options">
-            {FREQUENCY_OPTIONS.map((option) => (
-              <option key={option} value={option} />
-            ))}
-          </datalist>
-          <datalist id="duration-options">
-            {DURATION_OPTIONS.map((option) => (
-              <option key={option} value={option} />
-            ))}
-          </datalist>
           <button type="submit" disabled={patientLookupStatus !== "found"}>
             Guardar consulta
           </button>

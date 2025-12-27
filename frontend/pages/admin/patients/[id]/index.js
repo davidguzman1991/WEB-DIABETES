@@ -15,6 +15,11 @@ export default function EditPatient() {
   const [labsByConsultation, setLabsByConsultation] = useState({});
   const [latestLabs, setLatestLabs] = useState([]);
   const [labsMessage, setLabsMessage] = useState("");
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetPassword, setResetPassword] = useState("");
+  const [resetError, setResetError] = useState("");
+  const [resetSuccess, setResetSuccess] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
 
   useEffect(() => {
     const token = api.getToken("admin");
@@ -118,6 +123,43 @@ export default function EditPatient() {
     }
   };
 
+  const onOpenResetModal = () => {
+    setResetPassword("");
+    setResetError("");
+    setResetSuccess("");
+    setShowResetModal(true);
+  };
+
+  const onCloseResetModal = () => {
+    if (resetLoading) return;
+    setShowResetModal(false);
+  };
+
+  const onResetPassword = async (event) => {
+    event.preventDefault();
+    setResetError("");
+    setResetSuccess("");
+    const value = resetPassword.trim();
+    if (value.length < 8) {
+      setResetError("La nueva contrasena debe tener al menos 8 caracteres");
+      return;
+    }
+    setResetLoading(true);
+    try {
+      await api.request(`/admin/patients/${id}/reset-password`, {
+        method: "POST",
+        token: api.getToken("admin"),
+        body: { new_password: value }
+      });
+      setResetSuccess("Contrasena actualizada correctamente");
+      setResetPassword("");
+    } catch (err) {
+      setResetError(err.message || "No se pudo actualizar la contrasena");
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   if (!form) {
     return (
       <div className="page">
@@ -146,6 +188,11 @@ export default function EditPatient() {
       <section className="panel">
         <h1>Editar paciente</h1>
         {error && <div className="error">{error}</div>}
+        <div className="row-actions">
+          <button type="button" className="button" onClick={onOpenResetModal}>
+            Resetear contrasena
+          </button>
+        </div>
         <form onSubmit={onSubmit} className="form two">
           <label>
             Cedula
@@ -174,6 +221,46 @@ export default function EditPatient() {
           <button type="submit">Guardar cambios</button>
         </form>
       </section>
+      {showResetModal && (
+        <div
+          className="page"
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0, 0, 0, 0.4)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 50
+          }}
+        >
+          <div className="card" style={{ maxWidth: 480, width: "100%" }}>
+            <h2>Resetear contrasena</h2>
+            {resetError && <div className="error">{resetError}</div>}
+            {resetSuccess && <div className="success">{resetSuccess}</div>}
+            <form onSubmit={onResetPassword} className="form">
+              <label>
+                Nueva contrasena
+                <input
+                  type="password"
+                  value={resetPassword}
+                  onChange={(event) => setResetPassword(event.target.value)}
+                  minLength={8}
+                  required
+                />
+              </label>
+              <div className="row-actions">
+                <button type="button" className="ghost" onClick={onCloseResetModal}>
+                  Cancelar
+                </button>
+                <button type="submit" disabled={resetLoading}>
+                  {resetLoading ? "Guardando..." : "Confirmar"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       <section className="panel">
         <h2>Historial de Laboratorios</h2>
         {labsMessage && <div className="muted">{labsMessage}</div>}

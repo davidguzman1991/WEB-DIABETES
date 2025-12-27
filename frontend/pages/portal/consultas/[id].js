@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/router";
 
 import { apiFetch, logout } from "../../../lib/auth";
@@ -73,6 +74,9 @@ export default function ConsultaDetalle() {
     <div className="page">
       <div className="card">
         <h1>Consulta</h1>
+        <Link className="button" href="/portal/historial">
+          ← Volver al historial
+        </Link>
         {error && <div className="error">{error}</div>}
         {consulta && (
           <>

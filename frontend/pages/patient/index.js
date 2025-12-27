@@ -11,6 +11,9 @@ export default function PatientDashboard() {
   const [medication, setMedication] = useState(null);
   const [medsLoading, setMedsLoading] = useState(false);
   const [medsError, setMedsError] = useState("");
+  const [consultations, setConsultations] = useState([]);
+  const [consultationsLoading, setConsultationsLoading] = useState(false);
+  const [consultationsError, setConsultationsError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -87,6 +90,42 @@ export default function PatientDashboard() {
     };
   }, [router, user]);
 
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    setConsultationsLoading(true);
+    setConsultationsError("");
+    apiFetch("/patient/consultations")
+      .then(async (res) => {
+        if (res.status === 401 || res.status === 403) {
+          logout(router, "/patient/login");
+          return;
+        }
+        const data = await res.json().catch(() => []);
+        if (!res.ok) {
+          if (!active) return;
+          setConsultationsError(data?.detail || "No se pudo cargar el historial");
+          setConsultationsLoading(false);
+          return;
+        }
+        if (!active) return;
+        const list = Array.isArray(data) ? data : [];
+        list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        setConsultations(list);
+        setConsultationsError("");
+        setConsultationsLoading(false);
+      })
+      .catch(() => {
+        if (!active) return;
+        setConsultationsError("No se pudo cargar el historial");
+        setConsultationsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [router, user]);
+
   if (loading) {
     return (
       <div className="page">
@@ -143,6 +182,29 @@ export default function PatientDashboard() {
             ))}
           </div>
         ) : null}
+      </div>
+      <div className="card">
+        <h2>Historial de consultas</h2>
+        {consultationsLoading && <p className="muted">Cargando historial...</p>}
+        {!consultationsLoading && consultationsError && (
+          <div className="error">{consultationsError}</div>
+        )}
+        {!consultationsLoading && !consultationsError && consultations.length === 0 && (
+          <p className="muted">Aun no tienes consultas registradas.</p>
+        )}
+        {!consultationsLoading && !consultationsError && consultations.length > 0 && (
+          <div className="list">
+            {consultations.map((item) => (
+              <div key={item.id} className="list-item">
+                <div className="list-title">
+                  {item.created_at ? new Date(item.created_at).toLocaleDateString() : "Sin fecha"}
+                </div>
+                {item.diagnosis && <div className="list-meta">{item.diagnosis}</div>}
+                {item.indications && <div className="list-meta">{item.indications}</div>}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

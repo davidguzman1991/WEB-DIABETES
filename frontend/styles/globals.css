@@ -192,21 +192,26 @@ button.ghost, .ghost {
   padding-bottom: 12px;
   border-bottom: 1px solid var(--border);
   display: grid;
-  gap: 4px;
+  gap: 6px;
   line-height: 1.5;
   word-break: normal;
   overflow-wrap: break-word;
   max-width: 100%;
 }
 
-.portal-welcome-title {
+.portal-welcome-name {
+  font-weight: 700;
+}
+
+.portal-welcome-line {
   font-size: 18px;
   font-weight: 600;
 }
 
-.portal-welcome-name {
-  font-size: 20px;
-  font-weight: 700;
+.portal-welcome-subtitle {
+  font-size: 13px;
+  color: var(--muted);
+  max-width: 52ch;
 }
 
 .accordion {
@@ -275,6 +280,18 @@ button.ghost, .ghost {
   word-break: normal;
   overflow-wrap: break-word;
   max-width: 100%;
+}
+
+.portal-helper {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 8px 0 12px;
+  max-width: 60ch;
+}
+
+.portal-disclaimer {
+  margin-top: 16px;
 }
 
 .consultation-card {

@@ -34,6 +34,70 @@ a {
   padding: 32px 20px 60px;
 }
 
+.login-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-image: url("/diabetesweb.webp");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: #fff;
+  overflow-x: hidden;
+}
+
+.login-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 16, 22, 0.65);
+}
+
+.login-hero-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+.login-card {
+  background: rgba(9, 16, 22, 0.78);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 20px 40px rgba(8, 12, 18, 0.45);
+  margin: 0 auto;
+}
+
+.login-card .muted {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.login-card label {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.login-card input {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+.login-card input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15);
+}
+
+.login-card .link {
+  color: rgba(230, 245, 255, 0.95);
+}
+
+.login-card .error {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffe1e1;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
 .nav {
   display: flex;
   justify-content: space-between;

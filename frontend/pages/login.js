@@ -35,10 +35,13 @@ export default function Login() {
   };
 
   const isAdmin = loginType === "admin";
+  const pageClassName = isAdmin ? "page" : "page login-hero";
+  const cardClassName = isAdmin ? "card" : "card login-card";
 
   return (
-    <div className="page">
-      <div className="card">
+    <div className={pageClassName}>
+      <div className="login-hero-content">
+        <div className={cardClassName}>
         <h1>{isAdmin ? "Ingreso Administrador" : "Ingreso Paciente"}</h1>
         {!isAdmin && <p className="muted">Credenciales temporales: apellido + nombre.</p>}
         <form onSubmit={onSubmit} className="form">
@@ -62,6 +65,7 @@ export default function Login() {
             Administrador
           </Link>
         )}
+        </div>
       </div>
     </div>
   );

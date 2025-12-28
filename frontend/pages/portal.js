@@ -4,6 +4,67 @@ import { useRouter } from "next/router";
 import { getToken, logout } from "../lib/auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const SKELETON_BASE = {
+  backgroundColor: "#e5e7eb",
+  borderRadius: "8px",
+};
+
+const SkeletonLine = ({ width = "100%", height = 12, style = {} }) => (
+  <div
+    aria-hidden="true"
+    style={{
+      ...SKELETON_BASE,
+      width,
+      height,
+      marginBottom: 10,
+      ...style,
+    }}
+  />
+);
+
+const SkeletonCard = ({ children, style = {} }) => (
+  <div
+    className="portal-card"
+    aria-hidden="true"
+    style={{
+      backgroundColor: "#f3f4f6",
+      borderColor: "#e5e7eb",
+      ...style,
+    }}
+  >
+    {children}
+  </div>
+);
+
+const PortalSkeleton = () => (
+  <div className="page">
+    <div className="card portal-shell">
+      <div className="portal-dashboard">
+        <div style={{ marginBottom: 20 }}>
+          <SkeletonLine width="60%" height={22} />
+          <SkeletonLine width="90%" height={14} style={{ marginTop: 8 }} />
+          <SkeletonLine width="80%" height={14} />
+        </div>
+        <SkeletonLine width="100%" height={48} style={{ borderRadius: 12, marginBottom: 20 }} />
+        <section className="portal-section">
+          <SkeletonLine width="40%" height={16} />
+          <SkeletonCard style={{ marginTop: 8 }}>
+            <SkeletonLine width="70%" height={16} />
+            <SkeletonLine width="45%" height={12} />
+          </SkeletonCard>
+        </section>
+        <section className="portal-section">
+          <SkeletonLine width="30%" height={16} />
+          <SkeletonCard style={{ marginTop: 8 }}>
+            <SkeletonLine width="85%" height={14} />
+            <SkeletonLine width="90%" height={14} />
+            <SkeletonLine width="65%" height={14} />
+          </SkeletonCard>
+        </section>
+      </div>
+    </div>
+  </div>
+);
 
 export default function Portal() {
   const router = useRouter();
@@ -292,15 +353,8 @@ export default function Portal() {
 
   const safeGlucoseLogs = Array.isArray(glucoseLogs) ? glucoseLogs : [];
 
-  if (authLoading || loadingCurrent) {
-    return (
-      <div className="page">
-        <div className="card">
-          <h1>Portal</h1>
-          <p className="muted">Cargando...</p>
-        </div>
-      </div>
-    );
+  if (authLoading) {
+    return <PortalSkeleton />;
   }
 
   if (authError) {
@@ -338,7 +392,12 @@ export default function Portal() {
           {message && <div className="muted">{message}</div>}
           <section className="portal-section">
             <div className="section-title">Plan de tratamiento actual</div>
-            {current ? (
+            {loadingCurrent ? (
+              <SkeletonCard style={{ marginTop: 8 }}>
+                <SkeletonLine width="70%" height={16} />
+                <SkeletonLine width="45%" height={12} />
+              </SkeletonCard>
+            ) : current ? (
               <Link
                 className="portal-card portal-card-highlight"
                 href={`/portal/consultas/${current.id}`}
@@ -391,29 +450,36 @@ export default function Portal() {
                 </button>
               </form>
               <div className="glucose-list">
-                {glucoseLoading && <div className="muted">Cargando historial...</div>}
+                {glucoseLoading ? (
+                  <SkeletonCard style={{ marginTop: 8 }}>
+                    <SkeletonLine width="50%" height={12} />
+                    <SkeletonLine width="30%" height={18} />
+                    <SkeletonLine width="80%" height={12} />
+                  </SkeletonCard>
+                ) : null}
                 {!glucoseLoading && safeGlucoseLogs.length === 0 && (
                   <div className="muted">No hay registros de glucosa.</div>
                 )}
-                {safeGlucoseLogs.map((log, index) => {
-                  if (!log || typeof log !== "object") return null;
-                  const logId =
-                    log.id ||
-                    `${log.taken_at || log.created_at || "glucose"}-${index}`;
-                  const logDate = log.taken_at || log.created_at;
-                  const logValue =
-                    log.value !== null && log.value !== undefined
-                      ? `${log.value} mg/dL`
-                      : "Sin valor";
-                  const noteText = log.observation || log.notes || log.description;
-                  return (
-                    <div key={logId} className="glucose-item">
-                      <div className="glucose-meta">{formatDate(logDate)}</div>
-                      <div className="glucose-value">{logValue}</div>
-                      {noteText && <div className="glucose-note">{noteText}</div>}
-                    </div>
-                  );
-                })}
+                {!glucoseLoading &&
+                  safeGlucoseLogs.map((log, index) => {
+                    if (!log || typeof log !== "object") return null;
+                    const logId =
+                      log.id ||
+                      `${log.taken_at || log.created_at || "glucose"}-${index}`;
+                    const logDate = log.taken_at || log.created_at;
+                    const logValue =
+                      log.value !== null && log.value !== undefined
+                        ? `${log.value} mg/dL`
+                        : "Sin valor";
+                    const noteText = log.observation || log.notes || log.description;
+                    return (
+                      <div key={logId} className="glucose-item">
+                        <div className="glucose-meta">{formatDate(logDate)}</div>
+                        <div className="glucose-value">{logValue}</div>
+                        {noteText && <div className="glucose-note">{noteText}</div>}
+                      </div>
+                    );
+                  })}
               </div>
             </div>
           </section>

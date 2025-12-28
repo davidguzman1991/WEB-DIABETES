@@ -73,6 +73,11 @@ export default function Dashboard() {
   const [labRowErrors, setLabRowErrors] = useState({});
   const [medsOpen, setMedsOpen] = useState(true);
   const [labsOpen, setLabsOpen] = useState(true);
+  const [sectionsOpen, setSectionsOpen] = useState({
+    createPatient: false,
+    searchPatient: false,
+    createConsultation: false,
+  });
   const labIdRef = useRef(0);
 
   useEffect(() => {
@@ -522,255 +527,334 @@ export default function Dashboard() {
     }
   };
 
+  const toggleSection = (key) => {
+    setSectionsOpen((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
   return (
     <div className="page">
-      <div className="card">
-        <h1>Dashboard</h1>
-        <p className="muted">Sesion iniciada</p>
-        <div>Usuario: {user.username}</div>
-        <div>Rol: {user.role}</div>
-        <div>Activo: {user.activo ? "Si" : "No"}</div>
-        <button type="button" onClick={() => logout(router)}>
-          Cerrar sesion
-        </button>
-      </div>
-      <div className="card">
-        <h2>Crear paciente</h2>
-        {error && <div className="error">{error}</div>}
-        {success && <div className="success">{success}</div>}
-        <form onSubmit={onSubmit} className="form">
-          <label>
-            Cedula
-            <input name="cedula" value={form.cedula} onChange={onChange} required />
-          </label>
-          <label>
-            Password
-            <input type="password" name="password" value={form.password} onChange={onChange} />
-          </label>
-          <label>
-            Nombres
-            <input name="nombres" value={form.nombres} onChange={onChange} />
-          </label>
-          <label>
-            Apellidos
-            <input name="apellidos" value={form.apellidos} onChange={onChange} />
-          </label>
-          <label>
-            Fecha de nacimiento
-            <input
-              type="date"
-              name="fecha_nacimiento"
-              value={form.fecha_nacimiento}
-              onChange={onChange}
-              required
-            />
-          </label>
-          {dateError && <div className="error">{dateError}</div>}
-          {!dateError && age !== null && <div className="muted">Edad: {age} años</div>}
-          {!dateError && age === null && form.fecha_nacimiento && <div className="muted">Edad: -</div>}
-          <button type="submit" disabled={!canSubmit(form, dateError)}>
-            Crear
-          </button>
-        </form>
-      </div>
-      <div className="card">
-        <h2>Crear consulta</h2>
-        {consultaError && <div className="error">{consultaError}</div>}
-        {consultaSuccess && <div className="success">{consultaSuccess}</div>}
-        <form onSubmit={onSubmitConsulta} className="form">
-          <label>
-            Cedula paciente
-            <input
-              name="patient_username"
-              value={consultaForm.patient_username}
-              onChange={onConsultaChange}
-              required
-            />
-          </label>
-          {patientLookupStatus === "loading" && (
-            <div className="muted">Validando paciente...</div>
-          )}
-          {patientLookupStatus === "found" && (
-            <div className="success">{patientLookupMessage}</div>
-          )}
-          {patientLookupStatus !== "found" && patientLookupMessage && (
-            <div className="error">{patientLookupMessage}</div>
-          )}
-          <label>
-            Nombres
-            <input value={patientInfo?.nombres || ""} disabled readOnly />
-          </label>
-          <label>
-            Apellidos
-            <input value={patientInfo?.apellidos || ""} disabled readOnly />
-          </label>
-          <label>
-            Diagnostico
-            <textarea
-              name="diagnostico"
-              value={consultaForm.diagnostico}
-              onChange={onConsultaChange}
-            />
-          </label>
-          <label>
-            Notas medicas
-            <textarea
-              name="notas_medicas"
-              value={consultaForm.notas_medicas}
-              onChange={onConsultaChange}
-            />
-          </label>
-          <label>
-            Indicaciones generales
-            <textarea
-              name="indicaciones_generales"
-              value={consultaForm.indicaciones_generales}
-              onChange={onConsultaChange}
-            />
-          </label>
-          <div className="row-actions">
-            <button
-              type="button"
-              className="ghost"
-              onClick={() => setMedsOpen((prev) => !prev)}
-              aria-expanded={medsOpen}
-              aria-controls="meds-section"
-            >
-              {medsOpen ? "Ocultar medicamentos" : "Mostrar medicamentos"}
-            </button>
+      <div className="card admin-shell">
+        <header className="admin-header">
+          <div>
+            <h1>Bienvenido Dr. Guzman - Portal de gestion medica</h1>
+            <p className="muted">Sesion iniciada como {user.username}</p>
+            <div className="admin-meta">
+              Rol: {user.role} | Activo: {user.activo ? "Si" : "No"}
+            </div>
           </div>
-          {medsOpen && (
-            <div id="meds-section">
-              <div className="list">
-                {medicamentos.map((med, index) => (
-                  <div key={med.id} className="item-block">
-                    <div className="form two">
-                      <label>
-                        Medicamento
-                        <input
-                          name="nombre"
-                          value={med.nombre}
-                          onChange={(e) => onMedicamentoChange(index, e)}
-                        />
-                      </label>
-                      <label>
-                        Cantidad
-                        <input
-                          type="number"
-                          name="cantidad"
-                          value={med.cantidad}
-                          onChange={(e) => onMedicamentoChange(index, e)}
-                        />
-                      </label>
-                      <label>
-                        Descripcion
-                        <textarea
-                          name="descripcion"
-                          value={med.descripcion}
-                          onChange={(e) => onMedicamentoChange(index, e)}
-                        />
-                      </label>
-                      <label>
-                        Duracion (dias)
-                        <input
-                          type="number"
-                          name="duracion_dias"
-                          value={med.duracion_dias}
-                          onChange={(e) => onMedicamentoChange(index, e)}
-                        />
-                      </label>
+          <button type="button" onClick={() => logout(router)}>
+            Cerrar sesion
+          </button>
+        </header>
+        <div className="admin-actions">
+          <button
+            type="button"
+            className={`admin-toggle ${sectionsOpen.createPatient ? "is-open" : ""}`}
+            onClick={() => toggleSection("createPatient")}
+            aria-expanded={sectionsOpen.createPatient}
+          >
+            Crear paciente
+          </button>
+          <button
+            type="button"
+            className={`admin-toggle ${sectionsOpen.searchPatient ? "is-open" : ""}`}
+            onClick={() => toggleSection("searchPatient")}
+            aria-expanded={sectionsOpen.searchPatient}
+          >
+            Buscar paciente
+          </button>
+          <button
+            type="button"
+            className={`admin-toggle ${sectionsOpen.createConsultation ? "is-open" : ""}`}
+            onClick={() => toggleSection("createConsultation")}
+            aria-expanded={sectionsOpen.createConsultation}
+          >
+            Crear consulta
+          </button>
+        </div>
+      </div>
+
+      {sectionsOpen.createPatient && (
+        <section className="card admin-section">
+          <h2>Crear paciente</h2>
+          {error && <div className="error">{error}</div>}
+          {success && <div className="success">{success}</div>}
+          <form onSubmit={onSubmit} className="form">
+            <label>
+              Cedula
+              <input name="cedula" value={form.cedula} onChange={onChange} required />
+            </label>
+            <label>
+              Password
+              <input type="password" name="password" value={form.password} onChange={onChange} />
+            </label>
+            <label>
+              Nombres
+              <input name="nombres" value={form.nombres} onChange={onChange} />
+            </label>
+            <label>
+              Apellidos
+              <input name="apellidos" value={form.apellidos} onChange={onChange} />
+            </label>
+            <label>
+              Fecha de nacimiento
+              <input
+                type="date"
+                name="fecha_nacimiento"
+                value={form.fecha_nacimiento}
+                onChange={onChange}
+                required
+              />
+            </label>
+            {dateError && <div className="error">{dateError}</div>}
+            {!dateError && age !== null && <div className="muted">Edad: {age} anos</div>}
+            {!dateError && age === null && form.fecha_nacimiento && <div className="muted">Edad: -</div>}
+            <button type="submit" disabled={!canSubmit(form, dateError)}>
+              Crear
+            </button>
+          </form>
+        </section>
+      )}
+
+      {sectionsOpen.searchPatient && (
+        <section className="card admin-section">
+          <h2>Buscar paciente</h2>
+          <div className="form">
+            <label>
+              Cedula paciente
+              <input
+                name="patient_username"
+                value={consultaForm.patient_username}
+                onChange={onConsultaChange}
+                placeholder="Ingrese la cedula"
+              />
+            </label>
+            {patientLookupStatus === "loading" && (
+              <div className="muted">Validando paciente...</div>
+            )}
+            {patientLookupStatus === "found" && (
+              <div className="success">{patientLookupMessage}</div>
+            )}
+            {patientLookupStatus !== "found" && patientLookupMessage && (
+              <div className="error">{patientLookupMessage}</div>
+            )}
+            <label>
+              Nombres
+              <input value={patientInfo?.nombres || ""} disabled readOnly />
+            </label>
+            <label>
+              Apellidos
+              <input value={patientInfo?.apellidos || ""} disabled readOnly />
+            </label>
+          </div>
+          <button type="button" onClick={loadConsultas}>
+            Consultas recientes del paciente
+          </button>
+          {consultaError && <div className="error">{consultaError}</div>}
+          <div className="list">
+            {consultas.map((item) => (
+              <div key={item.id} className="list-item">
+                <div className="list-title">{new Date(item.created_at).toLocaleDateString()}</div>
+                {item.diagnosis && <div className="list-meta">{item.diagnosis}</div>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {sectionsOpen.createConsultation && (
+        <section className="card admin-section">
+          <h2>Crear consulta</h2>
+          {consultaError && <div className="error">{consultaError}</div>}
+          {consultaSuccess && <div className="success">{consultaSuccess}</div>}
+          <form onSubmit={onSubmitConsulta} className="form">
+            <label>
+              Cedula paciente
+              <input
+                name="patient_username"
+                value={consultaForm.patient_username}
+                onChange={onConsultaChange}
+                required
+              />
+            </label>
+            {patientLookupStatus === "loading" && (
+              <div className="muted">Validando paciente...</div>
+            )}
+            {patientLookupStatus === "found" && (
+              <div className="success">{patientLookupMessage}</div>
+            )}
+            {patientLookupStatus !== "found" && patientLookupMessage && (
+              <div className="error">{patientLookupMessage}</div>
+            )}
+            <label>
+              Nombres
+              <input value={patientInfo?.nombres || ""} disabled readOnly />
+            </label>
+            <label>
+              Apellidos
+              <input value={patientInfo?.apellidos || ""} disabled readOnly />
+            </label>
+            <label>
+              Diagnostico
+              <textarea
+                name="diagnostico"
+                value={consultaForm.diagnostico}
+                onChange={onConsultaChange}
+              />
+            </label>
+            <label>
+              Notas medicas
+              <textarea
+                name="notas_medicas"
+                value={consultaForm.notas_medicas}
+                onChange={onConsultaChange}
+              />
+            </label>
+            <label>
+              Indicaciones generales
+              <textarea
+                name="indicaciones_generales"
+                value={consultaForm.indicaciones_generales}
+                onChange={onConsultaChange}
+              />
+            </label>
+            <div className="row-actions">
+              <button
+                type="button"
+                className="ghost"
+                onClick={() => setMedsOpen((prev) => !prev)}
+                aria-expanded={medsOpen}
+                aria-controls="meds-section"
+              >
+                {medsOpen ? "Ocultar medicamentos" : "Mostrar medicamentos"}
+              </button>
+            </div>
+            {medsOpen && (
+              <div id="meds-section">
+                <div className="list">
+                  {medicamentos.map((med, index) => (
+                    <div key={med.id} className="item-block">
+                      <div className="form two">
+                        <label>
+                          Medicamento
+                          <input
+                            name="nombre"
+                            value={med.nombre}
+                            onChange={(e) => onMedicamentoChange(index, e)}
+                          />
+                        </label>
+                        <label>
+                          Cantidad
+                          <input
+                            type="number"
+                            name="cantidad"
+                            value={med.cantidad}
+                            onChange={(e) => onMedicamentoChange(index, e)}
+                          />
+                        </label>
+                        <label>
+                          Descripcion
+                          <textarea
+                            name="descripcion"
+                            value={med.descripcion}
+                            onChange={(e) => onMedicamentoChange(index, e)}
+                          />
+                        </label>
+                        <label>
+                          Duracion (dias)
+                          <input
+                            type="number"
+                            name="duracion_dias"
+                            value={med.duracion_dias}
+                            onChange={(e) => onMedicamentoChange(index, e)}
+                          />
+                        </label>
+                      </div>
+                      <div className="row-actions">
+                        <button
+                          type="button"
+                          className="ghost"
+                          onClick={() => removeMedicamento(index)}
+                        >
+                          Quitar
+                        </button>
+                      </div>
                     </div>
-                    <div className="row-actions">
-                      <button type="button" className="ghost" onClick={() => removeMedicamento(index)}>
+                  ))}
+                </div>
+                <button type="button" onClick={addMedicamento}>
+                  Agregar medicamento
+                </button>
+              </div>
+            )}
+            <h3>Laboratorios</h3>
+            <div className="row-actions">
+              <button
+                type="button"
+                className="ghost"
+                onClick={() => setLabsOpen((prev) => !prev)}
+                aria-expanded={labsOpen}
+                aria-controls="labs-section"
+              >
+                {labsOpen ? "Ocultar laboratorios" : "Mostrar laboratorios"}
+              </button>
+            </div>
+            {labsOpen && (
+              <div id="labs-section">
+                {labsError && <div className="error">{labsError}</div>}
+                {labsMessage && <div className="muted">{labsMessage}</div>}
+                <div className="list">
+                  {labs.map((row, index) => (
+                    <div key={row.id} className="list-item">
+                      <label>
+                        Laboratorio
+                        <select
+                          name="lab_id"
+                          value={row.lab_id}
+                          onChange={(e) => handleLabChange(index, e)}
+                        >
+                          <option value="">Seleccionar</option>
+                          {labCatalog.map((lab) => (
+                            <option key={lab.id} value={lab.id}>
+                              {lab.nombre}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        Valor
+                        <input
+                          type="number"
+                          step="any"
+                          name="valor"
+                          value={row.valor}
+                          onChange={(e) => handleLabChange(index, e)}
+                        />
+                      </label>
+                      {labRowErrors[row.id] && <div className="error">{labRowErrors[row.id]}</div>}
+                      <div className="list-meta">
+                        {row.unidad_snapshot && `Unidad: ${row.unidad_snapshot}`}
+                        {row.unidad_snapshot && row.rango_ref_snapshot ? " | " : ""}
+                        {row.rango_ref_snapshot && `Rango: ${row.rango_ref_snapshot}`}
+                      </div>
+                      <button type="button" onClick={() => removeLabRow(index)}>
                         Quitar
                       </button>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+                {labCatalogError && <div className="error">{labCatalogError}</div>}
+                <button type="button" onClick={addLabRow}>
+                  Agregar laboratorio
+                </button>
               </div>
-              <button type="button" onClick={addMedicamento}>
-                Agregar medicamento
-              </button>
-            </div>
-          )}
-          <h3>Laboratorios</h3>
-          <div className="row-actions">
-            <button
-              type="button"
-              className="ghost"
-              onClick={() => setLabsOpen((prev) => !prev)}
-              aria-expanded={labsOpen}
-              aria-controls="labs-section"
-            >
-              {labsOpen ? "Ocultar laboratorios" : "Mostrar laboratorios"}
+            )}
+            <button type="submit" disabled={patientLookupStatus !== "found"}>
+              Guardar consulta
             </button>
-          </div>
-          {labsOpen && (
-            <div id="labs-section">
-              {labsError && <div className="error">{labsError}</div>}
-              {labsMessage && <div className="muted">{labsMessage}</div>}
-              <div className="list">
-                {labs.map((row, index) => (
-                  <div key={row.id} className="list-item">
-                    <label>
-                      Laboratorio
-                      <select
-                        name="lab_id"
-                        value={row.lab_id}
-                        onChange={(e) => handleLabChange(index, e)}
-                      >
-                        <option value="">Seleccionar</option>
-                        {labCatalog.map((lab) => (
-                          <option key={lab.id} value={lab.id}>
-                            {lab.nombre}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
-                      Valor
-                      <input
-                        type="number"
-                        step="any"
-                        name="valor"
-                        value={row.valor}
-                        onChange={(e) => handleLabChange(index, e)}
-                      />
-                    </label>
-                    {labRowErrors[row.id] && <div className="error">{labRowErrors[row.id]}</div>}
-                    <div className="list-meta">
-                      {row.unidad_snapshot && `Unidad: ${row.unidad_snapshot}`}
-                      {row.unidad_snapshot && row.rango_ref_snapshot ? " | " : ""}
-                      {row.rango_ref_snapshot && `Rango: ${row.rango_ref_snapshot}`}
-                    </div>
-                    <button type="button" onClick={() => removeLabRow(index)}>
-                      Quitar
-                    </button>
-                  </div>
-                ))}
-              </div>
-              {labCatalogError && <div className="error">{labCatalogError}</div>}
-              <button type="button" onClick={addLabRow}>
-                Agregar laboratorio
-              </button>
-            </div>
-          )}
-          <button type="submit" disabled={patientLookupStatus !== "found"}>
-            Guardar consulta
-          </button>
-        </form>
-        <button type="button" onClick={loadConsultas}>
-          Consultas recientes del paciente
-        </button>
-        <div className="list">
-          {consultas.map((item) => (
-            <div key={item.id} className="list-item">
-              <div className="list-title">{new Date(item.created_at).toLocaleDateString()}</div>
-              {item.diagnosis && <div className="list-meta">{item.diagnosis}</div>}
-            </div>
-          ))}
-        </div>
-      </div>
+          </form>
+        </section>
+      )}
     </div>
   );
 }

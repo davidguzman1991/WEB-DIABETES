@@ -527,6 +527,57 @@ button.ghost, .ghost {
   margin-top: 8px;
 }
 
+.admin-shell {
+  max-width: 980px;
+  margin: 32px auto 24px;
+}
+
+.admin-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.admin-meta {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.admin-actions {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.admin-toggle {
+  background: #f8fafc;
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.admin-toggle.is-open {
+  border-color: #c7d2fe;
+  background: #eef2ff;
+}
+
+.admin-section {
+  max-width: 980px;
+  margin: 0 auto 24px;
+}
+
+@media (min-width: 720px) {
+  .admin-actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media (min-width: 720px) {
   .portal-actions {
     grid-template-columns: repeat(2, minmax(0, 1fr));

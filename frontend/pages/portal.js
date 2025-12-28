@@ -246,6 +246,10 @@ export default function Portal() {
           logout(router, "/login");
           return;
         }
+        if (res.status === 404) {
+          if (active) setGlucoseLogs([]);
+          return;
+        }
         if (!res.ok) {
           if (active) setGlucoseError("No se pudo cargar el historial de glucosas");
           return;
@@ -309,10 +313,15 @@ export default function Portal() {
       }
       setGlucoseForm({ date: "", value: "", observation: "" });
       const resList = await authFetch(`/glucoses/patient/${user.id}`);
+      if (resList.status === 404) {
+        setGlucoseLogs([]);
+        return;
+      }
       if (resList.ok) {
         const data = await resList.json().catch(() => []);
         setGlucoseLogs(Array.isArray(data) ? data : []);
       } else {
+        setGlucoseError("No se pudo cargar el historial de glucosas");
         setGlucoseLogs([]);
       }
     } catch (err) {

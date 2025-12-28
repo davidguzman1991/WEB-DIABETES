@@ -98,6 +98,22 @@ a {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+.login-card {
+  color: #1f2937;
+}
+
+.login-card label {
+  color: #1f2937;
+}
+
+.login-card input {
+  color: #1f2937;
+}
+
+.login-card input::placeholder {
+  color: #6b7280;
+}
+
 .nav {
   display: flex;
   justify-content: space-between;

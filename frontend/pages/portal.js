@@ -86,6 +86,9 @@ export default function Portal() {
     };
   }, [current?.id, router]);
 
+  const appointmentUrl =
+    process.env.NEXT_PUBLIC_APPOINTMENT_URL || "https://example.com";
+
   if (loading || loadingCurrent) {
     return (
       <div className="page">
@@ -99,38 +102,83 @@ export default function Portal() {
 
   return (
     <div className="page">
-      <div className="card">
-        <h1>Portal</h1>
-        <div className="portal-welcome">
-          <div className="portal-welcome-line">
-            Bienvenido/a,{" "}
-            <span className="portal-welcome-name">
-              {patientName || user?.username || ""}
-            </span>
+      <div className="card portal-shell">
+        <div className="portal-dashboard">
+          <header className="portal-header">
+            <h1 className="portal-title">
+              Bienvenido/a,{" "}
+              <span className="portal-name">
+                {patientName || user?.username || ""}
+              </span>
+            </h1>
+            <p className="portal-subtitle">
+              Este portal le permite consultar su tratamiento, revisar su historial
+              medico y registrar informacion solicitada por su medico. No reemplaza
+              una consulta presencial.
+            </p>
+          </header>
+          <div className="portal-banner">
+            Seguimiento recomendado cada 90 dias segun su ultimo control.
           </div>
-          <div className="portal-welcome-subtitle">
-            Este es su plan de tratamiento actual basado en su ultima consulta medica.
+          {error && <div className="error">{error}</div>}
+          {message && <div className="muted">{message}</div>}
+          <section className="portal-section">
+            <div className="section-title">Plan de tratamiento actual</div>
+            {current ? (
+              <Link
+                className="portal-card portal-card-highlight"
+                href={`/portal/consultas/${current.id}`}
+              >
+                <div className="portal-card-title">
+                  Consulta {formatDate(current.created_at)}
+                </div>
+                <div className="portal-card-note">Ver detalle de la consulta</div>
+              </Link>
+            ) : (
+              <div className="muted">No existen consultas registradas.</div>
+            )}
+          </section>
+
+          <section className="portal-section">
+            <div className="section-title">Accesos rapidos</div>
+            <div className="portal-actions">
+              <Link className="portal-card portal-action" href="/portal/historial">
+                <div className="portal-card-title">Historial de consultas</div>
+                <div className="portal-card-note">Solo lectura</div>
+              </Link>
+              <Link className="portal-card portal-action" href="/portal/glucosas">
+                <div className="portal-card-title">Historial de glucosas</div>
+                <div className="portal-card-note">
+                  Aqui podra registrar y revisar sus controles de glucosa cuando su
+                  medico lo habilite.
+                </div>
+              </Link>
+              <div className="portal-card portal-action portal-card-muted">
+                <div className="portal-card-title">Tareas pendientes</div>
+                <div className="portal-card-note">
+                  Cuestionarios o registros solicitados por su medico.
+                </div>
+              </div>
+              <a
+                className="portal-card portal-action"
+                href={appointmentUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <div className="portal-card-title">Agendar cita</div>
+                <div className="portal-card-note">
+                  Abrir enlace externo para coordinar su atencion.
+                </div>
+              </a>
+            </div>
+          </section>
+
+          <div className="portal-footer">
+            <button type="button" onClick={() => logout(router)}>
+              Cerrar sesion
+            </button>
           </div>
         </div>
-        {error && <div className="error">{error}</div>}
-        {message && <div className="muted">{message}</div>}
-        <div className="section-title">Tratamiento o plan actual</div>
-        {current && (
-          <Link
-            className="consultation-card portal-plan-card consultation-link"
-            href={`/portal/consultas/${current.id}`}
-          >
-            <div className="consultation-date">
-              Consulta {formatDate(current.created_at)}
-            </div>
-          </Link>
-        )}
-        <Link className="button" href="/portal/historial">
-          Ver historial
-        </Link>
-        <button type="button" onClick={() => logout(router)}>
-          Cerrar sesion
-        </button>
       </div>
     </div>
   );

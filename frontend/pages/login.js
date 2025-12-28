@@ -42,29 +42,60 @@ export default function Login() {
     <div className={pageClassName}>
       <div className="login-hero-content">
         <div className={cardClassName}>
-        <h1>{isAdmin ? "Ingreso Administrador" : "Ingreso Paciente"}</h1>
-        {!isAdmin && <p className="muted">Credenciales temporales: apellido + nombre.</p>}
-        <form onSubmit={onSubmit} className="form">
-          <label>
-            {isAdmin ? "Usuario" : "Cedula"}
-            <input value={identifier} onChange={(e) => setIdentifier(e.target.value)} required />
-          </label>
-          <label>
-            Contrasena
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-          </label>
-          {error && <div className="error">{error}</div>}
-          <button type="submit">Entrar</button>
-        </form>
-        {isAdmin ? (
-          <Link className="link" href="/login">
-            Volver a paciente
-          </Link>
-        ) : (
-          <Link className="link" href="/login?type=admin">
-            Administrador
-          </Link>
-        )}
+          {isAdmin ? (
+            <h1>Ingreso Administrador</h1>
+          ) : (
+            <>
+              <h1 className="login-title">
+                Bienvenido al portal de gestion medica del Dr. David Guzman
+              </h1>
+              <p className="login-subtitle">
+                Acceda de forma segura a su informacion medica
+              </p>
+            </>
+          )}
+          <form onSubmit={onSubmit} className="form">
+            <label>
+              {isAdmin ? "Usuario" : "Cedula"}
+              <input
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder={isAdmin ? "Usuario" : "Ingrese su cedula"}
+                required
+              />
+            </label>
+            <label>
+              Contrasena
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Ingrese su contrasena"
+                required
+              />
+            </label>
+            {error && <div className="error">{error}</div>}
+            <button type="submit" className={isAdmin ? "" : "login-button"}>
+              Entrar
+            </button>
+          </form>
+          {!isAdmin && (
+            <p className="login-disclaimer">
+              <span className="login-disclaimer-title">Aviso importante:</span>
+              La informacion disponible en este portal corresponde a indicaciones
+              medicas registradas durante su consulta. No sustituye una valoracion
+              medica presencial ni debe utilizarse para emergencias.
+            </p>
+          )}
+          {isAdmin ? (
+            <Link className="link" href="/login">
+              Volver a paciente
+            </Link>
+          ) : (
+            <Link className="link login-admin-link" href="/login?type=admin">
+              Administrador
+            </Link>
+          )}
         </div>
       </div>
     </div>

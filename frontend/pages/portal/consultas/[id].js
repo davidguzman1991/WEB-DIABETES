@@ -23,9 +23,6 @@ export default function ConsultaDetalle() {
   const { user, loading } = useAuthGuard({ redirectTo: "/login" });
   const [detail, setDetail] = useState(null);
   const [error, setError] = useState("");
-  const [expandedMeds, setExpandedMeds] = useState({});
-  const [labsOpen, setLabsOpen] = useState(false);
-  const [labsMessage, setLabsMessage] = useState("");
 
   useEffect(() => {
     if (!user || !router.query.id) return;
@@ -46,21 +43,11 @@ export default function ConsultaDetalle() {
         }
         const data = await res.json();
         setDetail(data);
-        const list = Array.isArray(data?.labs) ? data.labs : [];
-        if (!list.length) {
-          setLabsMessage("No existen laboratorios registrados");
-        } else {
-          setLabsMessage("");
-        }
       })
       .catch(() => {
         setError("Error al cargar consulta");
       });
   }, [router, user]);
-
-  const toggleMedication = (id) => {
-    setExpandedMeds((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
 
   const patient = detail?.patient || null;
   const consultation = detail?.consultation || null;
@@ -122,69 +109,73 @@ export default function ConsultaDetalle() {
                 <div className="muted">No hay medicacion registrada.</div>
               )}
               {medications.map((med, index) => {
-                const metaParts = [];
-                if (med.quantity !== null && med.quantity !== undefined) {
-                  metaParts.push(`Cantidad ${med.quantity}`);
-                }
-                if (med.duration_days !== null && med.duration_days !== undefined) {
-                  metaParts.push(`Duracion ${med.duration_days} dias`);
-                }
+                const quantityValue = med.quantity ?? "";
+                const durationValue = med.duration_days ?? "";
+                const descriptionValue = med.description ?? "";
                 const medKey = `${med.drug_name}-${index}`;
-                const isOpen = !!expandedMeds[medKey];
                 return (
-                  <div key={medKey} className="medication-card">
-                    <button
-                      type="button"
-                      className="accordion-toggle"
-                      onClick={() => toggleMedication(medKey)}
-                      aria-expanded={isOpen}
-                    >
+                  <details key={medKey} className="accordion">
+                    <summary className="accordion-title">
                       <span className="medication-name">{med.drug_name}</span>
-                      <span className="accordion-icon">{isOpen ? "-" : "+"}</span>
-                    </button>
-                    {isOpen && (
-                      <div className="accordion-body">
-                        {!!metaParts.length && (
-                          <div className="medication-meta">{metaParts.join(" | ")}</div>
-                        )}
-                        {med.description && (
-                          <div className="medication-description">{med.description}</div>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                    </summary>
+                    <div className="accordion-content">
+                      {quantityValue !== "" && (
+                        <div className="detail-row">
+                          <span className="detail-label">Cantidad</span>
+                          <span className="detail-value">{quantityValue}</span>
+                        </div>
+                      )}
+                      {durationValue !== "" && (
+                        <div className="detail-row">
+                          <span className="detail-label">Duracion</span>
+                          <span className="detail-value">{durationValue} dias</span>
+                        </div>
+                      )}
+                      {descriptionValue && (
+                        <div className="detail-row detail-block">
+                          <span className="detail-label">Descripcion</span>
+                          <span className="detail-value">{descriptionValue}</span>
+                        </div>
+                      )}
+                    </div>
+                  </details>
                 );
               })}
             </div>
 
-            <div className="section-title">Resultados de laboratorio actuales</div>
-            {labsMessage && <div className="muted">{labsMessage}</div>}
-            <button
-              type="button"
-              className="accordion-toggle lab-toggle"
-              onClick={() => setLabsOpen((prev) => !prev)}
-              aria-expanded={labsOpen}
-            >
-              <span>Ver resultados</span>
-              <span className="accordion-icon">{labsOpen ? "-" : "+"}</span>
-            </button>
-            {labsOpen && (
-              <div className="lab-list">
-                {labs.map((lab, index) => (
-                  <div key={`${lab.lab_nombre}-${index}`} className="lab-card">
-                    <div className="lab-row">
-                      <div className="lab-name">{lab.lab_nombre}</div>
-                      <div className="lab-value">
-                        {lab.valor_num ?? lab.valor_texto}
-                        {lab.unidad_snapshot ? ` ${lab.unidad_snapshot}` : ""}
-                      </div>
-                    </div>
-                    {lab.rango_ref_snapshot && (
-                      <div className="lab-range">Rango: {lab.rango_ref_snapshot}</div>
-                    )}
-                  </div>
-                ))}
-              </div>
+            {labs.length > 0 && (
+              <>
+                <div className="section-title">Resultados de laboratorio actuales</div>
+                <div className="medications-list">
+                  {labs.map((lab, index) => {
+                    const resultValue = lab.valor_num ?? lab.valor_texto ?? "";
+                    const resultLabel = resultValue !== "" ? resultValue : "Sin resultado";
+                    const unit = lab.unidad_snapshot ? ` ${lab.unidad_snapshot}` : "";
+                    return (
+                      <details key={`${lab.lab_nombre}-${index}`} className="accordion">
+                        <summary className="accordion-title">
+                          <span className="medication-name">{lab.lab_nombre}</span>
+                        </summary>
+                        <div className="accordion-content">
+                          <div className="detail-row">
+                            <span className="detail-label">Resultado</span>
+                            <span className="detail-value">
+                              {resultLabel}
+                              {resultValue !== "" ? unit : ""}
+                            </span>
+                          </div>
+                          {lab.rango_ref_snapshot && (
+                            <div className="detail-row">
+                              <span className="detail-label">Rango</span>
+                              <span className="detail-value">{lab.rango_ref_snapshot}</span>
+                            </div>
+                          )}
+                        </div>
+                      </details>
+                    );
+                  })}
+                </div>
+              </>
             )}
           </>
         )}

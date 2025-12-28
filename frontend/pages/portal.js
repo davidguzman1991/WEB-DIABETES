@@ -102,16 +102,16 @@ export default function Portal() {
   let nextVisitStatus = "neutral";
   let nextVisitText = "Su medico aun no ha programado la proxima cita.";
   if (diffDays !== null) {
-    if (diffDays > 14) {
+    if (diffDays > 30) {
       nextVisitStatus = "ok";
       nextVisitText = `Su proximo control esta programado para ${formatDate(nextVisitDate)}. Faltan ${diffDays} dias.`;
     } else if (diffDays >= 0) {
       nextVisitStatus = "warn";
-      nextVisitText = `Su control medico esta proximo. Faltan ${diffDays} dias.`;
+      nextVisitText = `Su control medico esta proximo (${formatDate(nextVisitDate)}). Faltan ${diffDays} dias.`;
     } else {
       const overdue = Math.abs(diffDays);
       nextVisitStatus = "overdue";
-      nextVisitText = `Su control medico presenta un retraso de ${overdue} dias. Por favor agende una cita.`;
+      nextVisitText = `Su control medico estaba programado para ${formatDate(nextVisitDate)} y presenta un retraso de ${overdue} dias. Por favor agende una cita.`;
     }
   }
 

@@ -1,9 +1,23 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { apiFetch, logout } from "../lib/auth";
 import { useAuthGuard } from "../hooks/useAuthGuard";
 
 const LAB_VALUE_EMPTY = "";
+const GLUCOSE_MAX_RECORDS = 10;
+const GLUCOSE_TREND_THRESHOLD = 5;
+const GLUCOSE_HYPO_THRESHOLD = 70;
+const GLUCOSE_HYPER_THRESHOLD = 180;
+const GLUCOSE_CHART_HEIGHT = 200;
+const GLUCOSE_CHART_PADDING = 24;
+const GLUCOSE_CHART_WIDTH = 600;
+
+const formatShortDate = (value) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("es-EC", { day: "2-digit", month: "2-digit" });
+};
 
 const computeAge = (dateStr) => {
   if (!dateStr) return { age: null, error: null };
@@ -654,6 +668,62 @@ export default function Dashboard() {
         return bTime - aTime;
       })
     : [];
+  const glucoseTrend = useMemo(() => {
+    if (orderedGlucoseLogs.length < 2) return null;
+    const latestValue = Number(orderedGlucoseLogs[0]?.value);
+    const previousValue = Number(orderedGlucoseLogs[1]?.value);
+    if (!Number.isFinite(latestValue) || !Number.isFinite(previousValue)) return null;
+    const delta = latestValue - previousValue;
+    if (Math.abs(delta) <= GLUCOSE_TREND_THRESHOLD) {
+      return { icon: "→", color: "#6b7280" };
+    }
+    if (delta > 0) {
+      return { icon: "↑", color: "#dc2626" };
+    }
+    return { icon: "↓", color: "#16a34a" };
+  }, [orderedGlucoseLogs]);
+  const glucoseAlert = useMemo(() => {
+    if (!orderedGlucoseLogs.length) return null;
+    const latestValue = Number(orderedGlucoseLogs[0]?.value);
+    if (!Number.isFinite(latestValue)) return null;
+    if (latestValue < GLUCOSE_HYPO_THRESHOLD) {
+      return { text: "🚨 Riesgo de hipoglucemia", color: "#991b1b", background: "#fee2e2" };
+    }
+    if (latestValue > GLUCOSE_HYPER_THRESHOLD) {
+      return { text: "⚠️ Hiperglucemia", color: "#92400e", background: "#fffbeb" };
+    }
+    return null;
+  }, [orderedGlucoseLogs]);
+  const glucoseChart = useMemo(() => {
+    if (orderedGlucoseLogs.length < 2) return null;
+    const points = orderedGlucoseLogs
+      .slice(0, GLUCOSE_MAX_RECORDS)
+      .reverse()
+      .map((log) => ({
+        value: Number(log?.value),
+        label: formatShortDate(log?.taken_at || log?.created_at),
+      }))
+      .filter((point) => Number.isFinite(point.value));
+    if (points.length < 2) return null;
+    const values = points.map((point) => point.value);
+    const minValue = Math.min(...values);
+    const maxValue = Math.max(...values);
+    const range = Math.max(maxValue - minValue, 1);
+    const width = GLUCOSE_CHART_WIDTH;
+    const height = GLUCOSE_CHART_HEIGHT;
+    const padding = GLUCOSE_CHART_PADDING;
+    const xStep = points.length > 1 ? (width - padding * 2) / (points.length - 1) : 0;
+    const plotHeight = height - padding * 2;
+    const path = points
+      .map((point, index) => {
+        const x = padding + index * xStep;
+        const normalized = (point.value - minValue) / range;
+        const y = height - padding - normalized * plotHeight;
+        return `${index === 0 ? "M" : "L"} ${x} ${y}`;
+      })
+      .join(" ");
+    return { points, path, minValue, maxValue };
+  }, [orderedGlucoseLogs]);
 
   return (
     <div className="page">
@@ -772,7 +842,28 @@ export default function Dashboard() {
             </label>
           </div>
           <div className="list">
-            <div className="list-title">Historial de glucosas</div>
+            <div className="list-title">
+              Historial de glucosas{" "}
+              {glucoseTrend && (
+                <span style={{ color: glucoseTrend.color, fontWeight: 700 }}>
+                  {glucoseTrend.icon}
+                </span>
+              )}
+            </div>
+            {glucoseAlert && (
+              <div
+                style={{
+                  background: glucoseAlert.background,
+                  color: glucoseAlert.color,
+                  padding: "8px 12px",
+                  borderRadius: 8,
+                  marginBottom: 12,
+                  fontWeight: 600,
+                }}
+              >
+                {glucoseAlert.text}
+              </div>
+            )}
             {glucoseLoading && <div className="muted">Cargando historial...</div>}
             {glucoseError && <div className="error">{glucoseError}</div>}
             {!glucoseLoading && !glucoseError && glucoseMessage && (
@@ -806,6 +897,51 @@ export default function Dashboard() {
                   </div>
                 );
               })}
+            {!glucoseLoading && !glucoseError && glucoseChart && (
+              <div style={{ marginTop: 16 }}>
+                <svg
+                  viewBox={`0 0 ${GLUCOSE_CHART_WIDTH} ${GLUCOSE_CHART_HEIGHT}`}
+                  width="100%"
+                  height={GLUCOSE_CHART_HEIGHT}
+                  role="img"
+                  aria-label="Tendencia de glucosa"
+                >
+                  <path
+                    d={glucoseChart.path}
+                    fill="none"
+                    stroke="#2563eb"
+                    strokeWidth="2"
+                  />
+                  {glucoseChart.points.map((point, index) => {
+                    const xStep =
+                      glucoseChart.points.length > 1
+                        ? (GLUCOSE_CHART_WIDTH - GLUCOSE_CHART_PADDING * 2) /
+                          (glucoseChart.points.length - 1)
+                        : 0;
+                    const x = GLUCOSE_CHART_PADDING + index * xStep;
+                    const plotHeight = GLUCOSE_CHART_HEIGHT - GLUCOSE_CHART_PADDING * 2;
+                    const range = Math.max(glucoseChart.maxValue - glucoseChart.minValue, 1);
+                    const normalized = (point.value - glucoseChart.minValue) / range;
+                    const y =
+                      GLUCOSE_CHART_HEIGHT - GLUCOSE_CHART_PADDING - normalized * plotHeight;
+                    return (
+                      <g key={`${point.label}-${index}`}>
+                        <circle cx={x} cy={y} r="3" fill="#2563eb" />
+                        <text
+                          x={x}
+                          y={GLUCOSE_CHART_HEIGHT - 6}
+                          textAnchor="middle"
+                          fontSize="10"
+                          fill="#6b7280"
+                        >
+                          {point.label}
+                        </text>
+                      </g>
+                    );
+                  })}
+                </svg>
+              </div>
+            )}
           </div>
           <button type="button" onClick={loadConsultas}>
             Consultas recientes del paciente

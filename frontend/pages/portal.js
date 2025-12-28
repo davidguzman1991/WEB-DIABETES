@@ -78,10 +78,12 @@ export default function Portal() {
   const [error, setError] = useState("");
   const [patientName, setPatientName] = useState("");
   const [glucoseForm, setGlucoseForm] = useState({
+    type: "",
     date: "",
     value: "",
     observation: "",
   });
+  const [showGlucoseForm, setShowGlucoseForm] = useState(false);
   const [glucoseLogs, setGlucoseLogs] = useState([]);
   const [glucoseLoading, setGlucoseLoading] = useState(false);
   const [glucoseError, setGlucoseError] = useState("");
@@ -280,13 +282,17 @@ export default function Portal() {
       setGlucoseError("Sesion no valida");
       return;
     }
+    if (!glucoseForm.type) {
+      setGlucoseError("Seleccione el tipo de medicion");
+      return;
+    }
     if (!glucoseForm.date || !glucoseForm.value) {
       setGlucoseError("Fecha y valor son requeridos");
       return;
     }
     const numericValue = Number(glucoseForm.value);
-    if (!Number.isFinite(numericValue) || numericValue <= 0) {
-      setGlucoseError("El valor debe ser un numero positivo");
+    if (!Number.isFinite(numericValue) || numericValue <= 20 || numericValue >= 600) {
+      setGlucoseError("El valor debe estar entre 20 y 600 mg/dL");
       return;
     }
     setGlucoseSaving(true);
@@ -295,7 +301,7 @@ export default function Portal() {
       const payload = {
         patient_id: user?.id || null,
         value: numericValue,
-        type: "ayuno",
+        type: glucoseForm.type,
         taken_at: Number.isNaN(takenAt.getTime()) ? null : takenAt.toISOString(),
         observation: glucoseForm.observation.trim() || null,
       };
@@ -311,7 +317,8 @@ export default function Portal() {
         setGlucoseError("No se pudo guardar el registro");
         return;
       }
-      setGlucoseForm({ date: "", value: "", observation: "" });
+      setGlucoseForm({ type: "", date: "", value: "", observation: "" });
+      setShowGlucoseForm(false);
       const resList = await authFetch(`/glucoses/patient/${user.id}`);
       if (resList.status === 404) {
         setGlucoseLogs([]);
@@ -361,6 +368,16 @@ export default function Portal() {
   }
 
   const safeGlucoseLogs = Array.isArray(glucoseLogs) ? glucoseLogs : [];
+  const orderedGlucoseLogs = safeGlucoseLogs.slice().sort((a, b) => {
+    const aTime = new Date(a?.taken_at || a?.created_at || 0).getTime();
+    const bTime = new Date(b?.taken_at || b?.created_at || 0).getTime();
+    return bTime - aTime;
+  });
+  const numericValue = Number(glucoseForm.value);
+  const isGlucoseValueValid =
+    Number.isFinite(numericValue) && numericValue > 20 && numericValue < 600;
+  const isGlucoseFormValid =
+    Boolean(glucoseForm.type) && Boolean(glucoseForm.date) && isGlucoseValueValid;
 
   if (authLoading) {
     return <PortalSkeleton />;
@@ -424,40 +441,76 @@ export default function Portal() {
           <section className="portal-section">
             <div className="section-title">Mis glucosas</div>
             <div className="portal-card glucose-card">
-              <form onSubmit={onGlucoseSubmit} className="form glucose-form">
-                <label>
-                  Fecha
-                  <input
-                    type="date"
-                    name="date"
-                    value={glucoseForm.date}
-                    onChange={onGlucoseChange}
-                    required
-                  />
-                </label>
-                <label>
-                  Valor (mg/dL)
-                  <input
-                    type="number"
-                    name="value"
-                    value={glucoseForm.value}
-                    onChange={onGlucoseChange}
-                    required
-                  />
-                </label>
-                <label>
-                  Observacion (opcional)
-                  <textarea
-                    name="observation"
-                    value={glucoseForm.observation}
-                    onChange={onGlucoseChange}
-                  />
-                </label>
-                {glucoseError && <div className="error">{glucoseError}</div>}
-                <button type="submit" disabled={glucoseSaving}>
-                  {glucoseSaving ? "Guardando..." : "Guardar registro"}
-                </button>
-              </form>
+              <button
+                type="button"
+                className="portal-card portal-action"
+                onClick={() => setShowGlucoseForm((prev) => !prev)}
+              >
+                {showGlucoseForm ? "Cerrar" : "+ Agregar glucosa"}
+              </button>
+              {showGlucoseForm && (
+                <form onSubmit={onGlucoseSubmit} className="form glucose-form">
+                  <fieldset className="glucose-type">
+                    <legend>Tipo de medicion</legend>
+                    <label>
+                      <input
+                        type="radio"
+                        name="type"
+                        value="ayuno"
+                        checked={glucoseForm.type === "ayuno"}
+                        onChange={onGlucoseChange}
+                        required
+                      />
+                      Ayuno
+                    </label>
+                    <label>
+                      <input
+                        type="radio"
+                        name="type"
+                        value="postprandial"
+                        checked={glucoseForm.type === "postprandial"}
+                        onChange={onGlucoseChange}
+                        required
+                      />
+                      Despues de comer
+                    </label>
+                  </fieldset>
+                  <label>
+                    Fecha
+                    <input
+                      type="date"
+                      name="date"
+                      value={glucoseForm.date}
+                      onChange={onGlucoseChange}
+                      required
+                    />
+                  </label>
+                  <label>
+                    Valor (mg/dL)
+                    <input
+                      type="number"
+                      name="value"
+                      min="21"
+                      max="599"
+                      value={glucoseForm.value}
+                      onChange={onGlucoseChange}
+                      required
+                    />
+                  </label>
+                  <label>
+                    Observacion (opcional)
+                    <textarea
+                      name="observation"
+                      value={glucoseForm.observation}
+                      onChange={onGlucoseChange}
+                    />
+                  </label>
+                  {glucoseError && <div className="error">{glucoseError}</div>}
+                  <button type="submit" disabled={glucoseSaving || !isGlucoseFormValid}>
+                    {glucoseSaving ? "Guardando..." : "Guardar registro"}
+                  </button>
+                </form>
+              )}
               <div className="glucose-list">
                 {glucoseLoading ? (
                   <SkeletonCard style={{ marginTop: 8 }}>
@@ -470,7 +523,7 @@ export default function Portal() {
                   <div className="muted">No hay registros de glucosa.</div>
                 )}
                 {!glucoseLoading &&
-                  safeGlucoseLogs.map((log, index) => {
+                  orderedGlucoseLogs.map((log, index) => {
                     if (!log || typeof log !== "object") return null;
                     const logId =
                       log.id ||
@@ -480,15 +533,22 @@ export default function Portal() {
                       log.value !== null && log.value !== undefined
                         ? `${log.value} mg/dL`
                         : "Sin valor";
+                    const logType =
+                      log.type === "postprandial"
+                        ? "Despues de comer"
+                        : log.type === "ayuno"
+                          ? "Ayuno"
+                          : "Sin tipo";
                     const noteText = log.observation || log.notes || log.description;
                     return (
                       <div key={logId} className="glucose-item">
-                        <div className="glucose-meta">{formatDate(logDate)}</div>
-                        <div className="glucose-value">{logValue}</div>
-                        {noteText && <div className="glucose-note">{noteText}</div>}
-                      </div>
-                    );
-                  })}
+                        <div className="glucose-meta">
+                          {formatDate(logDate)} - {logType} - {logValue}
+                        </div>
+                      {noteText && <div className="glucose-note">{noteText}</div>}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </section>

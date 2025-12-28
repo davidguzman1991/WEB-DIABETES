@@ -209,6 +209,74 @@ button.ghost, .ghost {
   font-weight: 700;
 }
 
+.accordion {
+  border: 1px solid var(--border);
+  background: #f8fafc;
+  border-radius: 14px;
+  padding: 10px 14px;
+  max-width: 100%;
+}
+
+.accordion-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.accordion-title::marker {
+  content: "";
+}
+
+.accordion-title::-webkit-details-marker {
+  display: none;
+}
+
+.accordion-title::after {
+  content: "+";
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.accordion[open] > .accordion-title::after {
+  content: "-";
+}
+
+.accordion-content {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #2f2f2f;
+}
+
+.detail-block {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.detail-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.detail-value {
+  word-break: normal;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
 .consultation-card {
   border: 1px solid var(--border);
   background: #fff;

@@ -13,6 +13,7 @@ export default function Portal() {
   const [error, setError] = useState("");
   const [patientName, setPatientName] = useState("");
   const [planOpen, setPlanOpen] = useState(false);
+  const [planDetail, setPlanDetail] = useState(null);
 
   const formatDate = (value) => {
     if (!value) return "";
@@ -52,6 +53,7 @@ export default function Portal() {
         }
         setCurrent(data);
         setPlanOpen(false);
+        setPlanDetail(null);
       })
       .catch(() => {
         setError("No se pudo cargar la informacion");
@@ -72,7 +74,9 @@ export default function Portal() {
         }
         if (!res.ok) return;
         const data = await res.json().catch(() => null);
-        if (!active || !data?.patient) return;
+        if (!active || !data) return;
+        setPlanDetail(data);
+        if (!data.patient) return;
         const fullName = [data.patient.nombres, data.patient.apellidos]
           .filter(Boolean)
           .join(" ")
@@ -87,6 +91,29 @@ export default function Portal() {
       active = false;
     };
   }, [current?.id, router]);
+
+  const planConsultation =
+    planDetail?.consultation ||
+    (current
+      ? {
+          created_at: current.created_at,
+          diagnosis: current.diagnosis,
+          indications: current.indications,
+        }
+      : null);
+  const planMedications = planDetail?.medications || current?.medications || [];
+  const planLabs = planDetail?.labs || [];
+
+  const formatLabDate = (value) => {
+    if (!value) return "";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleDateString("es-EC", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
 
   if (loading || loadingCurrent) {
     return (
@@ -121,47 +148,118 @@ export default function Portal() {
               aria-expanded={planOpen}
             >
               <span className="consultation-date">
-                Consulta {formatDate(current.created_at)}
+                Consulta {formatDate(planConsultation?.created_at || current.created_at)}
               </span>
               <span className="accordion-icon">{planOpen ? "-" : "+"}</span>
             </button>
             {planOpen && (
               <div className="accordion-body">
-                {current.diagnosis && (
-                  <div className="consultation-diagnosis">{current.diagnosis}</div>
+                {planConsultation?.diagnosis && (
+                  <div className="consultation-diagnosis">{planConsultation.diagnosis}</div>
                 )}
-                {current.indications && (
+                {planConsultation?.indications && (
                   <>
                     <div className="consultation-label">Indicaciones</div>
-                    <div className="consultation-notes">{current.indications}</div>
+                    <div className="consultation-notes">{planConsultation.indications}</div>
                   </>
                 )}
                 <div className="section-title">Medicacion</div>
                 <div className="medications-list">
-                  {!current.medications?.length && (
+                  {!planMedications.length && (
                     <div className="muted">No hay medicacion registrada.</div>
                   )}
-                  {current.medications?.map((med, index) => {
-                    const metaParts = [];
-                    if (med.quantity !== null && med.quantity !== undefined) {
-                      metaParts.push(`Cantidad ${med.quantity}`);
-                    }
-                    if (med.duration_days !== null && med.duration_days !== undefined) {
-                      metaParts.push(`Duracion ${med.duration_days} dias`);
-                    }
+                  {planMedications.map((med, index) => {
+                    const doseValue = med.dose ?? "";
+                    const quantityValue = med.quantity ?? "";
+                    const durationValue = med.duration_days ?? "";
+                    const descriptionValue = med.description ?? med.indications ?? "";
+                    const medKey = `${med.drug_name}-${index}`;
                     return (
-                      <div key={`${med.drug_name}-${index}`} className="medication-card">
-                        <div className="medication-name">{med.drug_name}</div>
-                        {!!metaParts.length && (
-                          <div className="medication-meta">{metaParts.join(" | ")}</div>
-                        )}
-                        {med.description && (
-                          <div className="medication-description">{med.description}</div>
-                        )}
-                      </div>
+                      <details key={medKey} className="accordion">
+                        <summary className="accordion-title">
+                          <span className="medication-name">{med.drug_name}</span>
+                        </summary>
+                        <div className="accordion-content">
+                          {doseValue && (
+                            <div className="detail-row">
+                              <span className="detail-label">Dosis</span>
+                              <span className="detail-value">{doseValue}</span>
+                            </div>
+                          )}
+                          {quantityValue !== "" && (
+                            <div className="detail-row">
+                              <span className="detail-label">Cantidad</span>
+                              <span className="detail-value">{quantityValue}</span>
+                            </div>
+                          )}
+                          {durationValue !== "" && (
+                            <div className="detail-row">
+                              <span className="detail-label">Duracion</span>
+                              <span className="detail-value">{durationValue} dias</span>
+                            </div>
+                          )}
+                          {descriptionValue && (
+                            <div className="detail-row detail-block">
+                              <span className="detail-label">Descripcion</span>
+                              <span className="detail-value">{descriptionValue}</span>
+                            </div>
+                          )}
+                        </div>
+                      </details>
                     );
                   })}
                 </div>
+                {planLabs.length > 0 && (
+                  <>
+                    <div className="section-title">Laboratorios</div>
+                    <div className="medications-list">
+                      {planLabs.map((lab, index) => {
+                        const resultValue =
+                          lab.valor_num ?? lab.valor_texto ?? "";
+                        const resultLabel = resultValue !== "" ? resultValue : "Sin resultado";
+                        const unit = lab.unidad_snapshot ? ` ${lab.unidad_snapshot}` : "";
+                        const dateValue =
+                          lab.fecha || lab.created_at || lab.creado_en || "";
+                        const formattedDate = formatLabDate(dateValue);
+                        const commentValue = lab.comentario || "";
+                        return (
+                          <details key={`${lab.lab_nombre}-${index}`} className="accordion">
+                            <summary className="accordion-title">
+                              <span className="medication-name">{lab.lab_nombre}</span>
+                            </summary>
+                            <div className="accordion-content">
+                              <div className="detail-row">
+                                <span className="detail-label">Resultado</span>
+                                <span className="detail-value">
+                                  {resultLabel}
+                                  {resultValue !== "" ? unit : ""}
+                                </span>
+                              </div>
+                              {formattedDate && (
+                                <div className="detail-row">
+                                  <span className="detail-label">Fecha</span>
+                                  <span className="detail-value">{formattedDate}</span>
+                                </div>
+                              )}
+                              {lab.rango_ref_snapshot && (
+                                <div className="detail-row">
+                                  <span className="detail-label">Rango</span>
+                                  <span className="detail-value">{lab.rango_ref_snapshot}</span>
+                                </div>
+                              )}
+                              {commentValue && (
+                                <div className="detail-row detail-block">
+                                  <span className="detail-label">Comentario</span>
+                                  <span className="detail-value">{commentValue}</span>
+                                </div>
+                              )}
+                            </div>
+                          </details>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>

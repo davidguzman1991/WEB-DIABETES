@@ -52,6 +52,17 @@ export default function Dashboard() {
     diagnostico: "",
     notas_medicas: "",
     indicaciones_generales: "",
+    weight: "",
+    height: "",
+    blood_pressure: "",
+    heart_rate: "",
+    oxygen_saturation: "",
+    abdominal_circumference: "",
+    reason_for_visit: "",
+    current_illness: "",
+    physical_exam: "",
+    requested_exams: "",
+    next_visit_date: "",
   });
   const [patientInfo, setPatientInfo] = useState(null);
   const [patientLookupStatus, setPatientLookupStatus] = useState("idle");
@@ -71,8 +82,6 @@ export default function Dashboard() {
   const [labsError, setLabsError] = useState("");
   const [labsMessage, setLabsMessage] = useState("");
   const [labRowErrors, setLabRowErrors] = useState({});
-  const [medsOpen, setMedsOpen] = useState(true);
-  const [labsOpen, setLabsOpen] = useState(true);
   const [sectionsOpen, setSectionsOpen] = useState({
     createPatient: false,
     searchPatient: false,
@@ -320,6 +329,20 @@ export default function Dashboard() {
     return { payload, errors };
   };
 
+  const toNumberOrNull = (value) => {
+    const cleaned = String(value || "").trim();
+    if (!cleaned) return null;
+    const num = Number(cleaned);
+    return Number.isFinite(num) ? num : null;
+  };
+
+  const toIntOrNull = (value) => {
+    const cleaned = String(value || "").trim();
+    if (!cleaned) return null;
+    const num = Number(cleaned);
+    return Number.isInteger(num) ? num : null;
+  };
+
   const onSubmit = async (event) => {
     event.preventDefault();
     setError("");
@@ -463,6 +486,17 @@ export default function Dashboard() {
           diagnosis: consultaForm.diagnostico || null,
           notes: consultaForm.notas_medicas || null,
           indications: consultaForm.indicaciones_generales || null,
+          weight: toNumberOrNull(consultaForm.weight),
+          height: toNumberOrNull(consultaForm.height),
+          blood_pressure: consultaForm.blood_pressure.trim() || null,
+          heart_rate: toIntOrNull(consultaForm.heart_rate),
+          oxygen_saturation: toIntOrNull(consultaForm.oxygen_saturation),
+          abdominal_circumference: toNumberOrNull(consultaForm.abdominal_circumference),
+          reason_for_visit: consultaForm.reason_for_visit.trim() || null,
+          current_illness: consultaForm.current_illness.trim() || null,
+          physical_exam: consultaForm.physical_exam.trim() || null,
+          requested_exams: consultaForm.requested_exams.trim() || null,
+          next_visit_date: consultaForm.next_visit_date || null,
           medications: touchedMeds.map((med, index) => {
             const quantity = Number(med.cantidad);
             const durationDays = med.duracion_dias ? Number(med.duracion_dias) : null;
@@ -518,6 +552,17 @@ export default function Dashboard() {
         diagnostico: "",
         notas_medicas: "",
         indicaciones_generales: "",
+        weight: "",
+        height: "",
+        blood_pressure: "",
+        heart_rate: "",
+        oxygen_saturation: "",
+        abdominal_circumference: "",
+        reason_for_visit: "",
+        current_illness: "",
+        physical_exam: "",
+        requested_exams: "",
+        next_visit_date: "",
       });
       setMedicamentos([createMedicamento()]);
       setLabs([]);
@@ -694,43 +739,143 @@ export default function Dashboard() {
               Apellidos
               <input value={patientInfo?.apellidos || ""} disabled readOnly />
             </label>
-            <label>
-              Diagnostico
-              <textarea
-                name="diagnostico"
-                value={consultaForm.diagnostico}
-                onChange={onConsultaChange}
-              />
-            </label>
-            <label>
-              Notas medicas
-              <textarea
-                name="notas_medicas"
-                value={consultaForm.notas_medicas}
-                onChange={onConsultaChange}
-              />
-            </label>
-            <label>
-              Indicaciones generales
-              <textarea
-                name="indicaciones_generales"
-                value={consultaForm.indicaciones_generales}
-                onChange={onConsultaChange}
-              />
-            </label>
-            <div className="row-actions">
-              <button
-                type="button"
-                className="ghost"
-                onClick={() => setMedsOpen((prev) => !prev)}
-                aria-expanded={medsOpen}
-                aria-controls="meds-section"
-              >
-                {medsOpen ? "Ocultar medicamentos" : "Mostrar medicamentos"}
-              </button>
-            </div>
-            {medsOpen && (
-              <div id="meds-section">
+            <details className="admin-section-group">
+              <summary className="admin-section-title">Signos vitales</summary>
+              <div className="admin-section-content form two">
+                <label>
+                  Peso (kg)
+                  <input
+                    type="number"
+                    step="any"
+                    name="weight"
+                    value={consultaForm.weight}
+                    onChange={onConsultaChange}
+                  />
+                </label>
+                <label>
+                  Talla (cm)
+                  <input
+                    type="number"
+                    step="any"
+                    name="height"
+                    value={consultaForm.height}
+                    onChange={onConsultaChange}
+                  />
+                </label>
+                <label>
+                  Presion arterial
+                  <input
+                    name="blood_pressure"
+                    value={consultaForm.blood_pressure}
+                    onChange={onConsultaChange}
+                  />
+                </label>
+                <label>
+                  Frecuencia cardiaca
+                  <input
+                    type="number"
+                    name="heart_rate"
+                    value={consultaForm.heart_rate}
+                    onChange={onConsultaChange}
+                  />
+                </label>
+                <label>
+                  Saturacion O2
+                  <input
+                    type="number"
+                    name="oxygen_saturation"
+                    value={consultaForm.oxygen_saturation}
+                    onChange={onConsultaChange}
+                  />
+                </label>
+                <label>
+                  Circunferencia abdominal
+                  <input
+                    type="number"
+                    step="any"
+                    name="abdominal_circumference"
+                    value={consultaForm.abdominal_circumference}
+                    onChange={onConsultaChange}
+                  />
+                </label>
+              </div>
+            </details>
+
+            <details className="admin-section-group">
+              <summary className="admin-section-title">Motivo de consulta</summary>
+              <div className="admin-section-content">
+                <label>
+                  Motivo de consulta
+                  <textarea
+                    name="reason_for_visit"
+                    value={consultaForm.reason_for_visit}
+                    onChange={onConsultaChange}
+                  />
+                </label>
+              </div>
+            </details>
+
+            <details className="admin-section-group">
+              <summary className="admin-section-title">Historia actual</summary>
+              <div className="admin-section-content">
+                <label>
+                  Historia actual
+                  <textarea
+                    name="current_illness"
+                    value={consultaForm.current_illness}
+                    onChange={onConsultaChange}
+                  />
+                </label>
+              </div>
+            </details>
+
+            <details className="admin-section-group">
+              <summary className="admin-section-title">Examen fisico</summary>
+              <div className="admin-section-content">
+                <label>
+                  Examen fisico
+                  <textarea
+                    name="physical_exam"
+                    value={consultaForm.physical_exam}
+                    onChange={onConsultaChange}
+                  />
+                </label>
+              </div>
+            </details>
+
+            <details className="admin-section-group" open>
+              <summary className="admin-section-title">Diagnostico</summary>
+              <div className="admin-section-content">
+                <label>
+                  Diagnostico
+                  <textarea
+                    name="diagnostico"
+                    value={consultaForm.diagnostico}
+                    onChange={onConsultaChange}
+                  />
+                </label>
+                <label>
+                  Notas medicas
+                  <textarea
+                    name="notas_medicas"
+                    value={consultaForm.notas_medicas}
+                    onChange={onConsultaChange}
+                  />
+                </label>
+              </div>
+            </details>
+
+            <details className="admin-section-group" open>
+              <summary className="admin-section-title">Tratamiento</summary>
+              <div className="admin-section-content">
+                <label>
+                  Indicaciones generales
+                  <textarea
+                    name="indicaciones_generales"
+                    value={consultaForm.indicaciones_generales}
+                    onChange={onConsultaChange}
+                  />
+                </label>
                 <div className="list">
                   {medicamentos.map((med, index) => (
                     <div key={med.id} className="item-block">
@@ -786,21 +931,11 @@ export default function Dashboard() {
                   Agregar medicamento
                 </button>
               </div>
-            )}
-            <h3>Laboratorios</h3>
-            <div className="row-actions">
-              <button
-                type="button"
-                className="ghost"
-                onClick={() => setLabsOpen((prev) => !prev)}
-                aria-expanded={labsOpen}
-                aria-controls="labs-section"
-              >
-                {labsOpen ? "Ocultar laboratorios" : "Mostrar laboratorios"}
-              </button>
-            </div>
-            {labsOpen && (
-              <div id="labs-section">
+            </details>
+
+            <details className="admin-section-group">
+              <summary className="admin-section-title">Laboratorios</summary>
+              <div className="admin-section-content">
                 {labsError && <div className="error">{labsError}</div>}
                 {labsMessage && <div className="muted">{labsMessage}</div>}
                 <div className="list">
@@ -848,7 +983,36 @@ export default function Dashboard() {
                   Agregar laboratorio
                 </button>
               </div>
-            )}
+            </details>
+
+            <details className="admin-section-group">
+              <summary className="admin-section-title">Examenes solicitados</summary>
+              <div className="admin-section-content">
+                <label>
+                  Examenes solicitados
+                  <textarea
+                    name="requested_exams"
+                    value={consultaForm.requested_exams}
+                    onChange={onConsultaChange}
+                  />
+                </label>
+              </div>
+            </details>
+
+            <details className="admin-section-group">
+              <summary className="admin-section-title">Proxima cita</summary>
+              <div className="admin-section-content">
+                <label>
+                  Proxima cita
+                  <input
+                    type="date"
+                    name="next_visit_date"
+                    value={consultaForm.next_visit_date}
+                    onChange={onConsultaChange}
+                  />
+                </label>
+              </div>
+            </details>
             <button type="submit" disabled={patientLookupStatus !== "found"}>
               Guardar consulta
             </button>

@@ -455,6 +455,25 @@ button.ghost, .ghost {
   padding: 10px 14px;
   border-radius: 12px;
   font-size: 12px;
+  line-height: 1.5;
+}
+
+.portal-banner-ok {
+  background: #e6f4ea;
+  border-color: #cce8d5;
+  color: #1f5f36;
+}
+
+.portal-banner-warn {
+  background: #fff7e0;
+  border-color: #f6e3b4;
+  color: #7a5b10;
+}
+
+.portal-banner-overdue {
+  background: #fdecea;
+  border-color: #f6c7c1;
+  color: #8a1f1f;
 }
 
 .portal-section {

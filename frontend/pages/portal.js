@@ -88,6 +88,32 @@ export default function Portal() {
 
   const appointmentUrl =
     process.env.NEXT_PUBLIC_APPOINTMENT_URL || "https://example.com";
+  const nextVisitDate = current?.next_visit_date || null;
+  const today = new Date();
+  const normalizeDate = (value) => {
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return null;
+    return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+  };
+  const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const normalizedNext = nextVisitDate ? normalizeDate(nextVisitDate) : null;
+  const diffMs = normalizedNext ? normalizedNext.getTime() - normalizedToday.getTime() : null;
+  const diffDays = diffMs === null ? null : Math.ceil(diffMs / 86400000);
+  let nextVisitStatus = "neutral";
+  let nextVisitText = "Su medico aun no ha programado la proxima cita.";
+  if (diffDays !== null) {
+    if (diffDays > 14) {
+      nextVisitStatus = "ok";
+      nextVisitText = `Su proximo control esta programado para ${formatDate(nextVisitDate)}. Faltan ${diffDays} dias.`;
+    } else if (diffDays >= 0) {
+      nextVisitStatus = "warn";
+      nextVisitText = `Su control medico esta proximo. Faltan ${diffDays} dias.`;
+    } else {
+      const overdue = Math.abs(diffDays);
+      nextVisitStatus = "overdue";
+      nextVisitText = `Su control medico presenta un retraso de ${overdue} dias. Por favor agende una cita.`;
+    }
+  }
 
   if (loading || loadingCurrent) {
     return (
@@ -117,8 +143,8 @@ export default function Portal() {
               una consulta presencial.
             </p>
           </header>
-          <div className="portal-banner">
-            Seguimiento recomendado cada 90 dias segun su ultimo control.
+          <div className={`portal-banner portal-banner-${nextVisitStatus}`}>
+            {nextVisitText}
           </div>
           {error && <div className="error">{error}</div>}
           {message && <div className="muted">{message}</div>}

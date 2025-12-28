@@ -12,6 +12,15 @@ export default function Portal() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [patientName, setPatientName] = useState("");
+  const [glucoseForm, setGlucoseForm] = useState({
+    date: "",
+    value: "",
+    observation: "",
+  });
+  const [glucoseLogs, setGlucoseLogs] = useState([]);
+  const [glucoseLoading, setGlucoseLoading] = useState(false);
+  const [glucoseError, setGlucoseError] = useState("");
+  const [glucoseSaving, setGlucoseSaving] = useState(false);
 
   const formatDate = (value) => {
     if (!value) return "";
@@ -126,6 +135,88 @@ export default function Portal() {
     );
   }
 
+  useEffect(() => {
+    if (!user?.id) return;
+    let active = true;
+    const load = async () => {
+      setGlucoseLoading(true);
+      setGlucoseError("");
+      try {
+        const res = await apiFetch(`/glucoses/patient/${user.id}`);
+        if (res.status === 401 || res.status === 403) {
+          logout(router, "/login");
+          return;
+        }
+        if (!res.ok) {
+          if (active) setGlucoseError("No se pudo cargar el historial de glucosas");
+          return;
+        }
+        const data = await res.json().catch(() => []);
+        if (active) setGlucoseLogs(Array.isArray(data) ? data : []);
+      } catch (err) {
+        if (active) setGlucoseError("No se pudo cargar el historial de glucosas");
+      } finally {
+        if (active) setGlucoseLoading(false);
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [user?.id, router]);
+
+  const onGlucoseChange = (event) => {
+    const { name, value } = event.target;
+    setGlucoseForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const onGlucoseSubmit = async (event) => {
+    event.preventDefault();
+    setGlucoseError("");
+    if (!glucoseForm.date || !glucoseForm.value) {
+      setGlucoseError("Fecha y valor son requeridos");
+      return;
+    }
+    const numericValue = Number(glucoseForm.value);
+    if (!Number.isFinite(numericValue) || numericValue <= 0) {
+      setGlucoseError("El valor debe ser un numero positivo");
+      return;
+    }
+    setGlucoseSaving(true);
+    try {
+      const takenAt = new Date(`${glucoseForm.date}T00:00:00`);
+      const payload = {
+        patient_id: user?.id || null,
+        value: numericValue,
+        type: "ayuno",
+        taken_at: Number.isNaN(takenAt.getTime()) ? null : takenAt.toISOString(),
+        observation: glucoseForm.observation.trim() || null,
+      };
+      const res = await apiFetch("/glucoses", {
+        method: "POST",
+        body: payload,
+      });
+      if (res.status === 401 || res.status === 403) {
+        logout(router, "/login");
+        return;
+      }
+      if (!res.ok) {
+        setGlucoseError("No se pudo guardar el registro");
+        return;
+      }
+      setGlucoseForm({ date: "", value: "", observation: "" });
+      const resList = await apiFetch(`/glucoses/patient/${user.id}`);
+      if (resList.ok) {
+        const data = await resList.json().catch(() => []);
+        setGlucoseLogs(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      setGlucoseError("No se pudo guardar el registro");
+    } finally {
+      setGlucoseSaving(false);
+    }
+  };
+
   return (
     <div className="page">
       <div className="card portal-shell">
@@ -163,6 +254,65 @@ export default function Portal() {
             ) : (
               <div className="muted">No existen consultas registradas.</div>
             )}
+          </section>
+
+          <section className="portal-section">
+            <div className="section-title">Mis glucosas</div>
+            <div className="portal-card glucose-card">
+              <form onSubmit={onGlucoseSubmit} className="form glucose-form">
+                <label>
+                  Fecha
+                  <input
+                    type="date"
+                    name="date"
+                    value={glucoseForm.date}
+                    onChange={onGlucoseChange}
+                    required
+                  />
+                </label>
+                <label>
+                  Valor (mg/dL)
+                  <input
+                    type="number"
+                    name="value"
+                    value={glucoseForm.value}
+                    onChange={onGlucoseChange}
+                    required
+                  />
+                </label>
+                <label>
+                  Observacion (opcional)
+                  <textarea
+                    name="observation"
+                    value={glucoseForm.observation}
+                    onChange={onGlucoseChange}
+                  />
+                </label>
+                {glucoseError && <div className="error">{glucoseError}</div>}
+                <button type="submit" disabled={glucoseSaving}>
+                  {glucoseSaving ? "Guardando..." : "Guardar registro"}
+                </button>
+              </form>
+              <div className="glucose-list">
+                {glucoseLoading && <div className="muted">Cargando historial...</div>}
+                {!glucoseLoading && !glucoseLogs.length && (
+                  <div className="muted">No hay registros de glucosa.</div>
+                )}
+                {glucoseLogs.map((log) => (
+                  <div key={log.id} className="glucose-item">
+                    <div className="glucose-meta">
+                      {formatDate(log.taken_at || log.created_at)}
+                    </div>
+                    <div className="glucose-value">{log.value} mg/dL</div>
+                    {(log.observation || log.notes || log.description) && (
+                      <div className="glucose-note">
+                        {log.observation || log.notes || log.description}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           </section>
 
           <section className="portal-section">

@@ -76,6 +76,10 @@ export default function Dashboard() {
   const [consultaError, setConsultaError] = useState("");
   const [consultaSuccess, setConsultaSuccess] = useState("");
   const [consultas, setConsultas] = useState([]);
+  const [glucoseLogs, setGlucoseLogs] = useState([]);
+  const [glucoseLoading, setGlucoseLoading] = useState(false);
+  const [glucoseError, setGlucoseError] = useState("");
+  const [glucoseMessage, setGlucoseMessage] = useState("");
   const [labCatalog, setLabCatalog] = useState([]);
   const [labCatalogError, setLabCatalogError] = useState("");
   const [labs, setLabs] = useState([]);
@@ -142,6 +146,62 @@ export default function Dashboard() {
       clearTimeout(timer);
     };
   }, [consultaForm.patient_username, router]);
+
+  useEffect(() => {
+    if (!patientInfo?.id) {
+      setGlucoseLogs([]);
+      setGlucoseError("");
+      setGlucoseMessage("");
+      return;
+    }
+    let active = true;
+    setGlucoseLoading(true);
+    setGlucoseError("");
+    setGlucoseMessage("");
+    apiFetch(`/glucoses/patient/${patientInfo.id}`)
+      .then(async (res) => {
+        if (res.status === 401 || res.status === 403) {
+          logout(router, "/login?type=admin");
+          return;
+        }
+        if (res.status === 404) {
+          if (active) {
+            setGlucoseLogs([]);
+            setGlucoseMessage("Paciente sin registros de glucosa");
+          }
+          return;
+        }
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          if (active) {
+            setGlucoseLogs([]);
+            setGlucoseError(data.detail || "No se pudo cargar el historial de glucosas");
+          }
+          return;
+        }
+        const data = await res.json().catch(() => []);
+        if (active) {
+          const list = Array.isArray(data) ? data : [];
+          setGlucoseLogs(list);
+          if (!list.length) {
+            setGlucoseMessage("Paciente sin registros de glucosa");
+          }
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setGlucoseLogs([]);
+          setGlucoseError("No se pudo cargar el historial de glucosas");
+        }
+      })
+      .finally(() => {
+        if (active) setGlucoseLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [patientInfo?.id, router]);
 
   useEffect(() => {
     if (!user) return;
@@ -576,6 +636,25 @@ export default function Dashboard() {
     setSectionsOpen((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const formatDate = (value) => {
+    if (!value) return "";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleDateString("es-EC", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  const orderedGlucoseLogs = Array.isArray(glucoseLogs)
+    ? glucoseLogs.slice().sort((a, b) => {
+        const aTime = new Date(a?.taken_at || a?.created_at || 0).getTime();
+        const bTime = new Date(b?.taken_at || b?.created_at || 0).getTime();
+        return bTime - aTime;
+      })
+    : [];
+
   return (
     <div className="page">
       <div className="card admin-shell">
@@ -691,6 +770,42 @@ export default function Dashboard() {
               Apellidos
               <input value={patientInfo?.apellidos || ""} disabled readOnly />
             </label>
+          </div>
+          <div className="list">
+            <div className="list-title">Historial de glucosas</div>
+            {glucoseLoading && <div className="muted">Cargando historial...</div>}
+            {glucoseError && <div className="error">{glucoseError}</div>}
+            {!glucoseLoading && !glucoseError && glucoseMessage && (
+              <div className="muted">{glucoseMessage}</div>
+            )}
+            {!glucoseLoading &&
+              !glucoseError &&
+              orderedGlucoseLogs.map((log, index) => {
+                if (!log || typeof log !== "object") return null;
+                const logId =
+                  log.id ||
+                  `${log.taken_at || log.created_at || "glucose"}-${index}`;
+                const logDate = formatDate(log.taken_at || log.created_at);
+                const logType =
+                  log.type === "postprandial"
+                    ? "Postprandial"
+                    : log.type === "ayuno"
+                      ? "Ayuno"
+                      : "Sin tipo";
+                const logValue =
+                  log.value !== null && log.value !== undefined
+                    ? `${log.value} mg/dL`
+                    : "Sin valor";
+                const noteText = log.observation || log.notes || log.description;
+                return (
+                  <div key={logId} className="list-item">
+                    <div className="list-title">
+                      {logDate} - {logType} - <strong>{logValue}</strong>
+                    </div>
+                    {noteText && <div className="muted">{noteText}</div>}
+                  </div>
+                );
+              })}
           </div>
           <button type="button" onClick={loadConsultas}>
             Consultas recientes del paciente

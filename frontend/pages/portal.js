@@ -173,6 +173,10 @@ export default function Portal() {
   const onGlucoseSubmit = async (event) => {
     event.preventDefault();
     setGlucoseError("");
+    if (!user?.id) {
+      setGlucoseError("Sesion no valida");
+      return;
+    }
     if (!glucoseForm.date || !glucoseForm.value) {
       setGlucoseError("Fecha y valor son requeridos");
       return;
@@ -209,6 +213,8 @@ export default function Portal() {
       if (resList.ok) {
         const data = await resList.json().catch(() => []);
         setGlucoseLogs(Array.isArray(data) ? data : []);
+      } else {
+        setGlucoseLogs([]);
       }
     } catch (err) {
       setGlucoseError("No se pudo guardar el registro");
@@ -216,6 +222,8 @@ export default function Portal() {
       setGlucoseSaving(false);
     }
   };
+
+  const safeGlucoseLogs = Array.isArray(glucoseLogs) ? glucoseLogs : [];
 
   return (
     <div className="page">
@@ -237,8 +245,8 @@ export default function Portal() {
           <div className={`portal-banner portal-banner-${nextVisitStatus}`}>
             {nextVisitText}
           </div>
-          {error && <div className="error">{error}</div>}
-          {message && <div className="muted">{message}</div>}
+        {error && <div className="error">{error}</div>}
+        {message && <div className="muted">{message}</div>}
           <section className="portal-section">
             <div className="section-title">Plan de tratamiento actual</div>
             {current ? (
@@ -295,22 +303,30 @@ export default function Portal() {
               </form>
               <div className="glucose-list">
                 {glucoseLoading && <div className="muted">Cargando historial...</div>}
-                {!glucoseLoading && !glucoseLogs.length && (
+                {!glucoseLoading && safeGlucoseLogs.length === 0 && (
                   <div className="muted">No hay registros de glucosa.</div>
                 )}
-                {glucoseLogs.map((log) => (
-                  <div key={log.id} className="glucose-item">
-                    <div className="glucose-meta">
-                      {formatDate(log.taken_at || log.created_at)}
-                    </div>
-                    <div className="glucose-value">{log.value} mg/dL</div>
-                    {(log.observation || log.notes || log.description) && (
-                      <div className="glucose-note">
-                        {log.observation || log.notes || log.description}
+                {safeGlucoseLogs.map((log, index) => {
+                  if (!log || typeof log !== "object") return null;
+                  const logId =
+                    log.id ||
+                    `${log.taken_at || log.created_at || "glucose"}-${index}`;
+                  const logDate = log.taken_at || log.created_at;
+                  const logValue =
+                    log.value !== null && log.value !== undefined
+                      ? `${log.value} mg/dL`
+                      : "Sin valor";
+                  const noteText = log.observation || log.notes || log.description;
+                  return (
+                    <div key={logId} className="glucose-item">
+                      <div className="glucose-meta">
+                        {formatDate(logDate)}
                       </div>
-                    )}
-                  </div>
-                ))}
+                      <div className="glucose-value">{logValue}</div>
+                      {noteText && <div className="glucose-note">{noteText}</div>}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </section>

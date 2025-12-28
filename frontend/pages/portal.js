@@ -367,12 +367,6 @@ export default function Portal() {
     }
   }
 
-  const safeGlucoseLogs = Array.isArray(glucoseLogs) ? glucoseLogs : [];
-  const orderedGlucoseLogs = safeGlucoseLogs.slice().sort((a, b) => {
-    const aTime = new Date(a?.taken_at || a?.created_at || 0).getTime();
-    const bTime = new Date(b?.taken_at || b?.created_at || 0).getTime();
-    return bTime - aTime;
-  });
   const numericValue = Number(glucoseForm.value);
   const isGlucoseValueValid =
     Number.isFinite(numericValue) && numericValue > 20 && numericValue < 600;
@@ -439,15 +433,18 @@ export default function Portal() {
           </section>
 
           <section className="portal-section">
-            <div className="section-title">Mis glucosas</div>
-            <div className="portal-card glucose-card">
+            <div className="section-title">Registro de glucosa</div>
+            <div className="portal-card glucose-card" aria-busy={glucoseLoading ? "true" : "false"}>
               <button
                 type="button"
-                className="portal-card portal-action"
+                className="glucose-action-button"
                 onClick={() => setShowGlucoseForm((prev) => !prev)}
               >
-                {showGlucoseForm ? "Cerrar" : "+ Agregar glucosa"}
+                {showGlucoseForm ? "Cerrar" : "Registrar glucosa"}
               </button>
+              <div className="glucose-helper">
+                Registre su control de glucosa cuando su medico se lo indique
+              </div>
               {showGlucoseForm && (
                 <form onSubmit={onGlucoseSubmit} className="form glucose-form">
                   <fieldset className="glucose-type">
@@ -511,45 +508,6 @@ export default function Portal() {
                   </button>
                 </form>
               )}
-              <div className="glucose-list">
-                {glucoseLoading ? (
-                  <SkeletonCard style={{ marginTop: 8 }}>
-                    <SkeletonLine width="50%" height={12} />
-                    <SkeletonLine width="30%" height={18} />
-                    <SkeletonLine width="80%" height={12} />
-                  </SkeletonCard>
-                ) : null}
-                {!glucoseLoading && safeGlucoseLogs.length === 0 && (
-                  <div className="muted">No hay registros de glucosa.</div>
-                )}
-                {!glucoseLoading &&
-                  orderedGlucoseLogs.map((log, index) => {
-                    if (!log || typeof log !== "object") return null;
-                    const logId =
-                      log.id ||
-                      `${log.taken_at || log.created_at || "glucose"}-${index}`;
-                    const logDate = log.taken_at || log.created_at;
-                    const logValue =
-                      log.value !== null && log.value !== undefined
-                        ? `${log.value} mg/dL`
-                        : "Sin valor";
-                    const logType =
-                      log.type === "postprandial"
-                        ? "Despues de comer"
-                        : log.type === "ayuno"
-                          ? "Ayuno"
-                          : "Sin tipo";
-                    const noteText = log.observation || log.notes || log.description;
-                    return (
-                      <div key={logId} className="glucose-item">
-                        <div className="glucose-meta">
-                          {formatDate(logDate)} - {logType} - {logValue}
-                        </div>
-                      {noteText && <div className="glucose-note">{noteText}</div>}
-                    </div>
-                  );
-                })}
-              </div>
             </div>
           </section>
 
@@ -594,6 +552,53 @@ export default function Portal() {
           </div>
         </div>
       </div>
+      <style jsx>{`
+        .glucose-action-button {
+          width: 100%;
+          border: none;
+          border-radius: 18px;
+          padding: 14px 18px;
+          font-size: 15px;
+          font-weight: 700;
+          color: #ffffff;
+          background: linear-gradient(135deg, #1d4ed8, #2563eb);
+          box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+          cursor: pointer;
+          animation: glucoseGlow 4s ease-in-out infinite;
+        }
+
+        .glucose-action-button:hover {
+          background: linear-gradient(135deg, #1e40af, #1d4ed8);
+        }
+
+        .glucose-action-button:focus-visible {
+          outline: 2px solid #93c5fd;
+          outline-offset: 2px;
+        }
+
+        .glucose-helper {
+          font-size: 13px;
+          color: #6b7280;
+          line-height: 1.5;
+          margin-top: 6px;
+        }
+
+        @keyframes glucoseGlow {
+          0%,
+          100% {
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.18);
+          }
+          50% {
+            box-shadow: 0 10px 22px rgba(37, 99, 235, 0.28);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .glucose-action-button {
+            animation: none;
+          }
+        }
+      `}</style>
     </div>
   );
 }

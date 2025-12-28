@@ -12,6 +12,7 @@ export default function Portal() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [patientName, setPatientName] = useState("");
+  const [planOpen, setPlanOpen] = useState(false);
 
   const formatDate = (value) => {
     if (!value) return "";
@@ -50,6 +51,7 @@ export default function Portal() {
           return;
         }
         setCurrent(data);
+        setPlanOpen(false);
       })
       .catch(() => {
         setError("No se pudo cargar la informacion");
@@ -102,16 +104,66 @@ export default function Portal() {
       <div className="card">
         <h1>Portal</h1>
         <div className="portal-welcome">
-          Bienvenido {patientName || user?.username || ""}
+          <div className="portal-welcome-title">Bienvenido</div>
+          <div className="portal-welcome-name">
+            {patientName || user?.username || ""}
+          </div>
         </div>
         {error && <div className="error">{error}</div>}
         {message && <div className="muted">{message}</div>}
         <div className="section-title">Tratamiento o plan actual</div>
         {current && (
-          <div className="consultation-card">
-            <div className="consultation-date">
-              Consulta {formatDate(current.created_at)}
-            </div>
+          <div className="consultation-card portal-plan-card">
+            <button
+              type="button"
+              className="accordion-toggle plan-toggle"
+              onClick={() => setPlanOpen((prev) => !prev)}
+              aria-expanded={planOpen}
+            >
+              <span className="consultation-date">
+                Consulta {formatDate(current.created_at)}
+              </span>
+              <span className="accordion-icon">{planOpen ? "-" : "+"}</span>
+            </button>
+            {planOpen && (
+              <div className="accordion-body">
+                {current.diagnosis && (
+                  <div className="consultation-diagnosis">{current.diagnosis}</div>
+                )}
+                {current.indications && (
+                  <>
+                    <div className="consultation-label">Indicaciones</div>
+                    <div className="consultation-notes">{current.indications}</div>
+                  </>
+                )}
+                <div className="section-title">Medicacion</div>
+                <div className="medications-list">
+                  {!current.medications?.length && (
+                    <div className="muted">No hay medicacion registrada.</div>
+                  )}
+                  {current.medications?.map((med, index) => {
+                    const metaParts = [];
+                    if (med.quantity !== null && med.quantity !== undefined) {
+                      metaParts.push(`Cantidad ${med.quantity}`);
+                    }
+                    if (med.duration_days !== null && med.duration_days !== undefined) {
+                      metaParts.push(`Duracion ${med.duration_days} dias`);
+                    }
+                    return (
+                      <div key={`${med.drug_name}-${index}`} className="medication-card">
+                        <div className="medication-name">{med.drug_name}</div>
+                        {!!metaParts.length && (
+                          <div className="medication-meta">{metaParts.join(" | ")}</div>
+                        )}
+                        {med.description && (
+                          <div className="medication-description">{med.description}</div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
         <Link className="button" href="/portal/historial">

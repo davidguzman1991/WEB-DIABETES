@@ -67,9 +67,7 @@ export default function ConsultaDetalle() {
   const medications = detail?.medications || [];
   const labs = detail?.labs || [];
   const age = computeAge(patient?.fecha_nacimiento);
-  const noteText = [consultation?.notes, consultation?.indications]
-    .filter(Boolean)
-    .join("\n");
+  const indicationsText = consultation?.indications || "";
 
   if (loading) {
     return (
@@ -110,10 +108,10 @@ export default function ConsultaDetalle() {
               {consultation?.diagnosis && (
                 <div className="consultation-diagnosis">{consultation.diagnosis}</div>
               )}
-              {noteText && (
+              {indicationsText && (
                 <>
-                  <div className="consultation-label">Nota médica</div>
-                  <div className="consultation-notes">{noteText}</div>
+                  <div className="consultation-label">Indicaciones</div>
+                  <div className="consultation-notes">{indicationsText}</div>
                 </>
               )}
             </div>
@@ -147,7 +145,7 @@ export default function ConsultaDetalle() {
                     {isOpen && (
                       <div className="accordion-body">
                         {!!metaParts.length && (
-                          <div className="medication-meta">{metaParts.join(" · ")}</div>
+                          <div className="medication-meta">{metaParts.join(" | ")}</div>
                         )}
                         {med.description && (
                           <div className="medication-description">{med.description}</div>

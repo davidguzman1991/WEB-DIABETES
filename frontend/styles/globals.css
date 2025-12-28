@@ -187,6 +187,28 @@ button.ghost, .ghost {
   margin-top: 6px;
 }
 
+.portal-welcome {
+  margin: 6px 0 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  gap: 4px;
+  line-height: 1.5;
+  word-break: normal;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+.portal-welcome-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.portal-welcome-name {
+  font-size: 20px;
+  font-weight: 700;
+}
+
 .consultation-card {
   border: 1px solid var(--border);
   background: #fff;
@@ -195,6 +217,10 @@ button.ghost, .ghost {
   display: grid;
   gap: 10px;
   max-width: 100%;
+}
+
+.portal-plan-card {
+  gap: 12px;
 }
 
 .portal-detail-card {
@@ -277,6 +303,10 @@ button.ghost, .ghost {
   color: inherit;
   line-height: 1.5;
   cursor: pointer;
+}
+
+.plan-toggle {
+  padding: 4px 0;
 }
 
 .accordion-body {

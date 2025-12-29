@@ -1,13 +1,21 @@
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/router";
-
-import { api } from "../../../lib/api";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
   "http://127.0.0.1:8000";
+
+const readAdminToken = () => {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("token_admin") || localStorage.getItem("admin_token");
+};
+
+const clearAdminToken = () => {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem("token_admin");
+  localStorage.removeItem("admin_token");
+};
 
 const formatDate = (value) => {
   if (!value) return "";
@@ -20,44 +28,23 @@ const formatDate = (value) => {
   });
 };
 
-const fetchConsultation = async (token, consultationId) => {
-  const res = await fetch(`${API_URL}/admin/consultations/${consultationId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (res.status === 401 || res.status === 403) {
-    const err = new Error("Unauthorized");
-    err.code = "unauthorized";
-    throw err;
-  }
-
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    const detail = data?.detail || "No se pudo cargar la consulta";
-    throw new Error(detail);
-  }
-
-  return res.json();
-};
-
 export default function AdminConsultationDetail() {
   const router = useRouter();
-  const [token, setToken] = useState(null);
+  const [token, setToken] = useState(undefined);
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setToken(api.getToken("admin"));
+    setToken(readAdminToken());
   }, []);
 
   useEffect(() => {
-    if (!router.isReady) return;
+    if (!router.isReady || token === undefined) return;
     const consultationId = Array.isArray(router.query.id)
       ? router.query.id[0]
       : router.query.id;
+
     if (!token) {
       setLoading(false);
       router.replace("/login?type=admin");
@@ -68,22 +55,44 @@ export default function AdminConsultationDetail() {
     let active = true;
     setLoading(true);
     setError("");
-    fetchConsultation(token, consultationId)
-      .then((data) => {
-        if (!active) return;
-        setDetail(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        if (!active) return;
-        if (err?.code === "unauthorized") {
-          api.clearToken("admin");
+
+    fetch(`${API_URL}/admin/consultations/${consultationId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(async (res) => {
+        if (res.status === 401 || res.status === 403) {
+          clearAdminToken();
           router.replace("/login?type=admin");
           return;
         }
-        setError(err?.message || "No se pudo cargar la consulta");
-        setLoading(false);
-        router.replace("/dashboard");
+        if (res.status === 404) {
+          if (active) {
+            setError("Consulta no encontrada");
+            setLoading(false);
+          }
+          return;
+        }
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          if (active) {
+            setError(data?.detail || "No se pudo cargar la consulta");
+            setLoading(false);
+          }
+          return;
+        }
+        const data = await res.json().catch(() => null);
+        if (active) {
+          setDetail(data);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setError("No se pudo cargar la consulta");
+          setLoading(false);
+        }
       });
 
     return () => {
@@ -111,9 +120,13 @@ export default function AdminConsultationDetail() {
       <div className="admin-shell">
         <div className="card portal-detail-card">
           <h1>Consulta</h1>
-          <Link className="button button-secondary" href="/dashboard">
+          <button
+            type="button"
+            className="button button-secondary"
+            onClick={() => router.push("/dashboard")}
+          >
             Volver al dashboard
-          </Link>
+          </button>
           {error && <div className="error">{error}</div>}
           {detail && (
             <>

@@ -48,6 +48,71 @@ const canSubmit = (form, dateError) => {
   return true;
 };
 
+const usePatientNameSearch = (router) => {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState([]);
+  const [status, setStatus] = useState("idle");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const cleaned = query.trim();
+    if (!cleaned) {
+      setResults([]);
+      setStatus("idle");
+      setError("");
+      return;
+    }
+    let active = true;
+    const timer = setTimeout(() => {
+      setStatus("loading");
+      setError("");
+      apiFetch(`/admin/patients/search?q=${encodeURIComponent(cleaned)}`)
+        .then(async (res) => {
+          if (res.status === 401 || res.status === 403) {
+            logout(router, "/login?type=admin");
+            return;
+          }
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            if (!active) return;
+            setResults([]);
+            setStatus("error");
+            setError(data.detail || "No se pudo buscar pacientes");
+            return;
+          }
+          const data = await res.json().catch(() => []);
+          if (!active) return;
+          const list = Array.isArray(data) ? data : [];
+          setResults(list);
+          setStatus("done");
+          if (!list.length) {
+            setError("Sin resultados");
+          }
+        })
+        .catch(() => {
+          if (!active) return;
+          setResults([]);
+          setStatus("error");
+          setError("No se pudo buscar pacientes");
+        });
+    }, NAME_SEARCH_DEBOUNCE_MS);
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [query, router]);
+
+  const clear = () => {
+    setQuery("");
+    setResults([]);
+    setStatus("idle");
+    setError("");
+  };
+
+  return { query, setQuery, results, status, error, clear };
+};
+
 export default function Dashboard() {
   const router = useRouter();
   const { user, loading, error: authError } = useAuthGuard();
@@ -63,10 +128,6 @@ export default function Dashboard() {
   const [success, setSuccess] = useState("");
   const [age, setAge] = useState(null);
   const [dateError, setDateError] = useState("");
-  const [nameQuery, setNameQuery] = useState("");
-  const [nameResults, setNameResults] = useState([]);
-  const [nameSearchStatus, setNameSearchStatus] = useState("idle");
-  const [nameSearchError, setNameSearchError] = useState("");
   const [consultaForm, setConsultaForm] = useState({
     patient_username: "",
     diagnostico: "",
@@ -112,6 +173,8 @@ export default function Dashboard() {
     createConsultation: false,
   });
   const labIdRef = useRef(0);
+  const searchPatient = usePatientNameSearch(router);
+  const consultationSearch = usePatientNameSearch(router);
 
   useEffect(() => {
     if (!user) return;
@@ -166,50 +229,6 @@ export default function Dashboard() {
       clearTimeout(timer);
     };
   }, [consultaForm.patient_username, router]);
-
-  useEffect(() => {
-    const query = nameQuery.trim();
-    if (!query) {
-      setNameResults([]);
-      setNameSearchStatus("idle");
-      setNameSearchError("");
-      return;
-    }
-    const timer = setTimeout(() => {
-      setNameSearchStatus("loading");
-      setNameSearchError("");
-      apiFetch(`/admin/patients/search?q=${encodeURIComponent(query)}`)
-        .then(async (res) => {
-          if (res.status === 401 || res.status === 403) {
-            logout(router, "/login?type=admin");
-            return;
-          }
-          if (!res.ok) {
-            const data = await res.json().catch(() => ({}));
-            setNameResults([]);
-            setNameSearchStatus("error");
-            setNameSearchError(data.detail || "No se pudo buscar pacientes");
-            return;
-          }
-          const data = await res.json().catch(() => []);
-          const list = Array.isArray(data) ? data : [];
-          setNameResults(list);
-          setNameSearchStatus("done");
-          if (!list.length) {
-            setNameSearchError("Sin resultados");
-          }
-        })
-        .catch(() => {
-          setNameResults([]);
-          setNameSearchStatus("error");
-          setNameSearchError("No se pudo buscar pacientes");
-        });
-    }, NAME_SEARCH_DEBOUNCE_MS);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [nameQuery, router]);
 
   useEffect(() => {
     if (!patientInfo?.id) {
@@ -403,6 +422,66 @@ export default function Dashboard() {
     }
   };
 
+  const applyPatientSelection = (patient, clearSearch) => {
+    if (!patient?.cedula) return;
+    setConsultaForm((prev) => ({
+      ...prev,
+      patient_username: patient.cedula,
+    }));
+    setPatientInfo({
+      cedula: patient.cedula,
+      nombres: patient.nombres || "",
+      apellidos: patient.apellidos || "",
+    });
+    setPatientLookupStatus("loading");
+    setPatientLookupMessage("");
+    if (typeof clearSearch === "function") {
+      clearSearch();
+    }
+  };
+
+  const renderPatientSearchResults = (searchState, onSelect) => {
+    const results = Array.isArray(searchState.results) ? searchState.results : [];
+    return (
+      <>
+        {searchState.status === "loading" && (
+          <div className="muted">Buscando pacientes...</div>
+        )}
+        {searchState.status !== "loading" && searchState.error && (
+          <div className="muted">{searchState.error}</div>
+        )}
+        {results.length > 0 && (
+          <div className="list">
+            {results.map((patient, index) => {
+              if (!patient || typeof patient !== "object") return null;
+              const patientId = patient.cedula || `patient-${index}`;
+              return (
+                <div
+                  key={patientId}
+                  className="list-item"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => onSelect(patient)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      onSelect(patient);
+                    }
+                  }}
+                >
+                  <div className="list-title">
+                    {patient.apellidos || ""} {patient.nombres || ""}
+                  </div>
+                  <div className="list-meta">Cedula: {patient.cedula}</div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </>
+    );
+  };
+
   const validateLabs = (rows) => {
     const payload = [];
     const errors = {};
@@ -509,18 +588,6 @@ export default function Dashboard() {
     } catch (err) {
       setError("Error al crear paciente");
     }
-  };
-
-  const handleNameSelect = (patient) => {
-    if (!patient?.cedula) return;
-    setConsultaForm((prev) => ({
-      ...prev,
-      patient_username: patient.cedula,
-    }));
-    setNameResults([]);
-    setNameQuery("");
-    setNameSearchStatus("idle");
-    setNameSearchError("");
   };
 
   const loadConsultas = async () => {
@@ -950,44 +1017,13 @@ export default function Dashboard() {
                 Buscar por nombre o apellido (opcional)
                 <input
                   name="patient_name_search"
-                  value={nameQuery}
-                  onChange={(event) => setNameQuery(event.target.value)}
+                  value={searchPatient.query}
+                  onChange={(event) => searchPatient.setQuery(event.target.value)}
                   placeholder="Ingrese nombres o apellidos"
                 />
               </label>
-              {nameSearchStatus === "loading" && (
-                <div className="muted">Buscando pacientes...</div>
-              )}
-              {nameSearchStatus !== "loading" && nameSearchError && (
-                <div className="muted">{nameSearchError}</div>
-              )}
-              {nameResults.length > 0 && (
-                <div className="list">
-                  {nameResults.map((patient, index) => {
-                    if (!patient || typeof patient !== "object") return null;
-                    const patientId = patient.cedula || `patient-${index}`;
-                    return (
-                      <div
-                        key={patientId}
-                        className="list-item"
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => handleNameSelect(patient)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault();
-                            handleNameSelect(patient);
-                          }
-                        }}
-                      >
-                        <div className="list-title">
-                          {patient.apellidos || ""} {patient.nombres || ""}
-                        </div>
-                        <div className="list-meta">Cedula: {patient.cedula}</div>
-                      </div>
-                    );
-                  })}
-                </div>
+              {renderPatientSearchResults(searchPatient, (patient) =>
+                applyPatientSelection(patient, searchPatient.clear)
               )}
               {patientLookupStatus === "loading" && (
                 <div className="muted">Validando paciente...</div>
@@ -1167,6 +1203,18 @@ export default function Dashboard() {
           {consultaError && <div className="error">{consultaError}</div>}
           {consultaSuccess && <div className="success">{consultaSuccess}</div>}
           <form onSubmit={onSubmitConsulta} className="form">
+            <label>
+              Buscar por nombre o apellido (opcional)
+              <input
+                name="consultation_name_search"
+                value={consultationSearch.query}
+                onChange={(event) => consultationSearch.setQuery(event.target.value)}
+                placeholder="Ingrese nombres o apellidos"
+              />
+            </label>
+            {renderPatientSearchResults(consultationSearch, (patient) =>
+              applyPatientSelection(patient, consultationSearch.clear)
+            )}
             <label>
               Cedula paciente
               <input

@@ -985,7 +985,7 @@ export default function Dashboard() {
               const canNavigate = Boolean(item.id);
               const handleOpen = () => {
                 if (!item.id) return;
-                router.push(`/portal/consultas/${item.id}`);
+                router.push(`/dashboard/consultas/${item.id}`);
               };
               return (
                 <div

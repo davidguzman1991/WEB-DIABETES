@@ -631,7 +631,11 @@ export default function Dashboard() {
   };
 
   const toggleSection = (key) => {
-    setSectionsOpen((prev) => ({ ...prev, [key]: !prev[key] }));
+    setSectionsOpen((prev) => ({
+      createPatient: key === "createPatient" ? !prev.createPatient : false,
+      searchPatient: key === "searchPatient" ? !prev.searchPatient : false,
+      createConsultation: key === "createConsultation" ? !prev.createConsultation : false,
+    }));
   };
 
   const formatDate = (value) => {
@@ -679,10 +683,10 @@ export default function Dashboard() {
     const latestValue = Number(orderedGlucoseLogs[0]?.value);
     if (!Number.isFinite(latestValue)) return null;
     if (latestValue < GLUCOSE_HYPO_THRESHOLD) {
-      return { text: "🚨 Riesgo de hipoglucemia", color: "#991b1b", background: "#fee2e2" };
+      return { text: "Riesgo de hipoglucemia", color: "#991b1b", background: "#fee2e2" };
     }
     if (latestValue > GLUCOSE_HYPER_THRESHOLD) {
-      return { text: "⚠️ Hiperglucemia", color: "#92400e", background: "#fffbeb" };
+      return { text: "Hiperglucemia", color: "#92400e", background: "#fffbeb" };
     }
     return null;
   }, [orderedGlucoseLogs]);
@@ -830,7 +834,11 @@ export default function Dashboard() {
             {dateError && <div className="error">{dateError}</div>}
             {!dateError && age !== null && <div className="muted">Edad: {age} anos</div>}
             {!dateError && age === null && form.fecha_nacimiento && <div className="muted">Edad: -</div>}
-            <button type="submit" disabled={!canSubmit(form, dateError)}>
+            <button
+              type="submit"
+              className="button-primary"
+              disabled={!canSubmit(form, dateError)}
+            >
               Crear
             </button>
           </form>
@@ -840,36 +848,39 @@ export default function Dashboard() {
       {sectionsOpen.searchPatient && (
         <section className="card admin-section">
           <h2>Buscar paciente</h2>
-          <div className="form">
-            <label>
-              Cedula paciente
-              <input
-                name="patient_username"
-                value={consultaForm.patient_username}
-                onChange={onConsultaChange}
-                placeholder="Ingrese la cedula"
-              />
-            </label>
-            {patientLookupStatus === "loading" && (
-              <div className="muted">Validando paciente...</div>
-            )}
-            {patientLookupStatus === "found" && (
-              <div className="success">{patientLookupMessage}</div>
-            )}
-            {patientLookupStatus !== "found" && patientLookupMessage && (
-              <div className="error">{patientLookupMessage}</div>
-            )}
-            <label>
-              Nombres
-              <input value={patientInfo?.nombres || ""} disabled readOnly />
-            </label>
-            <label>
-              Apellidos
-              <input value={patientInfo?.apellidos || ""} disabled readOnly />
-            </label>
+          <div className="consultation-card">
+            <div className="section-title">Paciente seleccionado</div>
+            <div className="form">
+              <label>
+                Cedula paciente
+                <input
+                  name="patient_username"
+                  value={consultaForm.patient_username}
+                  onChange={onConsultaChange}
+                  placeholder="Ingrese la cedula"
+                />
+              </label>
+              {patientLookupStatus === "loading" && (
+                <div className="muted">Validando paciente...</div>
+              )}
+              {patientLookupStatus === "found" && (
+                <div className="success">{patientLookupMessage}</div>
+              )}
+              {patientLookupStatus !== "found" && patientLookupMessage && (
+                <div className="error">{patientLookupMessage}</div>
+              )}
+              <label>
+                Nombres
+                <input value={patientInfo?.nombres || ""} disabled readOnly />
+              </label>
+              <label>
+                Apellidos
+                <input value={patientInfo?.apellidos || ""} disabled readOnly />
+              </label>
+            </div>
           </div>
-          <div className="list">
-            <div className="list-title">
+          <div className="consultation-card">
+            <div className="section-title">
               Historial de glucosas{" "}
               {glucoseTrend && (
                 <span style={{ color: glucoseTrend.color, fontWeight: 700 }}>
@@ -877,139 +888,146 @@ export default function Dashboard() {
                 </span>
               )}
             </div>
-            {glucoseAlert && (
+            <div className="list">
+              {glucoseAlert && (
               <div
                 style={{
                   background: glucoseAlert.background,
                   color: glucoseAlert.color,
                   padding: "8px 12px",
-                  borderRadius: 8,
+                  borderRadius: 12,
                   marginBottom: 12,
                   fontWeight: 600,
                 }}
               >
-                {glucoseAlert.text}
-              </div>
-            )}
-            {glucoseLoading && <div className="muted">Cargando historial...</div>}
-            {glucoseError && <div className="error">{glucoseError}</div>}
-            {!glucoseLoading && !glucoseError && glucoseMessage && (
-              <div className="muted">{glucoseMessage}</div>
-            )}
-            {!glucoseLoading &&
-              !glucoseError &&
-              orderedGlucoseLogs.map((log, index) => {
-                if (!log || typeof log !== "object") return null;
-                const logId =
-                  log.id ||
-                  `${log.taken_at || log.created_at || "glucose"}-${index}`;
-                const logDate = formatDate(log.taken_at || log.created_at);
-                const logType =
-                  log.type === "postprandial"
-                    ? "Postprandial"
-                    : log.type === "ayuno"
-                      ? "Ayuno"
-                      : "Sin tipo";
-                const logValue =
-                  log.value !== null && log.value !== undefined
-                    ? `${log.value} mg/dL`
-                    : "Sin valor";
-                const noteText = log.observation || log.notes || log.description;
-                return (
-                  <div key={logId} className="list-item">
-                    <div className="list-title">
-                      {logDate} - {logType} - <strong>{logValue}</strong>
+                  {glucoseAlert.text}
+                </div>
+              )}
+              {glucoseLoading && <div className="muted">Cargando historial...</div>}
+              {glucoseError && <div className="error">{glucoseError}</div>}
+              {!glucoseLoading && !glucoseError && glucoseMessage && (
+                <div className="muted">{glucoseMessage}</div>
+              )}
+              {!glucoseLoading &&
+                !glucoseError &&
+                orderedGlucoseLogs.map((log, index) => {
+                  if (!log || typeof log !== "object") return null;
+                  const logId =
+                    log.id ||
+                    `${log.taken_at || log.created_at || "glucose"}-${index}`;
+                  const logDate = formatDate(log.taken_at || log.created_at);
+                  const logType =
+                    log.type === "postprandial"
+                      ? "Postprandial"
+                      : log.type === "ayuno"
+                        ? "Ayuno"
+                        : "Sin tipo";
+                  const logValue =
+                    log.value !== null && log.value !== undefined
+                      ? `${log.value} mg/dL`
+                      : "Sin valor";
+                  const noteText = log.observation || log.notes || log.description;
+                  return (
+                    <div key={logId} className="list-item">
+                      <div className="list-title">
+                        {logDate} - {logType} - <strong>{logValue}</strong>
+                      </div>
+                      {noteText && <div className="muted">{noteText}</div>}
                     </div>
-                    {noteText && <div className="muted">{noteText}</div>}
-                  </div>
-                );
-              })}
-            {!glucoseLoading && !glucoseError && glucoseChart && (
-              <div style={{ marginTop: 16 }}>
-                <svg
-                  viewBox={`0 0 ${GLUCOSE_CHART_WIDTH} ${GLUCOSE_CHART_HEIGHT}`}
-                  width="100%"
-                  height={GLUCOSE_CHART_HEIGHT}
-                  role="img"
-                  aria-label="Tendencia de glucosa"
-                >
+                  );
+                })}
+              {!glucoseLoading && !glucoseError && glucoseChart && (
+                <div style={{ marginTop: 16 }}>
+                  <svg
+                    viewBox={`0 0 ${GLUCOSE_CHART_WIDTH} ${GLUCOSE_CHART_HEIGHT}`}
+                    width="100%"
+                    height={GLUCOSE_CHART_HEIGHT}
+                    role="img"
+                    aria-label="Tendencia de glucosa"
+                  >
                   <path
                     d={glucoseChart.path}
                     fill="none"
-                    stroke="#2563eb"
+                    stroke="#1e3a5f"
                     strokeWidth="2"
                   />
-                  {glucoseChartPoints.map((point, index) => {
-                    const xStep =
-                      glucoseChartPoints.length > 1
-                        ? (GLUCOSE_CHART_WIDTH - GLUCOSE_CHART_PADDING * 2) /
-                          (glucoseChartPoints.length - 1)
-                        : 0;
-                    const x = GLUCOSE_CHART_PADDING + index * xStep;
-                    const plotHeight = GLUCOSE_CHART_HEIGHT - GLUCOSE_CHART_PADDING * 2;
-                    const range = Math.max(glucoseChart.maxValue - glucoseChart.minValue, 1);
-                    const normalized = (point.value - glucoseChart.minValue) / range;
-                    const y =
-                      GLUCOSE_CHART_HEIGHT - GLUCOSE_CHART_PADDING - normalized * plotHeight;
-                    return (
-                      <g key={`${point.label}-${index}`}>
-                        <circle cx={x} cy={y} r="3" fill="#2563eb" />
-                        <text
-                          x={x}
-                          y={GLUCOSE_CHART_HEIGHT - 6}
-                          textAnchor="middle"
-                          fontSize="10"
-                          fill="#6b7280"
-                        >
-                          {point.label}
-                        </text>
-                      </g>
-                    );
-                  })}
-                </svg>
-              </div>
-            )}
-          </div>
-          <button type="button" onClick={loadConsultas}>
-            Consultas recientes del paciente
-          </button>
-          {consultaError && <div className="error">{consultaError}</div>}
-          <div className="list">
-            {safeConsultas.map((item, index) => {
-              if (!item || typeof item !== "object") return null;
-              const itemId = item.id || `consulta-${index}`;
-              const createdAt = item.created_at
-                ? new Date(item.created_at).toLocaleDateString()
-                : "";
-              const diagnosisText = item.diagnosis || "";
-              const canNavigate = Boolean(item.id);
-              const handleOpen = () => {
-                if (!item.id) return;
-                router.push(`/dashboard/consultas/${item.id}`);
-              };
-              return (
-                <div
-                  key={itemId}
-                  className={`list-item${canNavigate ? " clickable-consultation" : ""}`}
-                  onClick={canNavigate ? handleOpen : undefined}
-                  onKeyDown={
-                    canNavigate
-                      ? (event) => {
-                          if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault();
-                            handleOpen();
-                          }
-                        }
-                      : undefined
-                  }
-                  role={canNavigate ? "button" : undefined}
-                  tabIndex={canNavigate ? 0 : undefined}
-                >
-                  <div className="list-title">{createdAt}</div>
-                  {diagnosisText && <div className="list-meta">{diagnosisText}</div>}
+                    {glucoseChartPoints.map((point, index) => {
+                      const xStep =
+                        glucoseChartPoints.length > 1
+                          ? (GLUCOSE_CHART_WIDTH - GLUCOSE_CHART_PADDING * 2) /
+                            (glucoseChartPoints.length - 1)
+                          : 0;
+                      const x = GLUCOSE_CHART_PADDING + index * xStep;
+                      const plotHeight = GLUCOSE_CHART_HEIGHT - GLUCOSE_CHART_PADDING * 2;
+                      const range = Math.max(glucoseChart.maxValue - glucoseChart.minValue, 1);
+                      const normalized = (point.value - glucoseChart.minValue) / range;
+                      const y =
+                        GLUCOSE_CHART_HEIGHT - GLUCOSE_CHART_PADDING - normalized * plotHeight;
+                      return (
+                        <g key={`${point.label}-${index}`}>
+                        <circle cx={x} cy={y} r="3" fill="#1e3a5f" />
+                          <text
+                            x={x}
+                            y={GLUCOSE_CHART_HEIGHT - 6}
+                            textAnchor="middle"
+                            fontSize="10"
+                            fill="#6b7280"
+                          >
+                            {point.label}
+                          </text>
+                        </g>
+                      );
+                    })}
+                  </svg>
                 </div>
-              );
-            })}
+              )}
+            </div>
+          </div>
+          <div className="consultation-card">
+            <div className="section-title">Consultas recientes</div>
+            <button type="button" className="button-primary" onClick={loadConsultas}>
+              Consultas recientes del paciente
+            </button>
+          </div>
+          <div className="consultation-card">
+            {consultaError && <div className="error">{consultaError}</div>}
+            <div className="list">
+              {safeConsultas.map((item, index) => {
+                if (!item || typeof item !== "object") return null;
+                const itemId = item.id || `consulta-${index}`;
+                const createdAt = item.created_at
+                  ? new Date(item.created_at).toLocaleDateString()
+                  : "";
+                const diagnosisText = item.diagnosis || "";
+                const canNavigate = Boolean(item.id);
+                const handleOpen = () => {
+                  if (!item.id) return;
+                  router.push(`/dashboard/consultas/${item.id}`);
+                };
+                return (
+                  <div
+                    key={itemId}
+                    className={`list-item${canNavigate ? " clickable-consultation" : ""}`}
+                    onClick={canNavigate ? handleOpen : undefined}
+                    onKeyDown={
+                      canNavigate
+                        ? (event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              handleOpen();
+                            }
+                          }
+                        : undefined
+                    }
+                    role={canNavigate ? "button" : undefined}
+                    tabIndex={canNavigate ? 0 : undefined}
+                  >
+                    <div className="list-title">{createdAt}</div>
+                    {diagnosisText && <div className="list-meta">{diagnosisText}</div>}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </section>
       )}
@@ -1334,7 +1352,11 @@ export default function Dashboard() {
                 </label>
               </div>
             </details>
-            <button type="submit" disabled={patientLookupStatus !== "found"}>
+            <button
+              type="submit"
+              className="button-primary"
+              disabled={patientLookupStatus !== "found"}
+            >
               Guardar consulta
             </button>
           </form>

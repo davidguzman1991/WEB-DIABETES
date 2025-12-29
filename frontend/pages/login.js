@@ -75,7 +75,10 @@ export default function Login() {
               />
             </label>
             {error && <div className="error">{error}</div>}
-            <button type="submit" className={isAdmin ? "" : "login-button"}>
+            <button
+              type="submit"
+              className={isAdmin ? "button-primary" : "button-primary login-button"}
+            >
               Entrar
             </button>
           </form>

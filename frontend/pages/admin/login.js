@@ -55,7 +55,7 @@ export default function AdminLogin() {
               required
             />
           </label>
-          <button type="submit" disabled={loading}>
+          <button type="submit" className="button-primary" disabled={loading}>
             {loading ? "Ingresando..." : "Ingresar"}
           </button>
         </form>

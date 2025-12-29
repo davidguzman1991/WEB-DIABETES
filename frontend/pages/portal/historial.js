@@ -55,11 +55,17 @@ export default function PortalHistorial() {
       });
   }, [router, user]);
 
+  const patientName = items?.[0]?.patient
+    ? [items[0].patient.nombres, items[0].patient.apellidos].filter(Boolean).join(" ")
+    : "";
+
   if (loading) {
     return (
       <div className="page">
-        <div className="card">
-          <h1>Historial</h1>
+        <div className="card portal-detail-card">
+          <div className="portal-header">
+            <h1 className="portal-title">Historial clinico</h1>
+          </div>
           <p className="muted">Cargando...</p>
         </div>
       </div>
@@ -68,26 +74,43 @@ export default function PortalHistorial() {
 
   return (
     <div className="page">
-      <div className="card">
-        <h1>Historial</h1>
+      <div className="card portal-detail-card">
+        <header className="portal-header">
+          <h1 className="portal-title">Historial clinico</h1>
+          {patientName && <p className="portal-subtitle">{patientName}</p>}
+        </header>
+        <Link className="button ghost" href="/portal">
+          &larr; Volver al portal
+        </Link>
         {error && <div className="error">{error}</div>}
-        {message && <div className="muted">{message}</div>}
-        <div className="list">
-          {items.map((item) => (
+        {message && (
+          <div className="consultation-card">
+            <div className="consultation-meta">{message}</div>
+          </div>
+        )}
+        {!message && !error && (
+          <div className="medications-list">
+            {items.map((item) => {
+              const diagnosisText =
+                item.diagnosis || item.indications || "Consulta registrada";
+              return (
             <Link
               key={item.id}
-              className="history-card"
+              className="consultation-card consultation-link"
               href={`/portal/consultas/${item.id}`}
             >
-              <div className="history-diagnosis">
-                Consulta {formatDate(item.created_at)}
+              <div>
+                <div className="consultation-date">
+                  Consulta {formatDate(item.created_at)}
+                </div>
+                <div className="consultation-diagnosis">{diagnosisText}</div>
               </div>
+              <div className="consultation-meta">Ver consulta</div>
             </Link>
-          ))}
-        </div>
-        <Link className="button" href="/portal">
-          Volver
-        </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

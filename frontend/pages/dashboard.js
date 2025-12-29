@@ -982,8 +982,29 @@ export default function Dashboard() {
                 ? new Date(item.created_at).toLocaleDateString()
                 : "";
               const diagnosisText = item.diagnosis || "";
+              const canNavigate = Boolean(item.id);
+              const handleOpen = () => {
+                if (!item.id) return;
+                router.push(`/portal/consultas/${item.id}`);
+              };
               return (
-                <div key={itemId} className="list-item">
+                <div
+                  key={itemId}
+                  className={`list-item${canNavigate ? " clickable-consultation" : ""}`}
+                  onClick={canNavigate ? handleOpen : undefined}
+                  onKeyDown={
+                    canNavigate
+                      ? (event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            handleOpen();
+                          }
+                        }
+                      : undefined
+                  }
+                  role={canNavigate ? "button" : undefined}
+                  tabIndex={canNavigate ? 0 : undefined}
+                >
                   <div className="list-title">{createdAt}</div>
                   {diagnosisText && <div className="list-meta">{diagnosisText}</div>}
                 </div>
@@ -1319,6 +1340,17 @@ export default function Dashboard() {
           </form>
         </section>
       )}
+      <style jsx>{`
+        .clickable-consultation {
+          cursor: pointer;
+          transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .clickable-consultation:hover {
+          box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
+          transform: translateY(-1px);
+        }
+      `}</style>
     </div>
   );
 }

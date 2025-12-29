@@ -418,17 +418,21 @@ export default function Portal() {
                 <SkeletonLine width="45%" height={12} />
               </SkeletonCard>
             ) : current ? (
-              <Link
-                className="portal-card portal-card-highlight"
-                href={`/portal/consultas/${current.id}`}
-              >
-                <div className="portal-card-title">
-                  Consulta {formatDate(current.created_at)}
+              <>
+                <div className="portal-card portal-card-highlight">
+                  <div className="portal-card-title">
+                    Consulta {formatDate(current.created_at)}
+                  </div>
+                  <div className="portal-card-note">Consulta mas reciente</div>
                 </div>
-                <div className="portal-card-note">Ver detalle de la consulta</div>
-              </Link>
+                <Link className="button button-secondary" href={`/portal/consultas/${current.id}`}>
+                  Ver consulta
+                </Link>
+              </>
             ) : (
-              <div className="muted">No existen consultas registradas.</div>
+              <div className="portal-card">
+                <div className="portal-card-note">No existen consultas registradas.</div>
+              </div>
             )}
           </section>
 
@@ -437,7 +441,7 @@ export default function Portal() {
             <div className="portal-card glucose-card" aria-busy={glucoseLoading ? "true" : "false"}>
               <button
                 type="button"
-                className="glucose-action-button"
+                className="button-primary glucose-action-button"
                 onClick={() => setShowGlucoseForm((prev) => !prev)}
               >
                 {showGlucoseForm ? "Cerrar" : "Registrar glucosa"}
@@ -503,7 +507,11 @@ export default function Portal() {
                     />
                   </label>
                   {glucoseError && <div className="error">{glucoseError}</div>}
-                  <button type="submit" disabled={glucoseSaving || !isGlucoseFormValid}>
+                  <button
+                    type="submit"
+                    className="button-secondary"
+                    disabled={glucoseSaving || !isGlucoseFormValid}
+                  >
                     {glucoseSaving ? "Guardando..." : "Guardar registro"}
                   </button>
                 </form>
@@ -555,20 +563,19 @@ export default function Portal() {
       <style jsx>{`
         .glucose-action-button {
           width: 100%;
-          border: none;
-          border-radius: 18px;
+          border-radius: 12px;
           padding: 14px 18px;
           font-size: 15px;
           font-weight: 700;
           color: #ffffff;
-          background: linear-gradient(135deg, #1d4ed8, #2563eb);
-          box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+          background: #0f766e;
+          box-shadow: 0 10px 20px rgba(15, 118, 110, 0.2);
           cursor: pointer;
           animation: glucoseGlow 4s ease-in-out infinite;
         }
 
         .glucose-action-button:hover {
-          background: linear-gradient(135deg, #1e40af, #1d4ed8);
+          background: #0b5f59;
         }
 
         .glucose-action-button:focus-visible {
@@ -586,10 +593,10 @@ export default function Portal() {
         @keyframes glucoseGlow {
           0%,
           100% {
-            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.18);
+            box-shadow: 0 8px 18px rgba(15, 118, 110, 0.18);
           }
           50% {
-            box-shadow: 0 10px 22px rgba(37, 99, 235, 0.28);
+            box-shadow: 0 10px 22px rgba(15, 118, 110, 0.28);
           }
         }
 

@@ -96,7 +96,7 @@ export default function PortalHistorial() {
               return (
             <Link
               key={item.id}
-              className="consultation-card consultation-link"
+              className="portal-card consultation-link"
               href={`/portal/consultas/${item.id}`}
             >
               <div>
@@ -105,7 +105,7 @@ export default function PortalHistorial() {
                 </div>
                 <div className="consultation-diagnosis">{diagnosisText}</div>
               </div>
-              <div className="consultation-meta">Ver consulta</div>
+              <div className="btn-link-blue">Ver consulta</div>
             </Link>
               );
             })}

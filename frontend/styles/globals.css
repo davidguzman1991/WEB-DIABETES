@@ -607,7 +607,9 @@ button.ghost, .ghost {
 
 .admin-shell {
   max-width: 980px;
-  margin: 32px auto 24px;
+  margin: 24px auto 20px;
+  padding: 20px;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.04);
 }
 
 .admin-header {
@@ -616,18 +618,23 @@ button.ghost, .ghost {
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
+  background: #eaf3fa;
+  border: 1px solid #dbe7f3;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
 }
 
 .admin-meta {
   font-size: 13px;
   color: var(--muted);
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .admin-actions {
   display: grid;
-  gap: 12px;
-  margin-top: 16px;
+  gap: 10px;
+  margin-top: 10px;
 }
 
 .admin-toggle {
@@ -635,9 +642,10 @@ button.ghost, .ghost {
   color: var(--ink);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 14px 16px;
+  padding: 10px 12px;
   text-align: left;
   font-weight: 600;
+  min-height: 38px;
 }
 
 .admin-toggle.is-open {
@@ -647,7 +655,21 @@ button.ghost, .ghost {
 
 .admin-section {
   max-width: 980px;
-  margin: 0 auto 24px;
+  margin: 0 auto 18px;
+  padding: 20px;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.04);
+}
+
+.admin-shell button,
+.admin-section button {
+  min-height: 38px;
+  padding: 8px 14px;
+}
+
+.admin-section .consultation-card {
+  padding: 12px;
+  gap: 8px;
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.03);
 }
 
 @media (min-width: 720px) {

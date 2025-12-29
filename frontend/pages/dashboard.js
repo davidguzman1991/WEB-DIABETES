@@ -53,6 +53,7 @@ export default function Dashboard() {
   const [form, setForm] = useState({
     cedula: "",
     password: "",
+    confirmPassword: "",
     nombres: "",
     apellidos: "",
     fecha_nacimiento: "",
@@ -408,6 +409,10 @@ export default function Dashboard() {
       setError(dateError);
       return;
     }
+    if (form.password !== form.confirmPassword) {
+      setError("Las contraseñas no coinciden");
+      return;
+    }
     try {
       const body = {
         cedula: form.cedula.trim(),
@@ -427,6 +432,7 @@ export default function Dashboard() {
         setForm({
           cedula: "",
           password: "",
+          confirmPassword: "",
           nombres: "",
           apellidos: "",
           fecha_nacimiento: "",
@@ -822,6 +828,15 @@ export default function Dashboard() {
             <label>
               Password
               <input type="password" name="password" value={form.password} onChange={onChange} />
+            </label>
+            <label>
+              Confirmar password
+              <input
+                type="password"
+                name="confirmPassword"
+                value={form.confirmPassword}
+                onChange={onChange}
+              />
             </label>
             <label>
               Nombres

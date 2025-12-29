@@ -540,7 +540,11 @@ export default function Portal() {
           </section>
 
           <div className="portal-footer">
-            <button type="button" onClick={() => logout(router)}>
+            <button
+              type="button"
+              className="logout-button"
+              onClick={() => logout(router)}
+            >
               Cerrar sesion
             </button>
           </div>

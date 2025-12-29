@@ -681,6 +681,102 @@ button.ghost, .ghost {
   margin: 32px auto 0;
 }
 
+.consultation-header {
+  background: #3b82f6;
+  color: #f8fafc;
+  border-radius: var(--radius);
+  padding: 20px;
+  display: grid;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.consultation-header-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.consultation-header-meta {
+  font-size: 13px;
+  color: #dbeafe;
+}
+
+.consultation-header-diagnosis {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.consultation-actions {
+  display: grid;
+  gap: 12px;
+}
+
+.consultation-action-card {
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  background: #f5f8ff;
+  border-radius: var(--radius);
+  padding: 16px;
+  text-decoration: none;
+  color: inherit;
+  display: grid;
+  gap: 6px;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.05);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.consultation-action-card:hover {
+  box-shadow: 0 14px 26px rgba(15, 23, 42, 0.1);
+  transform: translateY(-1px);
+}
+
+.consultation-action-title {
+  font-weight: 600;
+  color: #1e3a5f;
+}
+
+.consultation-action-meta {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.flash-card {
+  border: 1px solid var(--border);
+  background: #ffffff;
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: grid;
+  gap: 8px;
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.04);
+}
+
+.flash-title {
+  font-weight: 700;
+  color: #1e3a5f;
+}
+
+.flash-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: #334155;
+}
+
+.flash-label {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.flash-note {
+  font-size: 13px;
+  color: #2f2f2f;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
 .consultation-label {
   font-size: 12px;
   text-transform: uppercase;

@@ -11,6 +11,7 @@ const GLUCOSE_HYPER_THRESHOLD = 180;
 const GLUCOSE_CHART_HEIGHT = 200;
 const GLUCOSE_CHART_PADDING = 24;
 const GLUCOSE_CHART_WIDTH = 600;
+const NAME_SEARCH_DEBOUNCE_MS = 400;
 
 const formatShortDate = (value) => {
   if (!value) return "";
@@ -62,6 +63,10 @@ export default function Dashboard() {
   const [success, setSuccess] = useState("");
   const [age, setAge] = useState(null);
   const [dateError, setDateError] = useState("");
+  const [nameQuery, setNameQuery] = useState("");
+  const [nameResults, setNameResults] = useState([]);
+  const [nameSearchStatus, setNameSearchStatus] = useState("idle");
+  const [nameSearchError, setNameSearchError] = useState("");
   const [consultaForm, setConsultaForm] = useState({
     patient_username: "",
     diagnostico: "",
@@ -161,6 +166,50 @@ export default function Dashboard() {
       clearTimeout(timer);
     };
   }, [consultaForm.patient_username, router]);
+
+  useEffect(() => {
+    const query = nameQuery.trim();
+    if (!query) {
+      setNameResults([]);
+      setNameSearchStatus("idle");
+      setNameSearchError("");
+      return;
+    }
+    const timer = setTimeout(() => {
+      setNameSearchStatus("loading");
+      setNameSearchError("");
+      apiFetch(`/admin/patients/search?q=${encodeURIComponent(query)}`)
+        .then(async (res) => {
+          if (res.status === 401 || res.status === 403) {
+            logout(router, "/login?type=admin");
+            return;
+          }
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            setNameResults([]);
+            setNameSearchStatus("error");
+            setNameSearchError(data.detail || "No se pudo buscar pacientes");
+            return;
+          }
+          const data = await res.json().catch(() => []);
+          const list = Array.isArray(data) ? data : [];
+          setNameResults(list);
+          setNameSearchStatus("done");
+          if (!list.length) {
+            setNameSearchError("Sin resultados");
+          }
+        })
+        .catch(() => {
+          setNameResults([]);
+          setNameSearchStatus("error");
+          setNameSearchError("No se pudo buscar pacientes");
+        });
+    }, NAME_SEARCH_DEBOUNCE_MS);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [nameQuery, router]);
 
   useEffect(() => {
     if (!patientInfo?.id) {
@@ -460,6 +509,18 @@ export default function Dashboard() {
     } catch (err) {
       setError("Error al crear paciente");
     }
+  };
+
+  const handleNameSelect = (patient) => {
+    if (!patient?.cedula) return;
+    setConsultaForm((prev) => ({
+      ...prev,
+      patient_username: patient.cedula,
+    }));
+    setNameResults([]);
+    setNameQuery("");
+    setNameSearchStatus("idle");
+    setNameSearchError("");
   };
 
   const loadConsultas = async () => {
@@ -885,6 +946,49 @@ export default function Dashboard() {
                   placeholder="Ingrese la cedula"
                 />
               </label>
+              <label>
+                Buscar por nombre o apellido (opcional)
+                <input
+                  name="patient_name_search"
+                  value={nameQuery}
+                  onChange={(event) => setNameQuery(event.target.value)}
+                  placeholder="Ingrese nombres o apellidos"
+                />
+              </label>
+              {nameSearchStatus === "loading" && (
+                <div className="muted">Buscando pacientes...</div>
+              )}
+              {nameSearchStatus !== "loading" && nameSearchError && (
+                <div className="muted">{nameSearchError}</div>
+              )}
+              {nameResults.length > 0 && (
+                <div className="list">
+                  {nameResults.map((patient, index) => {
+                    if (!patient || typeof patient !== "object") return null;
+                    const patientId = patient.cedula || `patient-${index}`;
+                    return (
+                      <div
+                        key={patientId}
+                        className="list-item"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => handleNameSelect(patient)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            handleNameSelect(patient);
+                          }
+                        }}
+                      >
+                        <div className="list-title">
+                          {patient.apellidos || ""} {patient.nombres || ""}
+                        </div>
+                        <div className="list-meta">Cedula: {patient.cedula}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
               {patientLookupStatus === "loading" && (
                 <div className="muted">Validando paciente...</div>
               )}

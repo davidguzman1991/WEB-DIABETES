@@ -251,32 +251,6 @@ export default function Dashboard() {
       });
   }, [router, user]);
 
-  if (loading) {
-    return (
-      <div className="page">
-        <div className="card">
-          <h1>Dashboard</h1>
-          <p className="muted">Cargando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (authError) {
-    return (
-      <div className="page">
-        <div className="card">
-          <h1>Dashboard</h1>
-          <div className="error">{authError}</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return null;
-  }
-
   const onChange = (event) => {
     const { name, value } = event.target;
     setForm({ ...form, [name]: value });
@@ -305,12 +279,16 @@ export default function Dashboard() {
   };
 
   const addMedicamento = () => {
-    setMedicamentos([...medicamentos, createMedicamento()]);
+    setMedicamentos((prev) => {
+      const list = Array.isArray(prev) ? prev : [];
+      return [...list, createMedicamento()];
+    });
   };
 
   const removeMedicamento = (index) => {
-    if (medicamentos.length === 1) return;
-    setMedicamentos(medicamentos.filter((_, i) => i !== index));
+    const list = Array.isArray(medicamentos) ? medicamentos : [];
+    if (list.length === 1) return;
+    setMedicamentos(list.filter((_, i) => i !== index));
   };
 
   const createLabRow = () => {
@@ -329,7 +307,10 @@ export default function Dashboard() {
   };
 
   const removeLabRow = (index) => {
-    setLabs((prev) => prev.filter((_, i) => i !== index));
+    setLabs((prev) => {
+      const list = Array.isArray(prev) ? prev : [];
+      return list.filter((_, i) => i !== index);
+    });
   };
 
   const formatRango = (minValue, maxValue) => {
@@ -350,7 +331,8 @@ export default function Dashboard() {
       const next = [...prev];
       next[index] = { ...next[index], [name]: value };
       if (name === "lab_id") {
-        const match = labCatalog.find((lab) => String(lab.id) === String(value));
+        const catalog = Array.isArray(labCatalog) ? labCatalog : [];
+        const match = catalog.find((lab) => String(lab.id) === String(value));
         if (match) {
           next[index].unidad_snapshot = match.unidad || "";
           next[index].rango_ref_snapshot = formatRango(match.rango_ref_min, match.rango_ref_max);
@@ -374,7 +356,8 @@ export default function Dashboard() {
   const validateLabs = (rows) => {
     const payload = [];
     const errors = {};
-    rows.forEach((row) => {
+    const safeRows = Array.isArray(rows) ? rows : [];
+    safeRows.forEach((row) => {
       const value = String(row.valor || "").trim();
       if (!row.lab_id && !value) {
         errors[row.id] = "Completa la fila o elimina el laboratorio";
@@ -506,7 +489,8 @@ export default function Dashboard() {
       setConsultaError(patientLookupMessage || "Paciente no existe. Debe crearlo primero.");
       return;
     }
-    const normalizedMeds = medicamentos.map((med) => ({
+    const baseMeds = Array.isArray(medicamentos) ? medicamentos : [];
+    const normalizedMeds = baseMeds.map((med) => ({
       ...med,
       nombre: med.nombre.trim(),
       cantidad: String(med.cantidad || "").trim(),
@@ -661,15 +645,23 @@ export default function Dashboard() {
     });
   };
 
-  const orderedGlucoseLogs = Array.isArray(glucoseLogs)
-    ? glucoseLogs.slice().sort((a, b) => {
-        const aTime = new Date(a?.taken_at || a?.created_at || 0).getTime();
-        const bTime = new Date(b?.taken_at || b?.created_at || 0).getTime();
-        return bTime - aTime;
-      })
-    : [];
+  const safeConsultas = Array.isArray(consultas) ? consultas : [];
+  const safeMedicamentos = Array.isArray(medicamentos) ? medicamentos : [];
+  const safeLabs = Array.isArray(labs) ? labs : [];
+  const safeLabCatalog = Array.isArray(labCatalog) ? labCatalog : [];
+  const safeLabRowErrors =
+    labRowErrors && typeof labRowErrors === "object" ? labRowErrors : {};
+
+  const orderedGlucoseLogs = useMemo(() => {
+    const list = Array.isArray(glucoseLogs) ? glucoseLogs : [];
+    return list.slice().sort((a, b) => {
+      const aTime = new Date(a?.taken_at || a?.created_at || 0).getTime();
+      const bTime = new Date(b?.taken_at || b?.created_at || 0).getTime();
+      return bTime - aTime;
+    });
+  }, [glucoseLogs]);
   const glucoseTrend = useMemo(() => {
-    if (orderedGlucoseLogs.length < 2) return null;
+    if (!Array.isArray(orderedGlucoseLogs) || orderedGlucoseLogs.length < 2) return null;
     const latestValue = Number(orderedGlucoseLogs[0]?.value);
     const previousValue = Number(orderedGlucoseLogs[1]?.value);
     if (!Number.isFinite(latestValue) || !Number.isFinite(previousValue)) return null;
@@ -683,7 +675,7 @@ export default function Dashboard() {
     return { icon: "↓", color: "#16a34a" };
   }, [orderedGlucoseLogs]);
   const glucoseAlert = useMemo(() => {
-    if (!orderedGlucoseLogs.length) return null;
+    if (!Array.isArray(orderedGlucoseLogs) || !orderedGlucoseLogs.length) return null;
     const latestValue = Number(orderedGlucoseLogs[0]?.value);
     if (!Number.isFinite(latestValue)) return null;
     if (latestValue < GLUCOSE_HYPO_THRESHOLD) {
@@ -695,7 +687,7 @@ export default function Dashboard() {
     return null;
   }, [orderedGlucoseLogs]);
   const glucoseChart = useMemo(() => {
-    if (orderedGlucoseLogs.length < 2) return null;
+    if (!Array.isArray(orderedGlucoseLogs) || orderedGlucoseLogs.length < 2) return null;
     const points = orderedGlucoseLogs
       .slice(0, GLUCOSE_MAX_RECORDS)
       .reverse()
@@ -724,6 +716,41 @@ export default function Dashboard() {
       .join(" ");
     return { points, path, minValue, maxValue };
   }, [orderedGlucoseLogs]);
+
+  const glucoseChartPoints = Array.isArray(glucoseChart?.points) ? glucoseChart.points : [];
+
+  if (loading) {
+    return (
+      <div className="page">
+        <div className="card">
+          <h1>Dashboard</h1>
+          <p className="muted">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (authError) {
+    return (
+      <div className="page">
+        <div className="card">
+          <h1>Dashboard</h1>
+          <div className="error">{authError}</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="page">
+        <div className="card">
+          <h1>Dashboard</h1>
+          <p className="muted">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page">
@@ -912,11 +939,11 @@ export default function Dashboard() {
                     stroke="#2563eb"
                     strokeWidth="2"
                   />
-                  {glucoseChart.points.map((point, index) => {
+                  {glucoseChartPoints.map((point, index) => {
                     const xStep =
-                      glucoseChart.points.length > 1
+                      glucoseChartPoints.length > 1
                         ? (GLUCOSE_CHART_WIDTH - GLUCOSE_CHART_PADDING * 2) /
-                          (glucoseChart.points.length - 1)
+                          (glucoseChartPoints.length - 1)
                         : 0;
                     const x = GLUCOSE_CHART_PADDING + index * xStep;
                     const plotHeight = GLUCOSE_CHART_HEIGHT - GLUCOSE_CHART_PADDING * 2;
@@ -948,12 +975,20 @@ export default function Dashboard() {
           </button>
           {consultaError && <div className="error">{consultaError}</div>}
           <div className="list">
-            {consultas.map((item) => (
-              <div key={item.id} className="list-item">
-                <div className="list-title">{new Date(item.created_at).toLocaleDateString()}</div>
-                {item.diagnosis && <div className="list-meta">{item.diagnosis}</div>}
-              </div>
-            ))}
+            {safeConsultas.map((item, index) => {
+              if (!item || typeof item !== "object") return null;
+              const itemId = item.id || `consulta-${index}`;
+              const createdAt = item.created_at
+                ? new Date(item.created_at).toLocaleDateString()
+                : "";
+              const diagnosisText = item.diagnosis || "";
+              return (
+                <div key={itemId} className="list-item">
+                  <div className="list-title">{createdAt}</div>
+                  {diagnosisText && <div className="list-meta">{diagnosisText}</div>}
+                </div>
+              );
+            })}
           </div>
         </section>
       )}
@@ -1128,55 +1163,59 @@ export default function Dashboard() {
                   />
                 </label>
                 <div className="list">
-                  {medicamentos.map((med, index) => (
-                    <div key={med.id} className="item-block">
-                      <div className="form two">
-                        <label>
-                          Medicamento
-                          <input
-                            name="nombre"
-                            value={med.nombre}
-                            onChange={(e) => onMedicamentoChange(index, e)}
-                          />
-                        </label>
-                        <label>
-                          Cantidad
-                          <input
-                            type="number"
-                            name="cantidad"
-                            value={med.cantidad}
-                            onChange={(e) => onMedicamentoChange(index, e)}
-                          />
-                        </label>
-                        <label>
-                          Descripcion
-                          <textarea
-                            name="descripcion"
-                            value={med.descripcion}
-                            onChange={(e) => onMedicamentoChange(index, e)}
-                          />
-                        </label>
-                        <label>
-                          Duracion (dias)
-                          <input
-                            type="number"
-                            name="duracion_dias"
-                            value={med.duracion_dias}
-                            onChange={(e) => onMedicamentoChange(index, e)}
-                          />
-                        </label>
+                  {safeMedicamentos.map((med, index) => {
+                    if (!med || typeof med !== "object") return null;
+                    const medId = med.id || `med-${index}`;
+                    return (
+                      <div key={medId} className="item-block">
+                        <div className="form two">
+                          <label>
+                            Medicamento
+                            <input
+                              name="nombre"
+                              value={med.nombre || ""}
+                              onChange={(e) => onMedicamentoChange(index, e)}
+                            />
+                          </label>
+                          <label>
+                            Cantidad
+                            <input
+                              type="number"
+                              name="cantidad"
+                              value={med.cantidad || ""}
+                              onChange={(e) => onMedicamentoChange(index, e)}
+                            />
+                          </label>
+                          <label>
+                            Descripcion
+                            <textarea
+                              name="descripcion"
+                              value={med.descripcion || ""}
+                              onChange={(e) => onMedicamentoChange(index, e)}
+                            />
+                          </label>
+                          <label>
+                            Duracion (dias)
+                            <input
+                              type="number"
+                              name="duracion_dias"
+                              value={med.duracion_dias || ""}
+                              onChange={(e) => onMedicamentoChange(index, e)}
+                            />
+                          </label>
+                        </div>
+                        <div className="row-actions">
+                          <button
+                            type="button"
+                            className="ghost"
+                            onClick={() => removeMedicamento(index)}
+                          >
+                            Quitar
+                          </button>
+                        </div>
                       </div>
-                      <div className="row-actions">
-                        <button
-                          type="button"
-                          className="ghost"
-                          onClick={() => removeMedicamento(index)}
-                        >
-                          Quitar
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 <button type="button" onClick={addMedicamento}>
                   Agregar medicamento
@@ -1190,44 +1229,54 @@ export default function Dashboard() {
                 {labsError && <div className="error">{labsError}</div>}
                 {labsMessage && <div className="muted">{labsMessage}</div>}
                 <div className="list">
-                  {labs.map((row, index) => (
-                    <div key={row.id} className="list-item">
-                      <label>
-                        Laboratorio
-                        <select
-                          name="lab_id"
-                          value={row.lab_id}
-                          onChange={(e) => handleLabChange(index, e)}
-                        >
-                          <option value="">Seleccionar</option>
-                          {labCatalog.map((lab) => (
-                            <option key={lab.id} value={lab.id}>
-                              {lab.nombre}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label>
-                        Valor
-                        <input
-                          type="number"
-                          step="any"
-                          name="valor"
-                          value={row.valor}
-                          onChange={(e) => handleLabChange(index, e)}
-                        />
-                      </label>
-                      {labRowErrors[row.id] && <div className="error">{labRowErrors[row.id]}</div>}
-                      <div className="list-meta">
-                        {row.unidad_snapshot && `Unidad: ${row.unidad_snapshot}`}
-                        {row.unidad_snapshot && row.rango_ref_snapshot ? " | " : ""}
-                        {row.rango_ref_snapshot && `Rango: ${row.rango_ref_snapshot}`}
+                  {safeLabs.map((row, index) => {
+                    if (!row || typeof row !== "object") return null;
+                    const rowId = row.id || `lab-${index}`;
+                    return (
+                      <div key={rowId} className="list-item">
+                        <label>
+                          Laboratorio
+                          <select
+                            name="lab_id"
+                            value={row.lab_id || ""}
+                            onChange={(e) => handleLabChange(index, e)}
+                          >
+                            <option value="">Seleccionar</option>
+                            {safeLabCatalog.map((lab, labIndex) => {
+                              if (!lab || typeof lab !== "object") return null;
+                              const labId = lab.id || `lab-${labIndex}`;
+                              return (
+                                <option key={labId} value={lab.id}>
+                                  {lab.nombre}
+                                </option>
+                              );
+                            })}
+                          </select>
+                        </label>
+                        <label>
+                          Valor
+                          <input
+                            type="number"
+                            step="any"
+                            name="valor"
+                            value={row.valor ?? ""}
+                            onChange={(e) => handleLabChange(index, e)}
+                          />
+                        </label>
+                        {safeLabRowErrors[rowId] && (
+                          <div className="error">{safeLabRowErrors[rowId]}</div>
+                        )}
+                        <div className="list-meta">
+                          {row.unidad_snapshot && `Unidad: ${row.unidad_snapshot}`}
+                          {row.unidad_snapshot && row.rango_ref_snapshot ? " | " : ""}
+                          {row.rango_ref_snapshot && `Rango: ${row.rango_ref_snapshot}`}
+                        </div>
+                        <button type="button" onClick={() => removeLabRow(index)}>
+                          Quitar
+                        </button>
                       </div>
-                      <button type="button" onClick={() => removeLabRow(index)}>
-                        Quitar
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 {labCatalogError && <div className="error">{labCatalogError}</div>}
                 <button type="button" onClick={addLabRow}>

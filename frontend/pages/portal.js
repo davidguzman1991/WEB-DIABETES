@@ -89,6 +89,18 @@ export default function Portal() {
   const [glucoseError, setGlucoseError] = useState("");
   const [glucoseSaving, setGlucoseSaving] = useState(false);
 
+  const getDisplayName = (payload) => {
+    const safeValue = (value) => (typeof value === "string" ? value.trim() : "");
+    const names = safeValue(payload?.nombres);
+    const last = safeValue(payload?.apellidos);
+    const full = [names, last].filter(Boolean).join(" ").trim();
+    if (full) return full;
+    if (names) return names;
+    const cedula = safeValue(payload?.cedula) || safeValue(payload?.username);
+    if (cedula) return cedula;
+    return "Paciente";
+  };
+
   const authFetch = async (path, options = {}) => {
     const headers = { ...(options.headers || {}) };
     if (token) headers.Authorization = `Bearer ${token}`;
@@ -155,6 +167,7 @@ export default function Portal() {
         }
         if (active) {
           setUser(data);
+          setPatientName(getDisplayName(data));
           setAuthError("");
         }
       })
@@ -208,33 +221,6 @@ export default function Portal() {
       active = false;
     };
   }, [router, token, user]);
-
-  useEffect(() => {
-    if (!token || !current?.id) return;
-    let active = true;
-    authFetch(`/consultations/${current.id}/print`)
-      .then(async (res) => {
-        if (res.status === 401 || res.status === 403) {
-          logout(router, "/login");
-          return;
-        }
-        if (!res.ok) return;
-        const data = await res.json().catch(() => null);
-        if (!active || !data?.patient) return;
-        const fullName = [data.patient.nombres, data.patient.apellidos]
-          .filter(Boolean)
-          .join(" ")
-          .trim();
-        if (fullName && active) {
-          setPatientName(fullName);
-        }
-      })
-      .catch(() => {});
-
-    return () => {
-      active = false;
-    };
-  }, [current?.id, router, token]);
 
   useEffect(() => {
     if (!token || !user?.id) return;
@@ -394,10 +380,8 @@ export default function Portal() {
         <div className="portal-dashboard">
           <header className="portal-header">
             <h1 className="portal-title">
-              Bienvenido/a, {" "}
-              <span className="portal-name">
-                {patientName || user?.username || ""}
-              </span>
+              Bienvenido/a,{" "}
+              <span className="portal-name">{getDisplayName(user)}</span>
             </h1>
             <p className="portal-subtitle">
               Este portal le permite consultar su tratamiento, revisar su historial

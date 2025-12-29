@@ -232,18 +232,20 @@ export default function PortalGlucosas() {
       <div className="card portal-shell">
         <div className="portal-dashboard">
           <div>
-            <Link href="/portal" className="muted">
+            <Link href="/portal" className="button button-secondary">
               &larr; Volver al portal
             </Link>
           </div>
-          <h1>Historial de glucosas</h1>
+          <header className="portal-header">
+            <h1 className="portal-title">Historial de glucosas</h1>
+          </header>
           {alertBadge && (
             <div
               style={{
                 background: alertBadge.background,
                 color: alertBadge.color,
                 padding: "8px 12px",
-                borderRadius: 10,
+                borderRadius: 12,
                 fontWeight: 600,
                 display: "inline-flex",
                 alignItems: "center",
@@ -294,7 +296,7 @@ export default function PortalGlucosas() {
                 role="img"
                 aria-label="Grafico de glucosa"
               >
-                <path d={chartData.path} fill="none" stroke="#2563eb" strokeWidth="2" />
+                <path d={chartData.path} fill="none" stroke="#1e3a5f" strokeWidth="2" />
                 {chartData.points.map((point, index) => {
                   const xStep =
                     chartData.points.length > 1
@@ -308,7 +310,7 @@ export default function PortalGlucosas() {
                   const y = CHART_HEIGHT - CHART_PADDING - normalized * plotHeight;
                   return (
                     <g key={`${point.label}-${index}`}>
-                      <circle cx={x} cy={y} r="3" fill="#2563eb" />
+                      <circle cx={x} cy={y} r="3" fill="#1e3a5f" />
                       <text
                         x={x}
                         y={CHART_HEIGHT - 6}

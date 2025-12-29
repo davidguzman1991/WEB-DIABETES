@@ -79,7 +79,7 @@ export default function PortalHistorial() {
           <h1 className="portal-title">Historial clinico</h1>
           {patientName && <p className="portal-subtitle">{patientName}</p>}
         </header>
-        <Link className="button ghost" href="/portal">
+        <Link className="button button-secondary" href="/portal">
           &larr; Volver al portal
         </Link>
         {error && <div className="error">{error}</div>}

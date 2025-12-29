@@ -71,7 +71,7 @@ export default function ConsultaDetalle() {
     <div className="page">
       <div className="card portal-detail-card">
         <h1>Consulta</h1>
-        <Link className="button" href="/portal/historial">
+        <Link className="button button-secondary" href="/portal/historial">
           Volver al historial
         </Link>
         {error && <div className="error">{error}</div>}

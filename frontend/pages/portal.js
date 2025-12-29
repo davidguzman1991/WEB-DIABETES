@@ -91,6 +91,8 @@ export default function Portal() {
 
   const getDisplayName = (payload) => {
     const safeValue = (value) => (typeof value === "string" ? value.trim() : "");
+    const fullName = safeValue(payload?.full_name);
+    if (fullName) return fullName;
     const names = safeValue(payload?.nombres);
     const last = safeValue(payload?.apellidos);
     const full = [names, last].filter(Boolean).join(" ").trim();

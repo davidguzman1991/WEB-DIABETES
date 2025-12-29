@@ -421,6 +421,22 @@ export default function Dashboard() {
         body,
       });
 
+      const data = await res.json().catch(() => ({}));
+
+      if (data?.success === true) {
+        setForm({
+          cedula: "",
+          password: "",
+          nombres: "",
+          apellidos: "",
+          fecha_nacimiento: "",
+        });
+        setSuccess("Paciente guardado con éxito");
+        setAge(null);
+        setDateError("");
+        return;
+      }
+
       if (res.status === 401 || res.status === 403) {
         logout(router, "/login?type=admin");
         return;
@@ -431,16 +447,10 @@ export default function Dashboard() {
         return;
       }
 
-      if (res.status >= 400) {
-        const data = await res.json().catch(() => ({}));
+      if (!res.ok || data?.success === false) {
         setError(data.detail || "Error al crear paciente");
         return;
       }
-
-      setForm({ cedula: "", password: "", nombres: "", apellidos: "", fecha_nacimiento: "" });
-      setSuccess("Paciente creado");
-      setAge(null);
-      setDateError("");
     } catch (err) {
       setError("Error al crear paciente");
     }

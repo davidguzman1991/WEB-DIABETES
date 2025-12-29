@@ -549,6 +549,21 @@ button.ghost, .ghost {
   margin-top: 8px;
 }
 
+.logout-button {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  min-height: 38px;
+}
+
+.logout-button:hover {
+  background: #fecaca;
+}
+
 .glucose-card {
   padding: 18px;
   gap: 16px;

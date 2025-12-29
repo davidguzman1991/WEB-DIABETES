@@ -35,6 +35,18 @@ export default function AdminConsultationDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const readText = (...values) => {
+    for (const value of values) {
+      if (typeof value === "string") {
+        const trimmed = value.trim();
+        if (trimmed) return trimmed;
+      }
+    }
+    return "";
+  };
+
+  const hasValue = (value) => value !== null && value !== undefined && String(value).trim() !== "";
+
   useEffect(() => {
     setToken(readAdminToken());
   }, []);
@@ -100,6 +112,44 @@ export default function AdminConsultationDetail() {
     };
   }, [router, router.isReady, router.query.id, token]);
 
+  const diagnosisText = readText(detail?.diagnosis, detail?.diagnostico);
+  const indicationsText = readText(detail?.indications, detail?.indicaciones);
+  const reasonText = readText(detail?.reason_for_visit, detail?.motivo_consulta);
+  const historyText = readText(
+    detail?.current_illness,
+    detail?.historia_actual,
+    detail?.notes,
+    detail?.notas_medicas,
+    detail?.notas
+  );
+  const examText = readText(detail?.physical_exam, detail?.examen_fisico);
+
+  const vitalSource = detail?.vital_signs ?? detail?.signos_vitales;
+  const vitalSigns =
+    vitalSource && typeof vitalSource === "object" && !Array.isArray(vitalSource)
+      ? vitalSource
+      : null;
+  const vitalRows = [
+    { label: "Peso", value: vitalSigns?.weight ?? vitalSigns?.peso ?? detail?.weight },
+    { label: "Talla", value: vitalSigns?.height ?? vitalSigns?.talla ?? detail?.height },
+    {
+      label: "Presion arterial",
+      value: vitalSigns?.blood_pressure ?? vitalSigns?.presion_arterial ?? detail?.blood_pressure,
+    },
+    {
+      label: "Frecuencia cardiaca",
+      value:
+        vitalSigns?.heart_rate ?? vitalSigns?.frecuencia_cardiaca ?? detail?.heart_rate,
+    },
+    {
+      label: "Saturacion O2",
+      value:
+        vitalSigns?.oxygen_saturation ??
+        vitalSigns?.saturacion_oxigeno ??
+        detail?.oxygen_saturation,
+    },
+  ].filter((row) => hasValue(row.value));
+
   const medications = Array.isArray(detail?.medications) ? detail.medications : [];
 
   if (loading) {
@@ -132,20 +182,95 @@ export default function AdminConsultationDetail() {
             <>
               <div className="consultation-card">
                 <div className="consultation-label">Paciente</div>
-                <div className="consultation-patient">{detail.patient_full_name}</div>
-                {detail.date && (
-                  <div className="consultation-date">{formatDate(detail.date)}</div>
-                )}
-                {detail.diagnosis && (
-                  <div className="consultation-diagnosis">{detail.diagnosis}</div>
-                )}
-                {detail.indications && (
-                  <>
-                    <div className="consultation-label">Indicaciones</div>
-                    <div className="consultation-notes">{detail.indications}</div>
-                  </>
+                <div className="consultation-patient">
+                  {detail.patient_full_name ||
+                    [detail?.patient?.nombres, detail?.patient?.apellidos]
+                      .filter(Boolean)
+                      .join(" ")}
+                </div>
+                {(detail.date || detail.created_at) && (
+                  <div className="consultation-date">
+                    {formatDate(detail.date || detail.created_at)}
+                  </div>
                 )}
               </div>
+
+              {diagnosisText && (
+                <details className="accordion">
+                  <summary className="accordion-title">
+                    <span className="medication-name">Diagnostico</span>
+                  </summary>
+                  <div className="accordion-content">
+                    <div className="detail-row detail-block">
+                      <span className="detail-value">{diagnosisText}</span>
+                    </div>
+                  </div>
+                </details>
+              )}
+
+              {(reasonText || historyText) && (
+                <details className="accordion">
+                  <summary className="accordion-title">
+                    <span className="medication-name">Motivo e historia actual</span>
+                  </summary>
+                  <div className="accordion-content">
+                    {reasonText && (
+                      <div className="detail-row detail-block">
+                        <span className="detail-label">Motivo de consulta</span>
+                        <span className="detail-value">{reasonText}</span>
+                      </div>
+                    )}
+                    {historyText && (
+                      <div className="detail-row detail-block">
+                        <span className="detail-label">Historia actual</span>
+                        <span className="detail-value">{historyText}</span>
+                      </div>
+                    )}
+                  </div>
+                </details>
+              )}
+
+              {examText && (
+                <details className="accordion">
+                  <summary className="accordion-title">
+                    <span className="medication-name">Examen fisico</span>
+                  </summary>
+                  <div className="accordion-content">
+                    <div className="detail-row detail-block">
+                      <span className="detail-value">{examText}</span>
+                    </div>
+                  </div>
+                </details>
+              )}
+
+              {vitalRows.length > 0 && (
+                <details className="accordion">
+                  <summary className="accordion-title">
+                    <span className="medication-name">Signos vitales</span>
+                  </summary>
+                  <div className="accordion-content">
+                    {vitalRows.map((row) => (
+                      <div key={row.label} className="detail-row">
+                        <span className="detail-label">{row.label}</span>
+                        <span className="detail-value">{row.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              )}
+
+              {indicationsText && (
+                <details className="accordion">
+                  <summary className="accordion-title">
+                    <span className="medication-name">Indicaciones generales</span>
+                  </summary>
+                  <div className="accordion-content">
+                    <div className="detail-row detail-block">
+                      <span className="detail-value">{indicationsText}</span>
+                    </div>
+                  </div>
+                </details>
+              )}
 
               <div className="section-title">Medicacion</div>
               <div className="medications-list">

@@ -377,9 +377,11 @@ export default function Portal() {
   }
 
   return (
-    <div className="page">
-      <div className="card portal-shell">
-        <div className="portal-dashboard">
+    <div className="page portal-bg">
+      <div className="portal-bg-overlay" aria-hidden="true" />
+      <div className="portal-bg-content">
+        <div className="card portal-shell portal-main-card">
+          <div className="portal-dashboard">
           <header className="portal-header">
             <h1 className="portal-title">
               Bienvenido/a,{" "}
@@ -548,9 +550,33 @@ export default function Portal() {
               Cerrar sesion
             </button>
           </div>
+          </div>
         </div>
       </div>
       <style jsx>{`
+        .portal-bg {
+          position: relative;
+          background-image: url("/images/portal-bg.webp");
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+        }
+
+        .portal-bg-overlay {
+          position: absolute;
+          inset: 0;
+          background: rgba(234, 242, 255, 0.72);
+        }
+
+        .portal-bg-content {
+          position: relative;
+          z-index: 1;
+        }
+
+        .portal-main-card {
+          background: #ffffff;
+        }
+
         .glucose-action-button {
           width: 100%;
           border-radius: 12px;

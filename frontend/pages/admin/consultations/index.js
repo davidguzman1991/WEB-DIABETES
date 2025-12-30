@@ -148,7 +148,6 @@ export default function AdminConsultations() {
   const [activeMedicationIndex, setActiveMedicationIndex] = useState(null);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const idSeed = useRef(0);
-  const medicationContainerRef = useRef(null);
 
   if (loading) {
     return (
@@ -216,8 +215,7 @@ export default function AdminConsultations() {
   };
 
   const handleMedicationBlur = (event) => {
-    const container = medicationContainerRef.current || event.currentTarget;
-    if (container && event.relatedTarget && container.contains(event.relatedTarget)) return;
+    if (event.currentTarget.contains(event.relatedTarget)) return;
     setActiveMedicationIndex(null);
     setActiveSuggestionIndex(-1);
   };
@@ -367,7 +365,6 @@ export default function AdminConsultations() {
                     Medicamento
                     <div
                       className="medication-input"
-                      ref={isActive ? medicationContainerRef : null}
                       onFocus={() => {
                         setActiveMedicationIndex(medIndex);
                         setActiveSuggestionIndex(-1);

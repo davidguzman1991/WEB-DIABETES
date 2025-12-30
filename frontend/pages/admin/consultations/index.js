@@ -373,6 +373,10 @@ export default function AdminConsultations() {
                           setActiveMedicationId(med.id);
                           setActiveSuggestionIndex(-1);
                         }}
+                        onFocus={() => {
+                          setActiveMedicationId(med.id);
+                          setActiveSuggestionIndex(-1);
+                        }}
                         onKeyDown={(e) =>
                           handleMedicationKeyDown(e, med.id, suggestions)
                         }
@@ -462,7 +466,7 @@ export default function AdminConsultations() {
 
         .medication-suggestions {
           position: absolute;
-          z-index: 20;
+          z-index: 60;
           top: calc(100% + 6px);
           left: 0;
           right: 0;

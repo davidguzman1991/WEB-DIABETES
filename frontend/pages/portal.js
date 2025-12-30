@@ -441,28 +441,38 @@ export default function Portal() {
                 <form onSubmit={onGlucoseSubmit} className="form glucose-form">
                   <fieldset className="glucose-type">
                     <legend>Tipo de medicion</legend>
-                    <label>
-                      <input
-                        type="radio"
-                        name="type"
-                        value="ayuno"
-                        checked={glucoseForm.type === "ayuno"}
-                        onChange={onGlucoseChange}
-                        required
-                      />
-                      Ayuno
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        name="type"
-                        value="postprandial"
-                        checked={glucoseForm.type === "postprandial"}
-                        onChange={onGlucoseChange}
-                        required
-                      />
-                      Despues de comer
-                    </label>
+                    <div className="glucose-type-options">
+                      <label className="glucose-option">
+                        <input
+                          type="radio"
+                          name="type"
+                          value="ayuno"
+                          checked={glucoseForm.type === "ayuno"}
+                          onChange={onGlucoseChange}
+                          required
+                          className="glucose-option-input"
+                        />
+                        <span className="glucose-option-card">
+                          <span className="glucose-option-title">Ayuno</span>
+                          <span className="glucose-option-desc">Antes de ingerir alimentos.</span>
+                        </span>
+                      </label>
+                      <label className="glucose-option">
+                        <input
+                          type="radio"
+                          name="type"
+                          value="postprandial"
+                          checked={glucoseForm.type === "postprandial"}
+                          onChange={onGlucoseChange}
+                          required
+                          className="glucose-option-input"
+                        />
+                        <span className="glucose-option-card">
+                          <span className="glucose-option-title">Despues de comer</span>
+                          <span className="glucose-option-desc">Control postprandial.</span>
+                        </span>
+                      </label>
+                    </div>
                   </fieldset>
                   <label>
                     Fecha
@@ -604,6 +614,79 @@ export default function Portal() {
           color: #6b7280;
           line-height: 1.5;
           margin-top: 6px;
+        }
+
+        .glucose-type {
+          border: none;
+          padding: 0;
+          margin: 0 0 12px;
+        }
+
+        .glucose-type legend {
+          font-weight: 600;
+          color: #111827;
+          margin-bottom: 8px;
+        }
+
+        .glucose-type-options {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+          gap: 10px;
+        }
+
+        .glucose-option {
+          display: block;
+          position: relative;
+          cursor: pointer;
+        }
+
+        .glucose-option-input {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          margin: -1px;
+          border: 0;
+          padding: 0;
+          clip: rect(0 0 0 0);
+          overflow: hidden;
+          white-space: nowrap;
+        }
+
+        .glucose-option-card {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          padding: 12px 14px;
+          border-radius: 12px;
+          border: 1px solid #e5e7eb;
+          background: #f9fafb;
+          color: #111827;
+          transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .glucose-option-title {
+          font-weight: 600;
+          font-size: 14px;
+        }
+
+        .glucose-option-desc {
+          font-size: 12px;
+          color: #6b7280;
+        }
+
+        .glucose-option-input:checked + .glucose-option-card {
+          border-color: #0f766e;
+          background: #ecfdf5;
+          box-shadow: 0 8px 16px rgba(15, 118, 110, 0.15);
+        }
+
+        .glucose-option-input:focus-visible + .glucose-option-card {
+          outline: 2px solid #93c5fd;
+          outline-offset: 2px;
+        }
+
+        .glucose-option:hover .glucose-option-card {
+          border-color: #94a3b8;
         }
 
         @keyframes glucoseGlow {

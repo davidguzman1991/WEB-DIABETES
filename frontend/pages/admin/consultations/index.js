@@ -11,6 +11,38 @@ const emptyMedication = (seed) => ({
   duration_days: "",
 });
 
+const MEDICATION_CATALOG = [
+  "Metformina",
+  "Glibenclamida",
+  "Gliclazida",
+  "Sitagliptina",
+  "Linagliptina",
+  "Vildagliptina",
+  "Dapagliflozina",
+  "Empagliflozina",
+  "Insulina NPH",
+  "Insulina regular",
+  "Insulina glargina",
+  "Insulina lispro",
+  "Losartan",
+  "Enalapril",
+  "Amlodipino",
+  "Atorvastatina",
+  "Simvastatina",
+  "Aspirina",
+  "Clopidogrel",
+  "Omeprazol",
+];
+
+const getMedicationSuggestions = (value) => {
+  const query = (value || "").trim().toLowerCase();
+  if (query.length < 2) return [];
+  return MEDICATION_CATALOG.filter((item) => item.toLowerCase().includes(query)).slice(
+    0,
+    6
+  );
+};
+
 export default function AdminConsultations() {
   const { loading } = useAdminGuard();
   const [form, setForm] = useState({
@@ -24,6 +56,8 @@ export default function AdminConsultations() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [activeMedicationId, setActiveMedicationId] = useState(null);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const idSeed = useRef(0);
 
   if (loading) {
@@ -45,6 +79,52 @@ export default function AdminConsultations() {
     setMedications((prev) =>
       prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
     );
+  };
+
+  const selectSuggestion = (id, suggestion) => {
+    updateMedication(id, "drug_name", suggestion);
+    setActiveSuggestionIndex(-1);
+    setActiveMedicationId(null);
+  };
+
+  const handleSuggestionMouseDown = (event, id, suggestion) => {
+    event.preventDefault();
+    selectSuggestion(id, suggestion);
+  };
+
+  const handleMedicationKeyDown = (event, id, suggestions) => {
+    if (!suggestions.length) return;
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setActiveMedicationId(id);
+      setActiveSuggestionIndex((prev) =>
+        prev >= suggestions.length - 1 ? 0 : prev + 1
+      );
+      return;
+    }
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActiveMedicationId(id);
+      setActiveSuggestionIndex((prev) =>
+        prev <= 0 ? suggestions.length - 1 : prev - 1
+      );
+      return;
+    }
+    if (event.key === "Enter" && activeMedicationId === id && activeSuggestionIndex >= 0) {
+      event.preventDefault();
+      selectSuggestion(id, suggestions[activeSuggestionIndex]);
+      return;
+    }
+    if (event.key === "Escape") {
+      setActiveMedicationId(null);
+      setActiveSuggestionIndex(-1);
+    }
+  };
+
+  const handleMedicationBlur = (event) => {
+    if (event.currentTarget.contains(event.relatedTarget)) return;
+    setActiveMedicationId(null);
+    setActiveSuggestionIndex(-1);
   };
 
   const addMedication = () => {
@@ -177,15 +257,70 @@ export default function AdminConsultations() {
 
           <h2>Medicamentos</h2>
           <div className="list">
-            {medications.map((med) => (
+            {medications.map((med) => {
+              const suggestions = getMedicationSuggestions(med.drug_name);
+              const showSuggestions =
+                activeMedicationId === med.id && suggestions.length > 0;
+              const listId = `medication-suggestions-${med.id}`;
+
+              return (
               <div key={med.id} className="item-block">
                 <div className="form two">
                   <label>
                     Medicamento
-                    <input
-                      value={med.drug_name}
-                      onChange={(e) => updateMedication(med.id, "drug_name", e.target.value)}
-                    />
+                    <div
+                      className="medication-input"
+                      onFocus={() => {
+                        setActiveMedicationId(med.id);
+                        setActiveSuggestionIndex(-1);
+                      }}
+                      onBlur={handleMedicationBlur}
+                    >
+                      <input
+                        value={med.drug_name}
+                        onChange={(e) => {
+                          updateMedication(med.id, "drug_name", e.target.value);
+                          setActiveMedicationId(med.id);
+                          setActiveSuggestionIndex(-1);
+                        }}
+                        onKeyDown={(e) =>
+                          handleMedicationKeyDown(e, med.id, suggestions)
+                        }
+                        aria-autocomplete="list"
+                        aria-expanded={showSuggestions}
+                        aria-controls={showSuggestions ? listId : undefined}
+                      />
+                      {showSuggestions && (
+                        <ul className="medication-suggestions" role="listbox" id={listId}>
+                          {suggestions.map((item, index) => (
+                            <li
+                              key={`${med.id}-${item}`}
+                              role="option"
+                              aria-selected={
+                                activeMedicationId === med.id &&
+                                activeSuggestionIndex === index
+                              }
+                            >
+                              <button
+                                type="button"
+                                className={`medication-suggestion${
+                                  activeMedicationId === med.id &&
+                                  activeSuggestionIndex === index
+                                    ? " is-active"
+                                    : ""
+                                }`}
+                                onMouseDown={(event) =>
+                                  handleSuggestionMouseDown(event, med.id, item)
+                                }
+                                onClick={() => selectSuggestion(med.id, item)}
+                              >
+                                {item}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
                   </label>
                   <label>
                     Cantidad
@@ -217,7 +352,8 @@ export default function AdminConsultations() {
                   </button>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
           <button type="button" className="ghost" onClick={addMedication}>
             Agregar medicamento
@@ -228,6 +364,51 @@ export default function AdminConsultations() {
           </button>
         </form>
       </section>
+      <style jsx>{`
+        .medication-input {
+          position: relative;
+          width: 100%;
+        }
+
+        .medication-suggestions {
+          position: absolute;
+          z-index: 20;
+          top: calc(100% + 6px);
+          left: 0;
+          right: 0;
+          list-style: none;
+          margin: 0;
+          padding: 6px;
+          border-radius: 12px;
+          background: #ffffff;
+          border: 1px solid #e1dcd2;
+          box-shadow: 0 12px 20px rgba(15, 23, 42, 0.12);
+          max-height: 220px;
+          overflow-y: auto;
+        }
+
+        .medication-suggestions li {
+          margin: 0;
+        }
+
+        .medication-suggestion {
+          width: 100%;
+          text-align: left;
+          border: none;
+          background: transparent;
+          color: #1f2421;
+          padding: 8px 10px;
+          border-radius: 10px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+
+        .medication-suggestion:hover,
+        .medication-suggestion.is-active {
+          background: rgba(15, 118, 110, 0.12);
+          color: #0b5f59;
+        }
+      `}</style>
     </div>
   );
 }

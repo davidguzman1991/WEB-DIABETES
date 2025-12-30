@@ -148,6 +148,7 @@ export default function AdminConsultations() {
   const [activeMedicationId, setActiveMedicationId] = useState(null);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const idSeed = useRef(0);
+  const medicationContainerRef = useRef(null);
 
   if (loading) {
     return (
@@ -211,7 +212,8 @@ export default function AdminConsultations() {
   };
 
   const handleMedicationBlur = (event) => {
-    if (event.currentTarget.contains(event.relatedTarget)) return;
+    const container = medicationContainerRef.current || event.currentTarget;
+    if (container && event.relatedTarget && container.contains(event.relatedTarget)) return;
     setActiveMedicationId(null);
     setActiveSuggestionIndex(-1);
   };
@@ -350,6 +352,7 @@ export default function AdminConsultations() {
               const suggestions = getMedicationSuggestions(med.drug_name);
               const showSuggestions =
                 activeMedicationId === med.id && suggestions.length > 0;
+              const isActive = activeMedicationId === med.id;
               const listId = `medication-suggestions-${med.id}`;
               const highlightQuery = med.drug_name;
 
@@ -360,6 +363,7 @@ export default function AdminConsultations() {
                     Medicamento
                     <div
                       className="medication-input"
+                      ref={isActive ? medicationContainerRef : null}
                       onFocus={() => {
                         setActiveMedicationId(med.id);
                         setActiveSuggestionIndex(-1);
@@ -397,6 +401,7 @@ export default function AdminConsultations() {
                             >
                               <button
                                 type="button"
+                                tabIndex={0}
                                 className={`medication-suggestion${
                                   activeMedicationId === med.id &&
                                   activeSuggestionIndex === index

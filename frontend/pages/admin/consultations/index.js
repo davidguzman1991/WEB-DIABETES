@@ -145,7 +145,7 @@ export default function AdminConsultations() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [activeMedicationId, setActiveMedicationId] = useState(null);
+  const [activeMedicationIndex, setActiveMedicationIndex] = useState(null);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const idSeed = useRef(0);
   const medicationContainerRef = useRef(null);
@@ -174,7 +174,7 @@ export default function AdminConsultations() {
   const selectSuggestion = (id, suggestion) => {
     updateMedication(id, "drug_name", suggestion);
     setActiveSuggestionIndex(-1);
-    setActiveMedicationId(null);
+    setActiveMedicationIndex(null);
   };
 
   const handleSuggestionMouseDown = (event, id, suggestion) => {
@@ -182,11 +182,11 @@ export default function AdminConsultations() {
     selectSuggestion(id, suggestion);
   };
 
-  const handleMedicationKeyDown = (event, id, suggestions) => {
+  const handleMedicationKeyDown = (event, id, index, suggestions) => {
     if (!suggestions.length) return;
     if (event.key === "ArrowDown") {
       event.preventDefault();
-      setActiveMedicationId(id);
+      setActiveMedicationIndex(index);
       setActiveSuggestionIndex((prev) =>
         prev >= suggestions.length - 1 ? 0 : prev + 1
       );
@@ -194,19 +194,23 @@ export default function AdminConsultations() {
     }
     if (event.key === "ArrowUp") {
       event.preventDefault();
-      setActiveMedicationId(id);
+      setActiveMedicationIndex(index);
       setActiveSuggestionIndex((prev) =>
         prev <= 0 ? suggestions.length - 1 : prev - 1
       );
       return;
     }
-    if (event.key === "Enter" && activeMedicationId === id && activeSuggestionIndex >= 0) {
+    if (
+      event.key === "Enter" &&
+      activeMedicationIndex === index &&
+      activeSuggestionIndex >= 0
+    ) {
       event.preventDefault();
       selectSuggestion(id, suggestions[activeSuggestionIndex]);
       return;
     }
     if (event.key === "Escape") {
-      setActiveMedicationId(null);
+      setActiveMedicationIndex(null);
       setActiveSuggestionIndex(-1);
     }
   };
@@ -214,7 +218,7 @@ export default function AdminConsultations() {
   const handleMedicationBlur = (event) => {
     const container = medicationContainerRef.current || event.currentTarget;
     if (container && event.relatedTarget && container.contains(event.relatedTarget)) return;
-    setActiveMedicationId(null);
+    setActiveMedicationIndex(null);
     setActiveSuggestionIndex(-1);
   };
 
@@ -348,11 +352,11 @@ export default function AdminConsultations() {
 
           <h2>Medicamentos</h2>
           <div className="list">
-            {medications.map((med) => {
+            {medications.map((med, medIndex) => {
               const suggestions = getMedicationSuggestions(med.drug_name);
               const showSuggestions =
-                activeMedicationId === med.id && suggestions.length > 0;
-              const isActive = activeMedicationId === med.id;
+                activeMedicationIndex === medIndex && suggestions.length > 0;
+              const isActive = activeMedicationIndex === medIndex;
               const listId = `medication-suggestions-${med.id}`;
               const highlightQuery = med.drug_name;
 
@@ -365,7 +369,7 @@ export default function AdminConsultations() {
                       className="medication-input"
                       ref={isActive ? medicationContainerRef : null}
                       onFocus={() => {
-                        setActiveMedicationId(med.id);
+                        setActiveMedicationIndex(medIndex);
                         setActiveSuggestionIndex(-1);
                       }}
                       onBlur={handleMedicationBlur}
@@ -374,15 +378,15 @@ export default function AdminConsultations() {
                         value={med.drug_name}
                         onChange={(e) => {
                           updateMedication(med.id, "drug_name", e.target.value);
-                          setActiveMedicationId(med.id);
+                          setActiveMedicationIndex(medIndex);
                           setActiveSuggestionIndex(-1);
                         }}
                         onFocus={() => {
-                          setActiveMedicationId(med.id);
+                          setActiveMedicationIndex(medIndex);
                           setActiveSuggestionIndex(-1);
                         }}
                         onKeyDown={(e) =>
-                          handleMedicationKeyDown(e, med.id, suggestions)
+                          handleMedicationKeyDown(e, med.id, medIndex, suggestions)
                         }
                         aria-autocomplete="list"
                         aria-expanded={showSuggestions}
@@ -390,21 +394,21 @@ export default function AdminConsultations() {
                       />
                       {showSuggestions && (
                         <ul className="medication-suggestions" role="listbox" id={listId}>
-                          {suggestions.map((item, index) => (
+                          {suggestions.map((item, suggestionIndex) => (
                             <li
                               key={`${med.id}-${item}`}
                               role="option"
                               aria-selected={
-                                activeMedicationId === med.id &&
-                                activeSuggestionIndex === index
+                                activeMedicationIndex === medIndex &&
+                                activeSuggestionIndex === suggestionIndex
                               }
                             >
                               <button
                                 type="button"
                                 tabIndex={0}
                                 className={`medication-suggestion${
-                                  activeMedicationId === med.id &&
-                                  activeSuggestionIndex === index
+                                  activeMedicationIndex === medIndex &&
+                                  activeSuggestionIndex === suggestionIndex
                                     ? " is-active"
                                     : ""
                                 }`}

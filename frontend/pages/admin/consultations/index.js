@@ -89,13 +89,47 @@ const MEDICATION_CATALOG = [
   "Tioctan 600 mg"
 ];
 
+const PRIORITY_MEDICATIONS = [
+  "Jardiance Duo 850/12.5 mg",
+  "Jardiance 10 mg",
+  "Ozempic Dual Dose 2 mg / 1.5 ml",
+  "Lantus Solostar",
+  "Humalog KwikPen",
+  "Telsar 40 mg",
+];
+
+const highlightMatch = (text, query) => {
+  const safeText = text || "";
+  const safeQuery = (query || "").trim();
+  if (!safeQuery) return safeText;
+  const lowerText = safeText.toLowerCase();
+  const lowerQuery = safeQuery.toLowerCase();
+  const index = lowerText.indexOf(lowerQuery);
+  if (index === -1) return safeText;
+  const before = safeText.slice(0, index);
+  const match = safeText.slice(index, index + safeQuery.length);
+  const after = safeText.slice(index + safeQuery.length);
+  return (
+    <>
+      {before}
+      <span className="medication-suggestion-highlight">{match}</span>
+      {after}
+    </>
+  );
+};
+
 const getMedicationSuggestions = (value) => {
   const query = (value || "").trim().toLowerCase();
   if (query.length < 2) return [];
-  return MEDICATION_CATALOG.filter((item) => item.toLowerCase().includes(query)).slice(
-    0,
-    6
+  const matches = MEDICATION_CATALOG.filter((item) =>
+    item.toLowerCase().includes(query)
   );
+  if (!matches.length) return [];
+  const matchSet = new Set(matches);
+  const prioritized = PRIORITY_MEDICATIONS.filter((item) => matchSet.has(item));
+  const prioritySet = new Set(prioritized);
+  const rest = matches.filter((item) => !prioritySet.has(item));
+  return [...prioritized, ...rest].slice(0, 6);
 };
 
 export default function AdminConsultations() {
@@ -317,6 +351,7 @@ export default function AdminConsultations() {
               const showSuggestions =
                 activeMedicationId === med.id && suggestions.length > 0;
               const listId = `medication-suggestions-${med.id}`;
+              const highlightQuery = med.drug_name;
 
               return (
               <div key={med.id} className="item-block">
@@ -369,7 +404,7 @@ export default function AdminConsultations() {
                                 }
                                 onClick={() => selectSuggestion(med.id, item)}
                               >
-                                {item}
+                                {highlightMatch(item, highlightQuery)}
                               </button>
                             </li>
                           ))}
@@ -462,6 +497,11 @@ export default function AdminConsultations() {
         .medication-suggestion.is-active {
           background: rgba(15, 118, 110, 0.12);
           color: #0b5f59;
+        }
+
+        .medication-suggestion-highlight {
+          font-weight: 700;
+          color: #0f766e;
         }
       `}</style>
     </div>

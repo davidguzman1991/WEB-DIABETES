@@ -799,6 +799,9 @@ export default function Dashboard() {
   const safeLabCatalog = Array.isArray(labCatalog) ? labCatalog : [];
   const safeLabRowErrors =
     labRowErrors && typeof labRowErrors === "object" ? labRowErrors : {};
+  const patientCedula = String(
+    patientInfo?.cedula || consultaForm.patient_username || ""
+  ).trim();
 
   const orderedGlucoseLogs = useMemo(() => {
     const list = Array.isArray(glucoseLogs) ? glucoseLogs : [];
@@ -808,6 +811,10 @@ export default function Dashboard() {
       return bTime - aTime;
     });
   }, [glucoseLogs]);
+  const glucoseSummaryLogs = useMemo(
+    () => orderedGlucoseLogs.slice(0, 3),
+    [orderedGlucoseLogs]
+  );
   const glucoseTrend = useMemo(() => {
     if (!Array.isArray(orderedGlucoseLogs) || orderedGlucoseLogs.length < 2) return null;
     const latestValue = Number(orderedGlucoseLogs[0]?.value);
@@ -1054,20 +1061,6 @@ export default function Dashboard() {
               )}
             </div>
             <div className="list">
-              {glucoseAlert && (
-              <div
-                style={{
-                  background: glucoseAlert.background,
-                  color: glucoseAlert.color,
-                  padding: "8px 12px",
-                  borderRadius: 12,
-                  marginBottom: 12,
-                  fontWeight: 600,
-                }}
-              >
-                  {glucoseAlert.text}
-                </div>
-              )}
               {glucoseLoading && <div className="muted">Cargando historial...</div>}
               {glucoseError && <div className="error">{glucoseError}</div>}
               {!glucoseLoading && !glucoseError && glucoseMessage && (
@@ -1075,7 +1068,7 @@ export default function Dashboard() {
               )}
               {!glucoseLoading &&
                 !glucoseError &&
-                orderedGlucoseLogs.map((log, index) => {
+                glucoseSummaryLogs.map((log, index) => {
                   if (!log || typeof log !== "object") return null;
                   const logId =
                     log.id ||
@@ -1091,62 +1084,28 @@ export default function Dashboard() {
                     log.value !== null && log.value !== undefined
                       ? `${log.value} mg/dL`
                       : "Sin valor";
-                  const noteText = log.observation || log.notes || log.description;
                   return (
                     <div key={logId} className="list-item">
                       <div className="list-title">
                         {logDate} - {logType} - <strong>{logValue}</strong>
                       </div>
-                      {noteText && <div className="muted">{noteText}</div>}
                     </div>
                   );
                 })}
-              {!glucoseLoading && !glucoseError && glucoseChart && (
-                <div style={{ marginTop: 16 }}>
-                  <svg
-                    viewBox={`0 0 ${GLUCOSE_CHART_WIDTH} ${GLUCOSE_CHART_HEIGHT}`}
-                    width="100%"
-                    height={GLUCOSE_CHART_HEIGHT}
-                    role="img"
-                    aria-label="Tendencia de glucosa"
-                  >
-                  <path
-                    d={glucoseChart.path}
-                    fill="none"
-                    stroke="#1e3a5f"
-                    strokeWidth="2"
-                  />
-                    {glucoseChartPoints.map((point, index) => {
-                      const xStep =
-                        glucoseChartPoints.length > 1
-                          ? (GLUCOSE_CHART_WIDTH - GLUCOSE_CHART_PADDING * 2) /
-                            (glucoseChartPoints.length - 1)
-                          : 0;
-                      const x = GLUCOSE_CHART_PADDING + index * xStep;
-                      const plotHeight = GLUCOSE_CHART_HEIGHT - GLUCOSE_CHART_PADDING * 2;
-                      const range = Math.max(glucoseChart.maxValue - glucoseChart.minValue, 1);
-                      const normalized = (point.value - glucoseChart.minValue) / range;
-                      const y =
-                        GLUCOSE_CHART_HEIGHT - GLUCOSE_CHART_PADDING - normalized * plotHeight;
-                      return (
-                        <g key={`${point.label}-${index}`}>
-                        <circle cx={x} cy={y} r="3" fill="#1e3a5f" />
-                          <text
-                            x={x}
-                            y={GLUCOSE_CHART_HEIGHT - 6}
-                            textAnchor="middle"
-                            fontSize="10"
-                            fill="#6b7280"
-                          >
-                            {point.label}
-                          </text>
-                        </g>
-                      );
-                    })}
-                  </svg>
-                </div>
-              )}
             </div>
+            <button
+              type="button"
+              className="button-secondary"
+              onClick={() => {
+                if (!patientCedula) return;
+                router.push(
+                  `/dashboard/patient/${encodeURIComponent(patientCedula)}/glucosas`
+                );
+              }}
+              disabled={!patientCedula}
+            >
+              Ver historial de glucosas
+            </button>
           </div>
           <div className="consultation-card">
             <div className="section-title">Consultas recientes</div>

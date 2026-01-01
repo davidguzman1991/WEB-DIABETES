@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { getToken, logout } from "../lib/auth";
@@ -132,6 +132,19 @@ export default function Portal() {
       month: "2-digit",
       year: "numeric",
     });
+  };
+
+  const formatShortDate = (value) => {
+    if (!value) return "";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleDateString("es-EC", { day: "2-digit", month: "2-digit" });
+  };
+
+  const formatGlucoseType = (value) => {
+    if (value === "postprandial") return "Postprandial";
+    if (value === "ayuno") return "Ayuno";
+    return "Sin tipo";
   };
 
   useEffect(() => {
@@ -363,6 +376,18 @@ export default function Portal() {
     Number.isFinite(numericValue) && numericValue > 20 && numericValue < 600;
   const isGlucoseFormValid =
     Boolean(glucoseForm.type) && Boolean(glucoseForm.date) && isGlucoseValueValid;
+  const orderedGlucoseLogs = useMemo(() => {
+    const list = Array.isArray(glucoseLogs) ? glucoseLogs : [];
+    return list.slice().sort((a, b) => {
+      const aTime = new Date(a?.taken_at || a?.created_at || 0).getTime();
+      const bTime = new Date(b?.taken_at || b?.created_at || 0).getTime();
+      return bTime - aTime;
+    });
+  }, [glucoseLogs]);
+  const glucoseSummaryLogs = useMemo(
+    () => orderedGlucoseLogs.slice(0, 3),
+    [orderedGlucoseLogs]
+  );
 
   if (authLoading) {
     return <PortalSkeleton />;
@@ -517,6 +542,43 @@ export default function Portal() {
                   </button>
                 </form>
               )}
+            </div>
+          </section>
+
+          <section className="portal-section">
+            <div className="section-title">Historial de glucosas</div>
+            <div className="portal-card">
+              {glucoseLoading && <div className="muted">Cargando historial...</div>}
+              {glucoseError && <div className="error">{glucoseError}</div>}
+              {!glucoseLoading && !glucoseError && !glucoseSummaryLogs.length && (
+                <div className="muted">No hay registros de glucosa.</div>
+              )}
+              {!glucoseLoading && !glucoseError && glucoseSummaryLogs.length > 0 && (
+                <div className="list">
+                  {glucoseSummaryLogs.map((log, index) => {
+                    if (!log || typeof log !== "object") return null;
+                    const logId =
+                      log.id ||
+                      `${log.taken_at || log.created_at || "glucose"}-${index}`;
+                    const logDate = formatShortDate(log.taken_at || log.created_at);
+                    const logType = formatGlucoseType(log.type);
+                    const logValue =
+                      log.value !== null && log.value !== undefined
+                        ? `${log.value} mg/dL`
+                        : "Sin valor";
+                    return (
+                      <div key={logId} className="list-item">
+                        <div className="list-title">
+                          {logDate} - {logType} - <strong>{logValue}</strong>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              <Link className="button button-secondary" href="/portal/glucosas">
+                Ver historial de glucosas
+              </Link>
             </div>
           </section>
 

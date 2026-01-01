@@ -3,7 +3,10 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { getToken, logout } from "../../lib/auth";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+if (!API_URL) {
+  throw new Error("NEXT_PUBLIC_API_URL is not set");
+}
 const GLUCOSE_HYPO_THRESHOLD = 70;
 const GLUCOSE_HYPER_THRESHOLD = 180;
 const GLUCOSE_TREND_THRESHOLD = 0;

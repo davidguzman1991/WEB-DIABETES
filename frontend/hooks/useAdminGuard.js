@@ -1,19 +1,44 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 
-import { getAdminToken } from "../lib/adminApi";
+import { clearToken, fetchMe, getToken } from "../lib/auth";
 
 export function useAdminGuard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = getAdminToken();
+    let active = true;
+    const token = getToken();
     if (!token) {
       router.replace("/admin/login");
-      return;
+      if (active) setLoading(false);
+      return () => {
+        active = false;
+      };
     }
-    setLoading(false);
+    fetchMe()
+      .then((data) => {
+        if (!active) return;
+        const role = String(data?.role || "").toLowerCase();
+        if (role !== "admin") {
+          clearToken();
+          router.replace("/admin/login");
+          setLoading(false);
+          return;
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!active) return;
+        clearToken();
+        router.replace("/admin/login");
+        setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, [router]);
 
   return { loading };

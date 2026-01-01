@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 
-import { adminRequest, setAdminToken } from "../../lib/adminApi";
+import { apiFetch, clearToken, fetchMe, setToken } from "../../lib/auth";
 
 export default function AdminLogin() {
   const router = useRouter();
@@ -18,18 +18,34 @@ export default function AdminLogin() {
     setError("");
     setLoading(true);
     try {
-      const data = await adminRequest("/auth/admin/login", {
+      const res = await apiFetch("/auth/admin/login", {
         method: "POST",
         body: form,
       });
-      if (!data?.access_token) {
-        setError("Token invalido");
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 401) {
+        setError("Credenciales invalidas");
         return;
       }
-      setAdminToken(data.access_token);
-      router.replace("/admin");
+      if (!res.ok) {
+        setError("Error de conexion con el servidor");
+        return;
+      }
+      if (!data?.access_token) {
+        setError("Error de conexion con el servidor");
+        return;
+      }
+      setToken(data.access_token);
+      try {
+        const me = await fetchMe();
+        const role = String(me?.role || "").toLowerCase();
+        router.replace(role === "admin" ? "/dashboard" : "/portal");
+      } catch (err) {
+        clearToken();
+        setError("Error de conexion con el servidor");
+      }
     } catch (err) {
-      setError(err.message || "Error al iniciar sesion");
+      setError("Error de conexion con el servidor");
     } finally {
       setLoading(false);
     }

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { api } from "../lib/api";
+import { apiFetch, clearToken, fetchMe, setToken } from "../lib/auth";
 
 export default function Login() {
   const router = useRouter();
@@ -23,14 +23,34 @@ export default function Login() {
       const body = isAdmin
         ? { username: identifier, password }
         : { cedula: identifier, password };
-      const data = await api.request(endpoint, {
+      const res = await apiFetch(endpoint, {
         method: "POST",
         body
       });
-      api.setToken(isAdmin ? "admin" : "patient", data.access_token);
-      router.push(isAdmin ? "/dashboard" : "/portal");
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 401) {
+        setError("Credenciales invalidas");
+        return;
+      }
+      if (!res.ok) {
+        setError("Error de conexion con el servidor");
+        return;
+      }
+      if (!data?.access_token) {
+        setError("Error de conexion con el servidor");
+        return;
+      }
+      setToken(data.access_token);
+      try {
+        const me = await fetchMe();
+        const role = String(me?.role || "").toLowerCase();
+        router.push(role === "admin" ? "/dashboard" : "/portal");
+      } catch (err) {
+        clearToken();
+        setError("Error de conexion con el servidor");
+      }
     } catch (err) {
-      setError("Credenciales invalidas");
+      setError("Error de conexion con el servidor");
     }
   };
 

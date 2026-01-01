@@ -1,15 +1,12 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+if (!API_URL) {
+  throw new Error("NEXT_PUBLIC_API_URL is not set");
+}
 const TOKEN_KEY = "token";
-const LEGACY_ADMIN_TOKEN_KEY = "token_admin";
-const LEGACY_PATIENT_TOKEN_KEY = "token_patient";
 
 export function getToken() {
   if (typeof window === "undefined") return null;
-  return (
-    localStorage.getItem(TOKEN_KEY) ||
-    localStorage.getItem(LEGACY_ADMIN_TOKEN_KEY) ||
-    localStorage.getItem(LEGACY_PATIENT_TOKEN_KEY)
-  );
+  return localStorage.getItem(TOKEN_KEY);
 }
 
 export function setToken(token) {
@@ -20,8 +17,6 @@ export function setToken(token) {
 export function clearToken() {
   if (typeof window === "undefined") return;
   localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(LEGACY_ADMIN_TOKEN_KEY);
-  localStorage.removeItem(LEGACY_PATIENT_TOKEN_KEY);
 }
 
 export function logout(router, redirectPath = "/login") {

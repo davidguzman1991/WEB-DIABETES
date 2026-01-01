@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 
-import { apiFetch, setToken } from "../../lib/auth";
+import { apiFetch, clearToken, fetchMe, setToken } from "../../lib/auth";
 
 export default function PatientLogin() {
   const router = useRouter();
@@ -24,18 +24,29 @@ export default function PatientLogin() {
         body: form,
       });
       const data = await res.json().catch(() => ({}));
+      if (res.status === 401) {
+        setError("Credenciales invalidas");
+        return;
+      }
       if (!res.ok) {
-        setError(data?.detail || "Credenciales invalidas");
+        setError("Error de conexion con el servidor");
         return;
       }
       if (!data?.access_token) {
-        setError("Token invalido");
+        setError("Error de conexion con el servidor");
         return;
       }
       setToken(data.access_token);
-      router.replace("/patient");
+      try {
+        const me = await fetchMe();
+        const role = String(me?.role || "").toLowerCase();
+        router.replace(role === "admin" ? "/dashboard" : "/portal");
+      } catch {
+        clearToken();
+        setError("Error de conexion con el servidor");
+      }
     } catch {
-      setError("Error al iniciar sesion");
+      setError("Error de conexion con el servidor");
     } finally {
       setLoading(false);
     }

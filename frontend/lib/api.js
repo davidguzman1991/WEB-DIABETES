@@ -1,26 +1,27 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+if (!API_URL) {
+  throw new Error("NEXT_PUBLIC_API_URL is not set");
+}
 const BASE_URL = API_URL.replace(/\/$/, "");
+const TOKEN_KEY = "token";
 
-function getToken(role) {
-  return typeof window === "undefined" ? null : localStorage.getItem(`token_${role}`);
+function getToken() {
+  return typeof window === "undefined" ? null : localStorage.getItem(TOKEN_KEY);
 }
 
-function setToken(role, token) {
+function setToken(_role, token) {
   if (typeof window !== "undefined") {
-    localStorage.setItem(`token_${role}`, token);
+    localStorage.setItem(TOKEN_KEY, token);
   }
 }
 
-function clearToken(role) {
+function clearToken(_role) {
   if (typeof window !== "undefined") {
-    localStorage.removeItem(`token_${role}`);
+    localStorage.removeItem(TOKEN_KEY);
   }
 }
 
 async function request(path, { method = "GET", body, token } = {}) {
-  if (!BASE_URL) {
-    throw new Error("NEXT_PUBLIC_API_URL is not set");
-  }
   const headers = { "Content-Type": "application/json" };
   if (token) headers.Authorization = `Bearer ${token}`;
 

@@ -1,9 +1,9 @@
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://127.0.0.1:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+if (!API_BASE) {
+  throw new Error("NEXT_PUBLIC_API_URL is not set");
+}
 
-const ADMIN_TOKEN_KEY = "admin_token";
+const ADMIN_TOKEN_KEY = "token";
 
 export function getAdminToken() {
   if (typeof window === "undefined") return null;

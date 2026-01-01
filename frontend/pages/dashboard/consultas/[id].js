@@ -1,20 +1,19 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://127.0.0.1:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+if (!API_URL) {
+  throw new Error("NEXT_PUBLIC_API_URL is not set");
+}
 
 const readAdminToken = () => {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem("token_admin") || localStorage.getItem("admin_token");
+  return localStorage.getItem("token");
 };
 
 const clearAdminToken = () => {
   if (typeof window === "undefined") return;
-  localStorage.removeItem("token_admin");
-  localStorage.removeItem("admin_token");
+  localStorage.removeItem("token");
 };
 
 const formatDate = (value) => {

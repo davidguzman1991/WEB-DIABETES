@@ -91,6 +91,9 @@ export default function Portal() {
   const [glucoseLoading, setGlucoseLoading] = useState(false);
   const [glucoseError, setGlucoseError] = useState("");
   const [glucoseSaving, setGlucoseSaving] = useState(false);
+  const [hba1cSummary, setHba1cSummary] = useState(null);
+  const [hba1cLoading, setHba1cLoading] = useState(false);
+  const [hba1cError, setHba1cError] = useState("");
 
   const getDisplayName = (payload) => {
     const safeValue = (value) => (typeof value === "string" ? value.trim() : "");
@@ -145,6 +148,27 @@ export default function Portal() {
     if (value === "postprandial") return "Postprandial";
     if (value === "ayuno") return "Ayuno";
     return "Sin tipo";
+  };
+
+  const normalizeLabName = (value) =>
+    String(value || "")
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const isHbA1cLabName = (value) => {
+    const normalized = normalizeLabName(value);
+    if (!normalized) return false;
+    if (normalized === "hba1c") return true;
+    if (normalized === "hemoglobina glicosilada") return true;
+    return normalized.includes("hba1c");
+  };
+
+  const formatHbA1cValue = (value) => {
+    if (!Number.isFinite(value)) return "Sin resultado";
+    const rounded = Math.round(value * 10) / 10;
+    const text = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+    return `${text}%`;
   };
 
   useEffect(() => {
@@ -266,6 +290,75 @@ export default function Portal() {
         if (active) setGlucoseError("No se pudo cargar el historial de glucosas");
       } finally {
         if (active) setGlucoseLoading(false);
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [router, token, user?.id]);
+
+  useEffect(() => {
+    if (!token || !user?.id) return;
+    let active = true;
+    const load = async () => {
+      setHba1cLoading(true);
+      setHba1cError("");
+      try {
+        const res = await authFetch("/patient/consultations");
+        if (res.status === 401 || res.status === 403) {
+          logout(router, "/login");
+          return;
+        }
+        if (!res.ok) {
+          if (active) setHba1cError("No se pudo cargar resultados de laboratorio");
+          return;
+        }
+        const data = await res.json().catch(() => []);
+        const list = Array.isArray(data) ? data : [];
+        if (!list.length) {
+          if (active) setHba1cSummary(null);
+          return;
+        }
+        const ordered = list
+          .slice()
+          .sort((a, b) => new Date(b?.created_at || 0) - new Date(a?.created_at || 0));
+        const limited = ordered.slice(0, 12).filter((item) => item?.id);
+        const entries = [];
+        for (const item of limited) {
+          if (!active) return;
+          const detailRes = await authFetch(`/consultations/${item.id}/print`);
+          if (detailRes.status === 401 || detailRes.status === 403) {
+            logout(router, "/login");
+            return;
+          }
+          if (!detailRes.ok) {
+            continue;
+          }
+          const detail = await detailRes.json().catch(() => null);
+          const labs = Array.isArray(detail?.labs) ? detail.labs : [];
+          const match = labs.find((lab) => {
+            if (!isHbA1cLabName(lab?.lab_nombre)) return false;
+            const value = Number(lab?.valor_num);
+            return Number.isFinite(value);
+          });
+          if (match) {
+            const value = Number(match.valor_num);
+            const dateValue = detail?.consultation?.created_at || item.created_at;
+            entries.push({ value, date: dateValue });
+          }
+        }
+        if (!active) return;
+        if (!entries.length) {
+          setHba1cSummary(null);
+          return;
+        }
+        entries.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+        setHba1cSummary(entries[0]);
+      } catch (err) {
+        if (active) setHba1cError("No se pudo cargar resultados de laboratorio");
+      } finally {
+        if (active) setHba1cLoading(false);
       }
     };
     load();
@@ -578,6 +671,31 @@ export default function Portal() {
               )}
               <Link className="button button-secondary" href="/portal/glucosas">
                 Ver historial de glucosas
+              </Link>
+            </div>
+          </section>
+
+          <section className="portal-section">
+            <div className="section-title">Resultados de laboratorio</div>
+            <div className="portal-card">
+              {hba1cLoading && <div className="muted">Cargando resultados...</div>}
+              {hba1cError && <div className="error">{hba1cError}</div>}
+              {!hba1cLoading && !hba1cError && !hba1cSummary && (
+                <div className="muted">Sin resultados de HbA1c.</div>
+              )}
+              {!hba1cLoading && !hba1cError && hba1cSummary && (
+                <div className="list">
+                  <div className="list-item">
+                    <div className="list-title">HbA1c</div>
+                    <div className="list-meta">
+                      {formatHbA1cValue(hba1cSummary.value)} ·{" "}
+                      {formatDate(hba1cSummary.date)}
+                    </div>
+                  </div>
+                </div>
+              )}
+              <Link className="button button-secondary" href="/portal/laboratorios/hba1c">
+                Ver HbA1c
               </Link>
             </div>
           </section>

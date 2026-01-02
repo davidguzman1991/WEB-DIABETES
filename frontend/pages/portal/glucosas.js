@@ -130,11 +130,35 @@ const buildChartData = (logs, bands) => {
   };
 };
 
-const ChartCard = ({ title, chartData, yTicks, emptyText }) => (
+const getInformativeBadge = (logs, bands) => {
+  if (!Array.isArray(logs) || !logs.length) return null;
+  const values = logs
+    .map((log) => Number(log?.value))
+    .filter((value) => Number.isFinite(value));
+  if (!values.length) return null;
+  const withinTarget = values.filter(
+    (value) => value >= bands.targetMin && value <= bands.targetMax
+  ).length;
+  const ratio = withinTarget / values.length;
+  if (ratio >= 0.7) return { text: "Dentro de meta", tone: "ok" };
+  if (ratio >= 0.4) return { text: "Valores variables", tone: "warn" };
+  return { text: "Frecuentemente elevado", tone: "high" };
+};
+
+const ChartCard = ({ title, subtitle, chartData, yTicks, emptyTitle, emptyHint, badge }) => (
   <div className="chart-card">
     <div className="chart-header">
-      <div className="section-title">{title}</div>
+      <div>
+        <div className="section-title">{title}</div>
+        {subtitle && <div className="chart-subtitle">{subtitle}</div>}
+      </div>
       <div className="chart-legend">
+        {badge && (
+          <div className={`info-badge info-badge-${badge.tone}`}>
+            <span className="info-badge-text">{badge.text}</span>
+            <span className="info-badge-note">Informativo</span>
+          </div>
+        )}
         <span className="legend-item">
           <span className="legend-swatch target" />
           Rango objetivo
@@ -269,7 +293,10 @@ const ChartCard = ({ title, chartData, yTicks, emptyText }) => (
         </text>
       </svg>
     ) : (
-      <div className="muted">{emptyText}</div>
+      <div className="muted">
+        <div>{emptyTitle}</div>
+        <div>{emptyHint}</div>
+      </div>
     )}
   </div>
 );
@@ -432,6 +459,14 @@ export default function PortalGlucosas() {
     () => buildChartData(postprandialLogs, POSTPRANDIAL_BANDS),
     [postprandialLogs]
   );
+  const fastingBadge = useMemo(
+    () => getInformativeBadge(fastingLogs, FASTING_BANDS),
+    [fastingLogs]
+  );
+  const postprandialBadge = useMemo(
+    () => getInformativeBadge(postprandialLogs, POSTPRANDIAL_BANDS),
+    [postprandialLogs]
+  );
 
   const fastingTicks = fastingChartData
     ? Array.from({ length: 5 }, (_, index) =>
@@ -516,16 +551,25 @@ export default function PortalGlucosas() {
             <>
               <ChartCard
                 title="Glucosa en ayuno"
+                subtitle="Meta habitual en ayuno: 80–130 mg/dL"
                 chartData={fastingChartData}
                 yTicks={fastingTicks}
-                emptyText="No hay registros de glucosa en ayuno"
+                emptyTitle="Aún no tienes registros de glucosa en ayuno"
+                emptyHint="Registra una medición para ver tu evolución"
+                badge={fastingBadge}
               />
               <ChartCard
                 title="Glucosa postprandial"
+                subtitle="Meta postprandial (2 horas): <180 mg/dL"
                 chartData={postprandialChartData}
                 yTicks={postprandialTicks}
-                emptyText="No hay registros posprandiales"
+                emptyTitle="Aún no tienes registros posprandiales"
+                emptyHint="Registra una medición para ver tu evolución"
+                badge={postprandialBadge}
               />
+              <div className="chart-disclaimer">
+                Esta visualización es informativa y no reemplaza la evaluación médica.
+              </div>
 
               <div className="list">
                 {!filteredLogs.length && (
@@ -605,12 +649,55 @@ export default function PortalGlucosas() {
           margin-bottom: 12px;
         }
 
+        .chart-subtitle {
+          font-size: 12px;
+          color: #6b7280;
+          margin-top: 4px;
+        }
+
         .chart-legend {
           display: flex;
           gap: 12px;
           flex-wrap: wrap;
           font-size: 12px;
           color: #475569;
+        }
+
+        .info-badge {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          padding: 6px 10px;
+          border-radius: 10px;
+          border: 1px solid transparent;
+          font-size: 11px;
+        }
+
+        .info-badge-text {
+          font-weight: 600;
+        }
+
+        .info-badge-note {
+          font-size: 10px;
+          color: #64748b;
+        }
+
+        .info-badge-ok {
+          background: #ecfdf5;
+          border-color: #bbf7d0;
+          color: #166534;
+        }
+
+        .info-badge-warn {
+          background: #fffbeb;
+          border-color: #fde68a;
+          color: #92400e;
+        }
+
+        .info-badge-high {
+          background: #fef2f2;
+          border-color: #fecaca;
+          color: #991b1b;
         }
 
         .legend-item {
@@ -636,6 +723,12 @@ export default function PortalGlucosas() {
 
         .legend-swatch.high {
           background: #fee2e2;
+        }
+
+        .chart-disclaimer {
+          margin: 8px 0 16px;
+          font-size: 12px;
+          color: #6b7280;
         }
       `}</style>
     </div>

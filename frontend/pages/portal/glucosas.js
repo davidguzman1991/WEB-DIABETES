@@ -19,9 +19,16 @@ const FILTERS = [
 const CHART_HEIGHT = 260;
 const CHART_WIDTH = 720;
 const CHART_PADDING = { top: 18, right: 20, bottom: 58, left: 52 };
-const NORMAL_MIN = 70;
-const NORMAL_MAX = 180;
-const ELEVATED_MAX = 240;
+const FASTING_BANDS = {
+  targetMin: 70,
+  targetMax: 130,
+  elevatedMax: 180,
+};
+const POSTPRANDIAL_BANDS = {
+  targetMin: 70,
+  targetMax: 180,
+  elevatedMax: 240,
+};
 
 const SkeletonLine = ({ width = "100%", height = 12, style = {} }) => (
   <div
@@ -65,11 +72,207 @@ const formatShortDate = (value) => {
   return date.toLocaleDateString("es-EC", { day: "2-digit", month: "2-digit" });
 };
 
-const formatType = (value) => {
-  if (value === "postprandial") return "Post";
-  if (value === "ayuno") return "Ayuno";
-  return "Sin tipo";
+const getLogTypeKey = (log) => {
+  const raw = String(log?.type || log?.measurement_type || "").toLowerCase();
+  if (raw === "postprandial") return "postprandial";
+  if (raw === "ayuno" || raw === "fasting") return "ayuno";
+  return "";
 };
+
+const buildChartData = (logs, bands) => {
+  if (!Array.isArray(logs) || logs.length < 2) return null;
+  const points = logs
+    .slice()
+    .reverse()
+    .map((log) => {
+      const value = Number(log?.value);
+      const dateValue = log?.taken_at || log?.created_at;
+      const date = new Date(dateValue || 0);
+      if (!Number.isFinite(value) || Number.isNaN(date.getTime())) return null;
+      return {
+        value,
+        label: formatShortDate(dateValue),
+      };
+    })
+    .filter(Boolean);
+  if (points.length < 2) return null;
+  const values = points.map((point) => point.value);
+  const minValue = Math.min(...values);
+  const maxValue = Math.max(...values);
+  const chartMin = Math.min(minValue, bands.targetMin - 10);
+  const chartMax = Math.max(maxValue, bands.elevatedMax + 20);
+  const range = Math.max(chartMax - chartMin, 1);
+  const plotWidth = CHART_WIDTH - CHART_PADDING.left - CHART_PADDING.right;
+  const plotHeight = CHART_HEIGHT - CHART_PADDING.top - CHART_PADDING.bottom;
+  const xStep = points.length > 1 ? plotWidth / (points.length - 1) : 0;
+  const valueToY = (value) => {
+    const normalized = (value - chartMin) / range;
+    return CHART_HEIGHT - CHART_PADDING.bottom - normalized * plotHeight;
+  };
+  const path = points
+    .map((point, index) => {
+      const x = CHART_PADDING.left + index * xStep;
+      const y = valueToY(point.value);
+      return `${index === 0 ? "M" : "L"} ${x} ${y}`;
+    })
+    .join(" ");
+  return {
+    points,
+    chartMin,
+    chartMax,
+    range,
+    plotWidth,
+    plotHeight,
+    xStep,
+    path,
+    valueToY,
+    bands,
+  };
+};
+
+const ChartCard = ({ title, chartData, yTicks, emptyText }) => (
+  <div className="chart-card">
+    <div className="chart-header">
+      <div className="section-title">{title}</div>
+      <div className="chart-legend">
+        <span className="legend-item">
+          <span className="legend-swatch target" />
+          Rango objetivo
+        </span>
+        <span className="legend-item">
+          <span className="legend-swatch elevated" />
+          Elevado
+        </span>
+        <span className="legend-item">
+          <span className="legend-swatch high" />
+          Alto
+        </span>
+      </div>
+    </div>
+    {chartData ? (
+      <svg
+        viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
+        width="100%"
+        height={CHART_HEIGHT}
+        role="img"
+        aria-label={title}
+      >
+        <rect
+          x={CHART_PADDING.left}
+          y={chartData.valueToY(chartData.bands.targetMax)}
+          width={chartData.plotWidth}
+          height={
+            chartData.valueToY(chartData.bands.targetMin) -
+            chartData.valueToY(chartData.bands.targetMax)
+          }
+          fill="#dcfce7"
+        />
+        <rect
+          x={CHART_PADDING.left}
+          y={chartData.valueToY(chartData.bands.elevatedMax)}
+          width={chartData.plotWidth}
+          height={
+            chartData.valueToY(chartData.bands.targetMax) -
+            chartData.valueToY(chartData.bands.elevatedMax)
+          }
+          fill="#fef3c7"
+        />
+        <rect
+          x={CHART_PADDING.left}
+          y={chartData.valueToY(chartData.chartMax)}
+          width={chartData.plotWidth}
+          height={
+            chartData.valueToY(chartData.bands.elevatedMax) -
+            chartData.valueToY(chartData.chartMax)
+          }
+          fill="#fee2e2"
+        />
+
+        <line
+          x1={CHART_PADDING.left}
+          y1={CHART_PADDING.top}
+          x2={CHART_PADDING.left}
+          y2={CHART_HEIGHT - CHART_PADDING.bottom}
+          stroke="#cbd5f5"
+          strokeWidth="1"
+        />
+        <line
+          x1={CHART_PADDING.left}
+          y1={CHART_HEIGHT - CHART_PADDING.bottom}
+          x2={CHART_WIDTH - CHART_PADDING.right}
+          y2={CHART_HEIGHT - CHART_PADDING.bottom}
+          stroke="#cbd5f5"
+          strokeWidth="1"
+        />
+
+        {yTicks.map((tick) => {
+          const y = chartData.valueToY(tick);
+          return (
+            <g key={`${title}-tick-${tick}`}>
+              <line
+                x1={CHART_PADDING.left}
+                y1={y}
+                x2={CHART_WIDTH - CHART_PADDING.right}
+                y2={y}
+                stroke="#e5e7eb"
+                strokeDasharray="4 4"
+              />
+              <text
+                x={CHART_PADDING.left - 8}
+                y={y + 4}
+                textAnchor="end"
+                fontSize="10"
+                fill="#6b7280"
+              >
+                {tick}
+              </text>
+            </g>
+          );
+        })}
+
+        <path d={chartData.path} fill="none" stroke="#1e3a5f" strokeWidth="2" />
+
+        {chartData.points.map((point, index) => {
+          const x = CHART_PADDING.left + index * chartData.xStep;
+          const y = chartData.valueToY(point.value);
+          return (
+            <g key={`${title}-${point.label}-${index}`}>
+              <circle cx={x} cy={y} r="3" fill="#1e3a5f" />
+              <text
+                transform={`translate(${x}, ${CHART_HEIGHT - 22}) rotate(-30)`}
+                textAnchor="end"
+                fontSize="9"
+                fill="#6b7280"
+              >
+                {point.label}
+              </text>
+            </g>
+          );
+        })}
+
+        <text
+          x={CHART_WIDTH / 2}
+          y={CHART_HEIGHT - 6}
+          textAnchor="middle"
+          fontSize="11"
+          fill="#475569"
+        >
+          Fecha
+        </text>
+        <text
+          transform={`translate(14, ${CHART_HEIGHT / 2}) rotate(-90)`}
+          textAnchor="middle"
+          fontSize="11"
+          fill="#475569"
+        >
+          Glucosa (mg/dL)
+        </text>
+      </svg>
+    ) : (
+      <div className="muted">{emptyText}</div>
+    )}
+  </div>
+);
 
 const getTrend = (currentValue, previousValue) => {
   if (!Number.isFinite(currentValue) || !Number.isFinite(previousValue)) return null;
@@ -212,59 +415,37 @@ export default function PortalGlucosas() {
     return { text: "Normal", color: "#166534", background: "#dcfce7" };
   }, [orderedLogs]);
 
-  const chartData = useMemo(() => {
-    if (filteredLogs.length < 2) return null;
-    const points = filteredLogs
-      .slice()
-      .reverse()
-      .map((log) => {
-        const value = Number(log?.value);
-        const dateValue = log?.taken_at || log?.created_at;
-        const date = new Date(dateValue || 0);
-        if (!Number.isFinite(value) || Number.isNaN(date.getTime())) return null;
-        return {
-          value,
-          label: `${formatShortDate(dateValue)} - ${formatType(log?.type)}`,
-        };
-      })
-      .filter(Boolean);
-    if (points.length < 2) return null;
-    const values = points.map((point) => point.value);
-    const minValue = Math.min(...values);
-    const maxValue = Math.max(...values);
-    const chartMin = Math.min(minValue, NORMAL_MIN - 10);
-    const chartMax = Math.max(maxValue, ELEVATED_MAX + 20);
-    const range = Math.max(chartMax - chartMin, 1);
-    const plotWidth = CHART_WIDTH - CHART_PADDING.left - CHART_PADDING.right;
-    const plotHeight = CHART_HEIGHT - CHART_PADDING.top - CHART_PADDING.bottom;
-    const xStep = points.length > 1 ? plotWidth / (points.length - 1) : 0;
-    const valueToY = (value) => {
-      const normalized = (value - chartMin) / range;
-      return CHART_HEIGHT - CHART_PADDING.bottom - normalized * plotHeight;
-    };
-    const path = points
-      .map((point, index) => {
-        const x = CHART_PADDING.left + index * xStep;
-        const y = valueToY(point.value);
-        return `${index === 0 ? "M" : "L"} ${x} ${y}`;
-      })
-      .join(" ");
-    return {
-      points,
-      chartMin,
-      chartMax,
-      range,
-      plotWidth,
-      plotHeight,
-      xStep,
-      path,
-      valueToY,
-    };
-  }, [filteredLogs]);
+  const fastingLogs = useMemo(
+    () => filteredLogs.filter((log) => getLogTypeKey(log) === "ayuno"),
+    [filteredLogs]
+  );
+  const postprandialLogs = useMemo(
+    () => filteredLogs.filter((log) => getLogTypeKey(log) === "postprandial"),
+    [filteredLogs]
+  );
 
-  const yTicks = chartData
+  const fastingChartData = useMemo(
+    () => buildChartData(fastingLogs, FASTING_BANDS),
+    [fastingLogs]
+  );
+  const postprandialChartData = useMemo(
+    () => buildChartData(postprandialLogs, POSTPRANDIAL_BANDS),
+    [postprandialLogs]
+  );
+
+  const fastingTicks = fastingChartData
     ? Array.from({ length: 5 }, (_, index) =>
-        Math.round(chartData.chartMin + (chartData.range * index) / 4)
+        Math.round(
+          fastingChartData.chartMin + (fastingChartData.range * index) / 4
+        )
+      )
+    : [];
+  const postprandialTicks = postprandialChartData
+    ? Array.from({ length: 5 }, (_, index) =>
+        Math.round(
+          postprandialChartData.chartMin +
+            (postprandialChartData.range * index) / 4
+        )
       )
     : [];
 
@@ -333,145 +514,18 @@ export default function PortalGlucosas() {
           {!error && message && <div className="muted">{message}</div>}
           {!error && !message && (
             <>
-              <div className="chart-card">
-                <div className="chart-header">
-                  <div className="section-title">Tendencia de glucosa</div>
-                  <div className="chart-legend">
-                    <span className="legend-item">
-                      <span className="legend-swatch target" />
-                      Rango objetivo
-                    </span>
-                    <span className="legend-item">
-                      <span className="legend-swatch elevated" />
-                      Elevado
-                    </span>
-                    <span className="legend-item">
-                      <span className="legend-swatch high" />
-                      Alto
-                    </span>
-                  </div>
-                </div>
-                {chartData ? (
-                  <svg
-                    viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
-                    width="100%"
-                    height={CHART_HEIGHT}
-                    role="img"
-                    aria-label="Grafico de glucosa"
-                  >
-                    <rect
-                      x={CHART_PADDING.left}
-                      y={chartData.valueToY(NORMAL_MAX)}
-                      width={chartData.plotWidth}
-                      height={
-                        chartData.valueToY(NORMAL_MIN) - chartData.valueToY(NORMAL_MAX)
-                      }
-                      fill="#dcfce7"
-                    />
-                    <rect
-                      x={CHART_PADDING.left}
-                      y={chartData.valueToY(ELEVATED_MAX)}
-                      width={chartData.plotWidth}
-                      height={
-                        chartData.valueToY(NORMAL_MAX) - chartData.valueToY(ELEVATED_MAX)
-                      }
-                      fill="#fef3c7"
-                    />
-                    <rect
-                      x={CHART_PADDING.left}
-                      y={chartData.valueToY(chartData.chartMax)}
-                      width={chartData.plotWidth}
-                      height={
-                        chartData.valueToY(ELEVATED_MAX) -
-                        chartData.valueToY(chartData.chartMax)
-                      }
-                      fill="#fee2e2"
-                    />
-
-                    <line
-                      x1={CHART_PADDING.left}
-                      y1={CHART_PADDING.top}
-                      x2={CHART_PADDING.left}
-                      y2={CHART_HEIGHT - CHART_PADDING.bottom}
-                      stroke="#cbd5f5"
-                      strokeWidth="1"
-                    />
-                    <line
-                      x1={CHART_PADDING.left}
-                      y1={CHART_HEIGHT - CHART_PADDING.bottom}
-                      x2={CHART_WIDTH - CHART_PADDING.right}
-                      y2={CHART_HEIGHT - CHART_PADDING.bottom}
-                      stroke="#cbd5f5"
-                      strokeWidth="1"
-                    />
-
-                    {yTicks.map((tick) => {
-                      const y = chartData.valueToY(tick);
-                      return (
-                        <g key={`tick-${tick}`}>
-                          <line
-                            x1={CHART_PADDING.left}
-                            y1={y}
-                            x2={CHART_WIDTH - CHART_PADDING.right}
-                            y2={y}
-                            stroke="#e5e7eb"
-                            strokeDasharray="4 4"
-                          />
-                          <text
-                            x={CHART_PADDING.left - 8}
-                            y={y + 4}
-                            textAnchor="end"
-                            fontSize="10"
-                            fill="#6b7280"
-                          >
-                            {tick}
-                          </text>
-                        </g>
-                      );
-                    })}
-
-                    <path d={chartData.path} fill="none" stroke="#1e3a5f" strokeWidth="2" />
-
-                    {chartData.points.map((point, index) => {
-                      const x = CHART_PADDING.left + index * chartData.xStep;
-                      const y = chartData.valueToY(point.value);
-                      return (
-                        <g key={`${point.label}-${index}`}>
-                          <circle cx={x} cy={y} r="3" fill="#1e3a5f" />
-                          <text
-                            transform={`translate(${x}, ${CHART_HEIGHT - 22}) rotate(-30)`}
-                            textAnchor="end"
-                            fontSize="9"
-                            fill="#6b7280"
-                          >
-                            {point.label}
-                          </text>
-                        </g>
-                      );
-                    })}
-
-                    <text
-                      x={CHART_WIDTH / 2}
-                      y={CHART_HEIGHT - 6}
-                      textAnchor="middle"
-                      fontSize="11"
-                      fill="#475569"
-                    >
-                      Fecha y tipo
-                    </text>
-                    <text
-                      transform={`translate(14, ${CHART_HEIGHT / 2}) rotate(-90)`}
-                      textAnchor="middle"
-                      fontSize="11"
-                      fill="#475569"
-                    >
-                      Glucosa (mg/dL)
-                    </text>
-                  </svg>
-                ) : (
-                  <div className="muted">No hay suficientes datos para el grafico.</div>
-                )}
-              </div>
+              <ChartCard
+                title="Glucosa en ayuno"
+                chartData={fastingChartData}
+                yTicks={fastingTicks}
+                emptyText="No hay registros de glucosa en ayuno"
+              />
+              <ChartCard
+                title="Glucosa postprandial"
+                chartData={postprandialChartData}
+                yTicks={postprandialTicks}
+                emptyText="No hay registros posprandiales"
+              />
 
               <div className="list">
                 {!filteredLogs.length && (

@@ -9,6 +9,7 @@ export function useAuthGuard(options = {}) {
   const redirectTo = options.redirectTo || "/login";
   const [user, setUser] = useState(null);
   const [error, setError] = useState("");
+  const [transientError, setTransientError] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,13 +35,22 @@ export function useAuthGuard(options = {}) {
         if (!active) return;
         setUser(data);
         setError("");
+        setTransientError("");
         setLoading(false);
       })
       .catch((err) => {
         if (!active) return;
-        setError(err?.message || "No se pudo validar la sesion");
-        clearToken();
-        router.replace(redirectTo);
+        const isAuthFailure = Boolean(err?.authFailure);
+        if (isAuthFailure) {
+          setError(err?.message || "No se pudo validar la sesion");
+          setTransientError("");
+          clearToken();
+          router.replace(redirectTo);
+          setLoading(false);
+          return;
+        }
+        // Transient errors should not invalidate the session.
+        setTransientError(err?.message || "No se pudo validar la sesion");
         setLoading(false);
       });
 
@@ -49,5 +59,5 @@ export function useAuthGuard(options = {}) {
     };
   }, [mode, redirectTo, router]);
 
-  return { user, loading, error };
+  return { user, loading, error, transientError };
 }

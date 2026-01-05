@@ -60,7 +60,16 @@ export async function fetchMe() {
   }
   if (!res.ok) {
     const message = data?.detail || "Unauthorized";
-    throw new Error(message);
+    const error = new Error(message);
+    error.status = res.status;
+    error.authFailure = res.status === 401 || res.status === 403;
+    throw error;
+  }
+  if (!data) {
+    const error = new Error("Invalid auth response");
+    error.status = res.status;
+    error.authFailure = false;
+    throw error;
   }
   return data;
 }

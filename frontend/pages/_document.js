@@ -9,6 +9,10 @@ export default function Document() {
   return (
     <Html lang="es">
       <Head>
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <meta name="theme-color" content="#0ea5a4" />
         <meta property="og:title" content={OG_TITLE} />
         <meta property="og:description" content={OG_DESCRIPTION} />
         <meta property="og:image" content={OG_IMAGE_URL} />

@@ -12,6 +12,67 @@ const GLUCOSE_CHART_HEIGHT = 200;
 const GLUCOSE_CHART_PADDING = 24;
 const GLUCOSE_CHART_WIDTH = 600;
 const NAME_SEARCH_DEBOUNCE_MS = 400;
+const CONSULTA_DRAFT_KEY = "draft_consultation_admin";
+const CONSULTA_DRAFT_DEBOUNCE_MS = 2500;
+
+const DEFAULT_CONSULTA_FORM = {
+  patient_username: "",
+  diagnostico: "",
+  notas_medicas: "",
+  indicaciones_generales: "",
+  weight: "",
+  height: "",
+  blood_pressure: "",
+  heart_rate: "",
+  oxygen_saturation: "",
+  abdominal_circumference: "",
+  reason_for_visit: "",
+  current_illness: "",
+  physical_exam: "",
+  requested_exams: "",
+  next_visit_date: "",
+};
+
+const hasDraftValue = (value) => String(value ?? "").trim().length > 0;
+
+const hasDraftContent = (draft) => {
+  if (!draft || typeof draft !== "object") return false;
+  const formValues = Object.values(draft.consultaForm || {});
+  if (formValues.some(hasDraftValue)) return true;
+  const meds = Array.isArray(draft.medicamentos) ? draft.medicamentos : [];
+  if (
+    meds.some((med) => {
+      if (!med || typeof med !== "object") return false;
+      return ["nombre", "cantidad", "descripcion", "duracion_dias"].some((key) =>
+        hasDraftValue(med[key])
+      );
+    })
+  ) {
+    return true;
+  }
+  const labs = Array.isArray(draft.labs) ? draft.labs : [];
+  if (
+    labs.some((row) => {
+      if (!row || typeof row !== "object") return false;
+      return ["lab_id", "valor"].some((key) => hasDraftValue(row[key]));
+    })
+  ) {
+    return true;
+  }
+  return false;
+};
+
+const getMaxNumericId = (items) => {
+  const list = Array.isArray(items) ? items : [];
+  let maxId = 0;
+  list.forEach((item) => {
+    const value = Number(item?.id);
+    if (Number.isFinite(value) && value > maxId) {
+      maxId = value;
+    }
+  });
+  return maxId;
+};
 
 const formatShortDate = (value) => {
   if (!value) return "";
@@ -128,23 +189,7 @@ export default function Dashboard() {
   const [success, setSuccess] = useState("");
   const [age, setAge] = useState(null);
   const [dateError, setDateError] = useState("");
-  const [consultaForm, setConsultaForm] = useState({
-    patient_username: "",
-    diagnostico: "",
-    notas_medicas: "",
-    indicaciones_generales: "",
-    weight: "",
-    height: "",
-    blood_pressure: "",
-    heart_rate: "",
-    oxygen_saturation: "",
-    abdominal_circumference: "",
-    reason_for_visit: "",
-    current_illness: "",
-    physical_exam: "",
-    requested_exams: "",
-    next_visit_date: "",
-  });
+  const [consultaForm, setConsultaForm] = useState(DEFAULT_CONSULTA_FORM);
   const [patientInfo, setPatientInfo] = useState(null);
   const [patientLookupStatus, setPatientLookupStatus] = useState("idle");
   const [patientLookupMessage, setPatientLookupMessage] = useState("");
@@ -167,6 +212,9 @@ export default function Dashboard() {
   const [labsError, setLabsError] = useState("");
   const [labsMessage, setLabsMessage] = useState("");
   const [labRowErrors, setLabRowErrors] = useState({});
+  const draftRef = useRef({ consultaForm: DEFAULT_CONSULTA_FORM, medicamentos: [], labs: [] });
+  const draftReadyRef = useRef(false);
+  const draftRestoredRef = useRef(false);
   const [sectionsOpen, setSectionsOpen] = useState({
     createPatient: false,
     searchPatient: false,
@@ -176,12 +224,121 @@ export default function Dashboard() {
   const searchPatient = usePatientNameSearch(router);
   const consultationSearch = usePatientNameSearch(router);
 
+  const clearDraft = () => {
+    try {
+      sessionStorage.removeItem(CONSULTA_DRAFT_KEY);
+    } catch {
+      // Ignore sessionStorage failures.
+    }
+  };
+
+  const persistDraft = (state) => {
+    if (!draftReadyRef.current) return;
+    if (!hasDraftContent(state)) {
+      clearDraft();
+      return;
+    }
+    try {
+      sessionStorage.setItem(CONSULTA_DRAFT_KEY, JSON.stringify(state));
+    } catch {
+      // Ignore sessionStorage failures.
+    }
+  };
+
   useEffect(() => {
     if (!user) return;
     if (String(user.role).toLowerCase() !== "admin") {
       logout(router, "/login?type=admin");
     }
   }, [router, user]);
+
+  useEffect(() => {
+    draftRef.current = { consultaForm, medicamentos, labs };
+  }, [consultaForm, medicamentos, labs]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (draftRestoredRef.current) return;
+    draftRestoredRef.current = true;
+    let raw = null;
+    try {
+      raw = sessionStorage.getItem(CONSULTA_DRAFT_KEY);
+    } catch {
+      draftReadyRef.current = true;
+      return;
+    }
+    if (!raw) {
+      draftReadyRef.current = true;
+      return;
+    }
+    let parsed = null;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      clearDraft();
+      draftReadyRef.current = true;
+      return;
+    }
+    if (!hasDraftContent(parsed)) {
+      clearDraft();
+      draftReadyRef.current = true;
+      return;
+    }
+    const shouldRestore = window.confirm(
+      "Se detecto una consulta sin guardar. Deseas continuar?"
+    );
+    if (!shouldRestore) {
+      clearDraft();
+      draftReadyRef.current = true;
+      return;
+    }
+
+    const restoredForm = {
+      ...DEFAULT_CONSULTA_FORM,
+      ...(parsed.consultaForm || {}),
+    };
+    const restoredMeds = Array.isArray(parsed.medicamentos) ? parsed.medicamentos : [];
+    const restoredLabs = Array.isArray(parsed.labs) ? parsed.labs : [];
+    const maxMedId = getMaxNumericId(restoredMeds);
+    const maxLabId = getMaxNumericId(restoredLabs);
+    if (maxMedId) medIdRef.current = maxMedId;
+    if (maxLabId) labIdRef.current = maxLabId;
+    setConsultaForm(restoredForm);
+    setMedicamentos(restoredMeds.length ? restoredMeds : [createMedicamento()]);
+    setLabs(restoredLabs);
+    draftReadyRef.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!draftReadyRef.current) return;
+    const timer = setTimeout(() => {
+      persistDraft(draftRef.current);
+    }, CONSULTA_DRAFT_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [consultaForm, medicamentos, labs]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        persistDraft(draftRef.current);
+      }
+    };
+    const handlePageHide = () => {
+      persistDraft(draftRef.current);
+    };
+    const handleBeforeUnload = () => {
+      persistDraft(draftRef.current);
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("pagehide", handlePageHide);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("pagehide", handlePageHide);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
 
   useEffect(() => {
     const cedula = consultaForm.patient_username.trim();
@@ -332,6 +489,25 @@ export default function Dashboard() {
 
   const onConsultaChange = (event) => {
     setConsultaForm({ ...consultaForm, [event.target.name]: event.target.value });
+  };
+
+  const discardDraft = () => {
+    const shouldDiscard =
+      typeof window === "undefined" ||
+      window.confirm("Deseas descartar la consulta en curso?");
+    if (!shouldDiscard) return;
+    clearDraft();
+    setConsultaForm({ ...DEFAULT_CONSULTA_FORM });
+    setMedicamentos([createMedicamento()]);
+    setLabs([]);
+    setLabRowErrors({});
+    setLabsError("");
+    setLabsMessage("");
+    setConsultaError("");
+    setConsultaSuccess("");
+    setPatientInfo(null);
+    setPatientLookupStatus("idle");
+    setPatientLookupMessage("");
   };
 
   const updateMedicamentoField = (index, name, value) => {
@@ -748,23 +924,11 @@ export default function Dashboard() {
         setLabsMessage("Laboratorios guardados");
       }
 
+      clearDraft();
       setConsultaSuccess("Consulta creada correctamente");
       setConsultaForm({
+        ...DEFAULT_CONSULTA_FORM,
         patient_username: patientUsername,
-        diagnostico: "",
-        notas_medicas: "",
-        indicaciones_generales: "",
-        weight: "",
-        height: "",
-        blood_pressure: "",
-        heart_rate: "",
-        oxygen_saturation: "",
-        abdominal_circumference: "",
-        reason_for_visit: "",
-        current_illness: "",
-        physical_exam: "",
-        requested_exams: "",
-        next_visit_date: "",
       });
       setMedicamentos([createMedicamento()]);
       setLabs([]);
@@ -1494,6 +1658,9 @@ export default function Dashboard() {
               disabled={patientLookupStatus !== "found"}
             >
               Guardar consulta
+            </button>
+            <button type="button" className="button-secondary" onClick={discardDraft}>
+              Descartar borrador
             </button>
           </form>
         </section>

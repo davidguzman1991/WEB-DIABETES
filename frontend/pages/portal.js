@@ -41,22 +41,22 @@ const SkeletonCard = ({ children, style = {} }) => (
 
 const PortalSkeleton = () => (
   <div className="page">
-    <div className="card portal-shell">
-      <div className="portal-dashboard">
+    <div className="card portal-shell w-full !max-w-5xl !mt-6 sm:!mt-10">
+      <div className="portal-dashboard !gap-6 sm:!gap-8">
         <div style={{ marginBottom: 20 }}>
           <SkeletonLine width="60%" height={22} />
           <SkeletonLine width="90%" height={14} style={{ marginTop: 8 }} />
           <SkeletonLine width="80%" height={14} />
         </div>
         <SkeletonLine width="100%" height={48} style={{ borderRadius: 12, marginBottom: 20 }} />
-        <section className="portal-section">
+        <section className="portal-section rounded-2xl border border-slate-200/80 p-4 shadow-sm sm:p-6">
           <SkeletonLine width="40%" height={16} />
           <SkeletonCard style={{ marginTop: 8 }}>
             <SkeletonLine width="70%" height={16} />
             <SkeletonLine width="45%" height={12} />
           </SkeletonCard>
         </section>
-        <section className="portal-section">
+        <section className="portal-section rounded-2xl border border-slate-200/80 p-4 shadow-sm sm:p-6">
           <SkeletonLine width="30%" height={16} />
           <SkeletonCard style={{ marginTop: 8 }}>
             <SkeletonLine width="85%" height={14} />
@@ -500,9 +500,9 @@ export default function Portal() {
   return (
     <div className="page portal-bg">
       <div className="portal-bg-overlay" aria-hidden="true" />
-      <div className="portal-bg-content">
-        <div className="card portal-shell portal-main-card">
-          <div className="portal-dashboard">
+      <div className="portal-bg-content mx-auto w-full max-w-5xl">
+        <div className="card portal-shell portal-main-card w-full !max-w-5xl !mt-6 sm:!mt-10">
+          <div className="portal-dashboard !gap-6 sm:!gap-8">
           <header className="portal-header">
             <h1 className="portal-title">
               Bienvenido/a,{" "}
@@ -519,7 +519,7 @@ export default function Portal() {
           </div>
           {error && <div className="error">{error}</div>}
           {message && <div className="muted">{message}</div>}
-          <section className="portal-section">
+          <section className="portal-section rounded-2xl border border-slate-200/80 p-4 shadow-sm sm:p-6">
             <div className="section-title">Plan de tratamiento actual</div>
             {loadingCurrent ? (
               <SkeletonCard style={{ marginTop: 8 }}>
@@ -545,7 +545,7 @@ export default function Portal() {
             )}
           </section>
 
-          <section className="portal-section">
+          <section className="portal-section rounded-2xl border border-slate-200/80 p-4 shadow-sm sm:p-6">
             <div className="section-title">Registro de glucosa</div>
             <div className="portal-card glucose-card" aria-busy={glucoseLoading ? "true" : "false"}>
               <button
@@ -638,7 +638,7 @@ export default function Portal() {
             </div>
           </section>
 
-          <section className="portal-section">
+          <section className="portal-section rounded-2xl border border-slate-200/80 p-4 shadow-sm sm:p-6">
             <div className="section-title">Historial de glucosas</div>
             <div className="portal-card">
               {glucoseLoading && <div className="muted">Cargando historial...</div>}
@@ -675,7 +675,7 @@ export default function Portal() {
             </div>
           </section>
 
-          <section className="portal-section">
+          <section className="portal-section rounded-2xl border border-slate-200/80 p-4 shadow-sm sm:p-6">
             <div className="section-title">Resultados de laboratorio</div>
             <div className="portal-card">
               {hba1cLoading && <div className="muted">Cargando resultados...</div>}
@@ -700,9 +700,9 @@ export default function Portal() {
             </div>
           </section>
 
-          <section className="portal-section">
+          <section className="portal-section rounded-2xl border border-slate-200/80 p-4 shadow-sm sm:p-6">
             <div className="section-title">Accesos rapidos</div>
-            <div className="portal-actions">
+            <div className="portal-actions !gap-4 sm:!gap-5">
               <Link className="portal-card portal-action" href="/portal/historial">
                 <div className="portal-card-title">Historial de consultas</div>
                 <div className="portal-card-note">Solo lectura</div>
@@ -734,7 +734,7 @@ export default function Portal() {
             </div>
           </section>
 
-          <div className="portal-footer">
+          <div className="portal-footer pt-2 sm:pt-4">
             <button
               type="button"
               className="logout-button"
@@ -746,148 +746,6 @@ export default function Portal() {
           </div>
         </div>
       </div>
-      <style jsx>{`
-        .portal-bg {
-          position: relative;
-          background-image: url("/images/portal-bg.webp");
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
-        }
-
-        .portal-bg-overlay {
-          position: absolute;
-          inset: 0;
-          background: rgba(234, 242, 255, 0.72);
-        }
-
-        .portal-bg-content {
-          position: relative;
-          z-index: 1;
-        }
-
-        .portal-main-card {
-          background: #ffffff;
-        }
-
-        .glucose-action-button {
-          width: 100%;
-          border-radius: 12px;
-          padding: 14px 18px;
-          font-size: 15px;
-          font-weight: 700;
-          color: #ffffff;
-          background: #0f766e;
-          box-shadow: 0 10px 20px rgba(15, 118, 110, 0.2);
-          cursor: pointer;
-          animation: glucoseGlow 4s ease-in-out infinite;
-        }
-
-        .glucose-action-button:hover {
-          background: #0b5f59;
-        }
-
-        .glucose-action-button:focus-visible {
-          outline: 2px solid #93c5fd;
-          outline-offset: 2px;
-        }
-
-        .glucose-helper {
-          font-size: 13px;
-          color: #6b7280;
-          line-height: 1.5;
-          margin-top: 6px;
-        }
-
-        .glucose-type {
-          border: none;
-          padding: 0;
-          margin: 0 0 12px;
-        }
-
-        .glucose-type legend {
-          font-weight: 600;
-          color: #111827;
-          margin-bottom: 8px;
-        }
-
-        .glucose-type-options {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-          gap: 10px;
-        }
-
-        .glucose-option {
-          display: block;
-          position: relative;
-          cursor: pointer;
-        }
-
-        .glucose-option-input {
-          position: absolute;
-          width: 1px;
-          height: 1px;
-          margin: -1px;
-          border: 0;
-          padding: 0;
-          clip: rect(0 0 0 0);
-          overflow: hidden;
-          white-space: nowrap;
-        }
-
-        .glucose-option-card {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          padding: 12px 14px;
-          border-radius: 12px;
-          border: 1px solid #e5e7eb;
-          background: #f9fafb;
-          color: #111827;
-          transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-        }
-
-        .glucose-option-title {
-          font-weight: 600;
-          font-size: 14px;
-        }
-
-        .glucose-option-desc {
-          font-size: 12px;
-          color: #6b7280;
-        }
-
-        .glucose-option-input:checked + .glucose-option-card {
-          border-color: #0f766e;
-          background: #ecfdf5;
-          box-shadow: 0 8px 16px rgba(15, 118, 110, 0.15);
-        }
-
-        .glucose-option-input:focus-visible + .glucose-option-card {
-          outline: 2px solid #93c5fd;
-          outline-offset: 2px;
-        }
-
-        .glucose-option:hover .glucose-option-card {
-          border-color: #94a3b8;
-        }
-
-        @keyframes glucoseGlow {
-          0%,
-          100% {
-            box-shadow: 0 8px 18px rgba(15, 118, 110, 0.18);
-          }
-          50% {
-            box-shadow: 0 10px 22px rgba(15, 118, 110, 0.28);
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .glucose-action-button {
-            animation: none;
-          }
-        }
-      `}</style>
     </div>
   );
 }

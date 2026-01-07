@@ -56,11 +56,14 @@ export default function Login() {
 
   const isAdmin = loginType === "admin";
   const pageClassName = isAdmin ? "page" : "page login-hero";
-  const cardClassName = isAdmin ? "card" : "card login-card";
+  const contentClassName =
+    "login-hero-content flex w-full items-center justify-center px-4 py-8 sm:px-6 sm:py-10";
+  const cardClassName = `${isAdmin ? "card" : "card login-card"} w-full !mt-0`;
+  const formClassName = `form ${isAdmin ? "mt-6" : "mt-4"}`;
 
   return (
     <div className={pageClassName}>
-      <div className="login-hero-content">
+      <div className={contentClassName}>
         <div className={cardClassName}>
           {isAdmin ? (
             <h1>Ingreso Administrador</h1>
@@ -74,7 +77,7 @@ export default function Login() {
               </p>
             </>
           )}
-          <form onSubmit={onSubmit} className="form">
+          <form onSubmit={onSubmit} className={formClassName}>
             <label>
               {isAdmin ? "Usuario" : "Cedula"}
               <input
@@ -97,7 +100,7 @@ export default function Login() {
             {error && <div className="error">{error}</div>}
             <button
               type="submit"
-              className={isAdmin ? "button-primary" : "button-primary login-button"}
+              className={`${isAdmin ? "button-primary" : "button-primary login-button"} w-full`}
             >
               Entrar
             </button>

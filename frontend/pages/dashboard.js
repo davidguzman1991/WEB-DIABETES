@@ -1042,7 +1042,6 @@ export default function Dashboard() {
     return (
       <div className="page">
         <div className="card">
-          <h1>Dashboard</h1>
           <p className="muted">Cargando...</p>
         </div>
       </div>
@@ -1053,7 +1052,6 @@ export default function Dashboard() {
     return (
       <div className="page">
         <div className="card">
-          <h1>Dashboard</h1>
           <div className="error">{authError}</div>
         </div>
       </div>
@@ -1064,7 +1062,6 @@ export default function Dashboard() {
     return (
       <div className="page">
         <div className="card">
-          <h1>Dashboard</h1>
           <p className="muted">Cargando...</p>
         </div>
       </div>
@@ -1076,8 +1073,8 @@ export default function Dashboard() {
       <div className="card admin-shell">
         <header className="admin-header">
           <div>
-            <h1>Bienvenido Dr. Guzman - Portal de gestion medica</h1>
-            <p className="muted">Sesion iniciada como {user.username}</p>
+            <h1>Portal administrativo clinico</h1>
+            <p className="muted">Sesion activa: {user.username}</p>
             <div className="admin-meta">
               Rol: {user.role} | Activo: {user.activo ? "Si" : "No"}
             </div>
@@ -1093,7 +1090,7 @@ export default function Dashboard() {
             onClick={() => toggleSection("createPatient")}
             aria-expanded={sectionsOpen.createPatient}
           >
-            Crear paciente
+            Registrar paciente
           </button>
           <button
             type="button"
@@ -1101,7 +1098,7 @@ export default function Dashboard() {
             onClick={() => toggleSection("searchPatient")}
             aria-expanded={sectionsOpen.searchPatient}
           >
-            Buscar paciente
+            Buscar y abrir ficha
           </button>
           <button
             type="button"
@@ -1109,14 +1106,14 @@ export default function Dashboard() {
             onClick={() => toggleSection("createConsultation")}
             aria-expanded={sectionsOpen.createConsultation}
           >
-            Crear consulta
+            Abrir nueva consulta
           </button>
         </div>
       </div>
 
       {sectionsOpen.createPatient && (
         <section className="card admin-section">
-          <h2>Crear paciente</h2>
+          <h2>Registro de paciente</h2>
           {error && <div className="error">{error}</div>}
           {success && <div className="success">{success}</div>}
           <form onSubmit={onSubmit} className="form">
@@ -1163,7 +1160,7 @@ export default function Dashboard() {
               className="button-primary"
               disabled={!canSubmit(form, dateError)}
             >
-              Crear
+              Registrar paciente
             </button>
           </form>
         </section>
@@ -1171,9 +1168,9 @@ export default function Dashboard() {
 
       {sectionsOpen.searchPatient && (
         <section className="card admin-section">
-          <h2>Buscar paciente</h2>
+          <h2>Acceso a ficha del paciente</h2>
           <div className="consultation-card">
-            <div className="section-title">Paciente seleccionado</div>
+            <div className="section-title">Ficha del paciente</div>
             <div className="form">
               <label>
                 Cedula paciente
@@ -1216,8 +1213,54 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="consultation-card">
+            <div className="section-title">Consultas recientes del paciente</div>
+            <button type="button" className="button-primary" onClick={loadConsultas}>
+              Ver consultas recientes
+            </button>
+          </div>
+          <div className="consultation-card">
+            {consultaError && <div className="error">{consultaError}</div>}
+            <div className="list">
+              {safeConsultas.map((item, index) => {
+                if (!item || typeof item !== "object") return null;
+                const itemId = item.id || `consulta-${index}`;
+                const createdAt = item.created_at
+                  ? new Date(item.created_at).toLocaleDateString()
+                  : "";
+                const diagnosisText = item.diagnosis || "";
+                const canNavigate = Boolean(item.id);
+                const handleOpen = () => {
+                  if (!item.id) return;
+                  router.push(`/dashboard/consultas/${item.id}`);
+                };
+                return (
+                  <div
+                    key={itemId}
+                    className={`list-item${canNavigate ? " clickable-consultation" : ""}`}
+                    onClick={canNavigate ? handleOpen : undefined}
+                    onKeyDown={
+                      canNavigate
+                        ? (event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              handleOpen();
+                            }
+                          }
+                        : undefined
+                    }
+                    role={canNavigate ? "button" : undefined}
+                    tabIndex={canNavigate ? 0 : undefined}
+                  >
+                    <div className="list-title">{createdAt}</div>
+                    {diagnosisText && <div className="list-meta">{diagnosisText}</div>}
+                  </div>
+                );
+                })}
+            </div>
+          </div>
+          <div className="consultation-card">
             <div className="section-title">
-              Historial de glucosas{" "}
+              Alertas y seguimiento de glucosa{" "}
               {glucoseTrend && (
                 <span style={{ color: glucoseTrend.color, fontWeight: 700 }}>
                   {glucoseTrend.icon}
@@ -1268,61 +1311,15 @@ export default function Dashboard() {
               }}
               disabled={!patientCedula}
             >
-              Ver historial de glucosas
+              Ver registros de glucosa
             </button>
-          </div>
-          <div className="consultation-card">
-            <div className="section-title">Consultas recientes</div>
-            <button type="button" className="button-primary" onClick={loadConsultas}>
-              Consultas recientes del paciente
-            </button>
-          </div>
-          <div className="consultation-card">
-            {consultaError && <div className="error">{consultaError}</div>}
-            <div className="list">
-              {safeConsultas.map((item, index) => {
-                if (!item || typeof item !== "object") return null;
-                const itemId = item.id || `consulta-${index}`;
-                const createdAt = item.created_at
-                  ? new Date(item.created_at).toLocaleDateString()
-                  : "";
-                const diagnosisText = item.diagnosis || "";
-                const canNavigate = Boolean(item.id);
-                const handleOpen = () => {
-                  if (!item.id) return;
-                  router.push(`/dashboard/consultas/${item.id}`);
-                };
-                return (
-                  <div
-                    key={itemId}
-                    className={`list-item${canNavigate ? " clickable-consultation" : ""}`}
-                    onClick={canNavigate ? handleOpen : undefined}
-                    onKeyDown={
-                      canNavigate
-                        ? (event) => {
-                            if (event.key === "Enter" || event.key === " ") {
-                              event.preventDefault();
-                              handleOpen();
-                            }
-                          }
-                        : undefined
-                    }
-                    role={canNavigate ? "button" : undefined}
-                    tabIndex={canNavigate ? 0 : undefined}
-                  >
-                    <div className="list-title">{createdAt}</div>
-                    {diagnosisText && <div className="list-meta">{diagnosisText}</div>}
-                  </div>
-                );
-              })}
-            </div>
           </div>
         </section>
       )}
 
       {sectionsOpen.createConsultation && (
         <section className="card admin-section">
-          <h2>Crear consulta</h2>
+          <h2>Nueva consulta clinica</h2>
           {consultaError && <div className="error">{consultaError}</div>}
           {consultaSuccess && <div className="success">{consultaSuccess}</div>}
           <form onSubmit={onSubmitConsulta} className="form">

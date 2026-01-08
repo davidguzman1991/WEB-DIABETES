@@ -520,7 +520,7 @@ export default function Portal() {
           {error && <div className="error">{error}</div>}
           {message && <div className="muted">{message}</div>}
           <section className="portal-section rounded-2xl border border-slate-200/80 p-4 shadow-sm sm:p-6">
-            <div className="section-title">Plan de tratamiento actual</div>
+            <div className="section-title">Tratamiento y plan actual</div>
             {loadingCurrent ? (
               <SkeletonCard style={{ marginTop: 8 }}>
                 <SkeletonLine width="70%" height={16} />
@@ -546,7 +546,7 @@ export default function Portal() {
           </section>
 
           <section className="portal-section rounded-2xl border border-slate-200/80 p-4 shadow-sm sm:p-6">
-            <div className="section-title">Registro de glucosa</div>
+            <div className="section-title">Seguimiento solicitado por su medico</div>
             <div className="portal-card glucose-card" aria-busy={glucoseLoading ? "true" : "false"}>
               <button
                 type="button"
@@ -639,7 +639,32 @@ export default function Portal() {
           </section>
 
           <section className="portal-section rounded-2xl border border-slate-200/80 p-4 shadow-sm sm:p-6">
-            <div className="section-title">Historial de glucosas</div>
+            <div className="section-title">Resultados recientes</div>
+            <div className="portal-card">
+              {hba1cLoading && <div className="muted">Cargando resultados...</div>}
+              {hba1cError && <div className="error">{hba1cError}</div>}
+              {!hba1cLoading && !hba1cError && !hba1cSummary && (
+                <div className="muted">Sin resultados de HbA1c.</div>
+              )}
+              {!hba1cLoading && !hba1cError && hba1cSummary && (
+                <div className="list">
+                  <div className="list-item">
+                    <div className="list-title">HbA1c</div>
+                    <div className="list-meta">
+                      {formatHbA1cValue(hba1cSummary.value)} ·{" "}
+                      {formatDate(hba1cSummary.date)}
+                    </div>
+                  </div>
+                </div>
+              )}
+              <Link className="button button-secondary" href="/portal/laboratorios/hba1c">
+                Ver HbA1c
+              </Link>
+            </div>
+          </section>
+
+          <section className="portal-section rounded-2xl border border-slate-200/80 p-4 shadow-sm sm:p-6">
+            <div className="section-title">Historial de controles</div>
             <div className="portal-card">
               {glucoseLoading && <div className="muted">Cargando historial...</div>}
               {glucoseError && <div className="error">{glucoseError}</div>}
@@ -671,31 +696,6 @@ export default function Portal() {
               )}
               <Link className="button button-secondary" href="/portal/glucosas">
                 Ver historial de glucosas
-              </Link>
-            </div>
-          </section>
-
-          <section className="portal-section rounded-2xl border border-slate-200/80 p-4 shadow-sm sm:p-6">
-            <div className="section-title">Resultados de laboratorio</div>
-            <div className="portal-card">
-              {hba1cLoading && <div className="muted">Cargando resultados...</div>}
-              {hba1cError && <div className="error">{hba1cError}</div>}
-              {!hba1cLoading && !hba1cError && !hba1cSummary && (
-                <div className="muted">Sin resultados de HbA1c.</div>
-              )}
-              {!hba1cLoading && !hba1cError && hba1cSummary && (
-                <div className="list">
-                  <div className="list-item">
-                    <div className="list-title">HbA1c</div>
-                    <div className="list-meta">
-                      {formatHbA1cValue(hba1cSummary.value)} ·{" "}
-                      {formatDate(hba1cSummary.date)}
-                    </div>
-                  </div>
-                </div>
-              )}
-              <Link className="button button-secondary" href="/portal/laboratorios/hba1c">
-                Ver HbA1c
               </Link>
             </div>
           </section>

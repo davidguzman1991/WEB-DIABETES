@@ -145,9 +145,9 @@ export default function Portal() {
   };
 
   const formatGlucoseType = (value) => {
-    if (value === "postprandial") return "Postprandial";
+    if (value === "postprandial") return "Despues de comer";
     if (value === "ayuno") return "Ayuno";
-    return "Sin tipo";
+    return "Sin tipo registrado";
   };
 
   const normalizeLabName = (value) =>
@@ -449,7 +449,7 @@ export default function Portal() {
   const diffMs = normalizedNext ? normalizedNext.getTime() - normalizedToday.getTime() : null;
   const diffDays = diffMs === null ? null : Math.ceil(diffMs / 86400000);
   let nextVisitStatus = "neutral";
-  let nextVisitText = "Su medico aun no ha programado la proxima cita.";
+  let nextVisitText = "Su medico aun no ha programado la proxima cita de control.";
   if (diffDays !== null) {
     if (diffDays > 30) {
       nextVisitStatus = "ok";
@@ -460,7 +460,7 @@ export default function Portal() {
     } else {
       const overdue = Math.abs(diffDays);
       nextVisitStatus = "overdue";
-      nextVisitText = `Su control medico estaba programado para ${formatDate(nextVisitDate)} y presenta un retraso de ${overdue} dias. Por favor agende una cita.`;
+      nextVisitText = `Su control medico estaba programado para ${formatDate(nextVisitDate)} y tiene un retraso de ${overdue} dias. Por favor agende una cita.`;
     }
   }
 
@@ -490,7 +490,7 @@ export default function Portal() {
     return (
       <div className="page">
         <div className="card">
-          <h1>Portal</h1>
+          <h1>Portal del paciente</h1>
           <div className="error">{authError}</div>
         </div>
       </div>
@@ -505,13 +505,13 @@ export default function Portal() {
           <div className="portal-dashboard !gap-6 sm:!gap-8">
           <header className="portal-header">
             <h1 className="portal-title">
-              Bienvenido/a,{" "}
+              Bienvenido/a a su portal de salud,{" "}
               <span className="portal-name">{getDisplayName(user)}</span>
             </h1>
             <p className="portal-subtitle">
-              Este portal le permite consultar su tratamiento, revisar su historial
-              medico y registrar informacion solicitada por su medico. No reemplaza
-              una consulta presencial.
+              Aqui puede revisar su plan de cuidado, ver su historial clinico y registrar
+              controles solicitados por su medico. Este portal no reemplaza una consulta
+              presencial.
             </p>
           </header>
           <div className={`portal-banner portal-banner-${nextVisitStatus}`}>
@@ -520,7 +520,7 @@ export default function Portal() {
           {error && <div className="error">{error}</div>}
           {message && <div className="muted">{message}</div>}
           <section className="portal-section rounded-2xl border border-slate-200/80 p-4 shadow-sm sm:p-6">
-            <div className="section-title">Tratamiento y plan actual</div>
+            <div className="section-title">Su tratamiento y plan actual</div>
             {loadingCurrent ? (
               <SkeletonCard style={{ marginTop: 8 }}>
                 <SkeletonLine width="70%" height={16} />
@@ -530,38 +530,38 @@ export default function Portal() {
               <>
                 <div className="portal-card portal-card-highlight">
                   <div className="portal-card-title">
-                    Consulta {formatDate(current.created_at)}
+                    Consulta del {formatDate(current.created_at)}
                   </div>
-                  <div className="portal-card-note">Consulta mas reciente</div>
+                  <div className="portal-card-note">Ultima consulta registrada</div>
                 </div>
                 <Link className="button button-secondary" href={`/portal/consultas/${current.id}`}>
-                  Ver consulta
+                  Ver detalles de la consulta
                 </Link>
               </>
             ) : (
               <div className="portal-card">
-                <div className="portal-card-note">No existen consultas registradas.</div>
+                <div className="portal-card-note">Aun no hay consultas registradas.</div>
               </div>
             )}
           </section>
 
           <section className="portal-section rounded-2xl border border-slate-200/80 p-4 shadow-sm sm:p-6">
-            <div className="section-title">Seguimiento solicitado por su medico</div>
+            <div className="section-title">Seguimiento indicado por su medico</div>
             <div className="portal-card glucose-card" aria-busy={glucoseLoading ? "true" : "false"}>
               <button
                 type="button"
                 className="button-primary glucose-action-button"
                 onClick={() => setShowGlucoseForm((prev) => !prev)}
               >
-                {showGlucoseForm ? "Cerrar" : "Registrar glucosa"}
+                {showGlucoseForm ? "Cerrar formulario" : "Registrar control de glucosa"}
               </button>
               <div className="glucose-helper">
-                Registre su control de glucosa cuando su medico se lo indique
+                Registre su control de glucosa cuando su medico se lo solicite
               </div>
               {showGlucoseForm && (
                 <form onSubmit={onGlucoseSubmit} className="form glucose-form">
                   <fieldset className="glucose-type">
-                    <legend>Tipo de medicion</legend>
+                    <legend>Tipo de control de glucosa</legend>
                     <div className="glucose-type-options">
                       <label className="glucose-option">
                         <input
@@ -575,7 +575,7 @@ export default function Portal() {
                         />
                         <span className="glucose-option-card">
                           <span className="glucose-option-title">Ayuno</span>
-                          <span className="glucose-option-desc">Antes de ingerir alimentos.</span>
+                          <span className="glucose-option-desc">Antes de comer.</span>
                         </span>
                       </label>
                       <label className="glucose-option">
@@ -590,13 +590,13 @@ export default function Portal() {
                         />
                         <span className="glucose-option-card">
                           <span className="glucose-option-title">Despues de comer</span>
-                          <span className="glucose-option-desc">Control postprandial.</span>
+                          <span className="glucose-option-desc">Dos horas despues de comer.</span>
                         </span>
                       </label>
                     </div>
                   </fieldset>
                   <label>
-                    Fecha
+                    Fecha del control
                     <input
                       type="date"
                       name="date"
@@ -606,7 +606,7 @@ export default function Portal() {
                     />
                   </label>
                   <label>
-                    Valor (mg/dL)
+                    Valor de glucosa (mg/dL)
                     <input
                       type="number"
                       name="value"
@@ -618,7 +618,7 @@ export default function Portal() {
                     />
                   </label>
                   <label>
-                    Observacion (opcional)
+                    Observacion adicional (opcional)
                     <textarea
                       name="observation"
                       value={glucoseForm.observation}
@@ -631,7 +631,7 @@ export default function Portal() {
                     className="button-secondary"
                     disabled={glucoseSaving || !isGlucoseFormValid}
                   >
-                    {glucoseSaving ? "Guardando..." : "Guardar registro"}
+                    {glucoseSaving ? "Guardando..." : "Guardar control"}
                   </button>
                 </form>
               )}
@@ -639,37 +639,37 @@ export default function Portal() {
           </section>
 
           <section className="portal-section rounded-2xl border border-slate-200/80 p-4 shadow-sm sm:p-6">
-            <div className="section-title">Resultados recientes</div>
+            <div className="section-title">Resultados recientes de laboratorio</div>
             <div className="portal-card">
-              {hba1cLoading && <div className="muted">Cargando resultados...</div>}
+              {hba1cLoading && <div className="muted">Cargando resultados de laboratorio...</div>}
               {hba1cError && <div className="error">{hba1cError}</div>}
               {!hba1cLoading && !hba1cError && !hba1cSummary && (
-                <div className="muted">Sin resultados de HbA1c.</div>
+                <div className="muted">Aun no hay resultados de HbA1c.</div>
               )}
               {!hba1cLoading && !hba1cError && hba1cSummary && (
                 <div className="list">
                   <div className="list-item">
-                    <div className="list-title">HbA1c</div>
+                    <div className="list-title">HbA1c (promedio de glucosa)</div>
                     <div className="list-meta">
-                      {formatHbA1cValue(hba1cSummary.value)} ·{" "}
+                      Valor {formatHbA1cValue(hba1cSummary.value)} del{" "}
                       {formatDate(hba1cSummary.date)}
                     </div>
                   </div>
                 </div>
               )}
               <Link className="button button-secondary" href="/portal/laboratorios/hba1c">
-                Ver HbA1c
+                Ver resultado de HbA1c
               </Link>
             </div>
           </section>
 
           <section className="portal-section rounded-2xl border border-slate-200/80 p-4 shadow-sm sm:p-6">
-            <div className="section-title">Historial de controles</div>
+            <div className="section-title">Historial de controles de glucosa</div>
             <div className="portal-card">
-              {glucoseLoading && <div className="muted">Cargando historial...</div>}
+              {glucoseLoading && <div className="muted">Cargando historial de controles...</div>}
               {glucoseError && <div className="error">{glucoseError}</div>}
               {!glucoseLoading && !glucoseError && !glucoseSummaryLogs.length && (
-                <div className="muted">No hay registros de glucosa.</div>
+                <div className="muted">No hay registros de controles de glucosa.</div>
               )}
               {!glucoseLoading && !glucoseError && glucoseSummaryLogs.length > 0 && (
                 <div className="list">
@@ -683,7 +683,7 @@ export default function Portal() {
                     const logValue =
                       log.value !== null && log.value !== undefined
                         ? `${log.value} mg/dL`
-                        : "Sin valor";
+                        : "Sin valor registrado";
                     return (
                       <div key={logId} className="list-item">
                         <div className="list-title">
@@ -695,29 +695,29 @@ export default function Portal() {
                 </div>
               )}
               <Link className="button button-secondary" href="/portal/glucosas">
-                Ver historial de glucosas
+                Ver historial de controles de glucosa
               </Link>
             </div>
           </section>
 
           <section className="portal-section rounded-2xl border border-slate-200/80 p-4 shadow-sm sm:p-6">
-            <div className="section-title">Accesos rapidos</div>
+            <div className="section-title">Accesos rapidos a su atencion</div>
             <div className="portal-actions !gap-4 sm:!gap-5">
               <Link className="portal-card portal-action" href="/portal/historial">
-                <div className="portal-card-title">Historial de consultas</div>
-                <div className="portal-card-note">Solo lectura</div>
+                <div className="portal-card-title">Historial de consultas medicas</div>
+                <div className="portal-card-note">Solo lectura, sin cambios</div>
               </Link>
               <Link className="portal-card portal-action" href="/portal/glucosas">
-                <div className="portal-card-title">Historial de glucosas</div>
+                <div className="portal-card-title">Historial de controles de glucosa</div>
                 <div className="portal-card-note">
                   Aqui podra registrar y revisar sus controles de glucosa cuando su
-                  medico lo habilite.
+                  medico lo indique.
                 </div>
               </Link>
               <div className="portal-card portal-action portal-card-muted">
-                <div className="portal-card-title">Tareas pendientes</div>
+                <div className="portal-card-title">Pendientes de seguimiento</div>
                 <div className="portal-card-note">
-                  Cuestionarios o registros solicitados por su medico.
+                  Cuestionarios o registros que su medico le solicite.
                 </div>
               </div>
               <a
@@ -726,9 +726,9 @@ export default function Portal() {
                 target="_blank"
                 rel="noreferrer"
               >
-                <div className="portal-card-title">Agendar cita</div>
+                <div className="portal-card-title">Solicitar cita</div>
                 <div className="portal-card-note">
-                  Abrir enlace externo para coordinar su atencion.
+                  Se abrira un enlace externo para coordinar su atencion.
                 </div>
               </a>
             </div>
@@ -749,3 +749,4 @@ export default function Portal() {
     </div>
   );
 }
+

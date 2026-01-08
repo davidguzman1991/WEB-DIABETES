@@ -140,9 +140,9 @@ const getInformativeBadge = (logs, bands) => {
     (value) => value >= bands.targetMin && value <= bands.targetMax
   ).length;
   const ratio = withinTarget / values.length;
-  if (ratio >= 0.7) return { text: "Dentro de meta", tone: "ok" };
+  if (ratio >= 0.7) return { text: "Dentro del rango", tone: "ok" };
   if (ratio >= 0.4) return { text: "Valores variables", tone: "warn" };
-  return { text: "Frecuentemente elevado", tone: "high" };
+  return { text: "Frecuentemente alta", tone: "high" };
 };
 
 const ChartCard = ({ title, subtitle, chartData, yTicks, emptyTitle, emptyHint, badge }) => (
@@ -156,20 +156,20 @@ const ChartCard = ({ title, subtitle, chartData, yTicks, emptyTitle, emptyHint, 
         {badge && (
           <div className={`info-badge info-badge-${badge.tone}`}>
             <span className="info-badge-text">{badge.text}</span>
-            <span className="info-badge-note">Informativo</span>
+            <span className="info-badge-note">Solo informativo</span>
           </div>
         )}
         <span className="legend-item">
           <span className="legend-swatch target" />
-          Rango objetivo
+          Rango esperado
         </span>
         <span className="legend-item">
           <span className="legend-swatch elevated" />
-          Elevado
+          Elevada
         </span>
         <span className="legend-item">
           <span className="legend-swatch high" />
-          Alto
+          Alta
         </span>
       </div>
     </div>
@@ -376,13 +376,13 @@ export default function PortalGlucosas() {
         if (res.status === 404) {
           if (active) {
             setGlucoseLogs([]);
-            setMessage("No hay registros de glucosa");
+            setMessage("Aun no hay registros de glucosa.");
           }
           return;
         }
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          if (active) setError(data.detail || "No se pudo cargar el historial");
+          if (active) setError(data.detail || "No se pudieron cargar sus registros.");
           return;
         }
         const data = await res.json().catch(() => []);
@@ -390,12 +390,12 @@ export default function PortalGlucosas() {
         if (active) {
           setGlucoseLogs(list);
           if (!list.length) {
-            setMessage("No hay registros de glucosa");
+            setMessage("Aun no hay registros de glucosa.");
           }
         }
       })
       .catch(() => {
-        if (active) setError("No se pudo cargar el historial");
+        if (active) setError("No se pudieron cargar sus registros.");
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -434,12 +434,12 @@ export default function PortalGlucosas() {
     const value = Number(orderedLogs[0]?.value);
     if (!Number.isFinite(value)) return null;
     if (value < GLUCOSE_HYPO_THRESHOLD) {
-      return { text: "Hipoglucemia", color: "#991b1b", background: "#fee2e2" };
+      return { text: "Glucosa baja", color: "#991b1b", background: "#fee2e2" };
     }
     if (value >= GLUCOSE_HYPER_THRESHOLD) {
-      return { text: "Hiperglucemia", color: "#92400e", background: "#fffbeb" };
+      return { text: "Glucosa alta", color: "#92400e", background: "#fffbeb" };
     }
-    return { text: "Normal", color: "#166534", background: "#dcfce7" };
+    return { text: "En rango", color: "#166534", background: "#dcfce7" };
   }, [orderedLogs]);
 
   const fastingLogs = useMemo(
@@ -507,14 +507,17 @@ export default function PortalGlucosas() {
     <div className="page">
       <div className="card portal-shell">
         <div className="portal-dashboard">
+          <header className="portal-header">
+            <h1 className="portal-title">
+              Mis registros anteriores. Registre su glucosa cuando su medico se lo
+              indique; estos valores ayudan a su medico a ajustar el tratamiento.
+            </h1>
+          </header>
           <div>
             <Link href="/portal" className="button button-secondary">
-              &larr; Volver al portal
+              Registrar mi glucosa
             </Link>
           </div>
-          <header className="portal-header">
-            <h1 className="portal-title">Historial de glucosas</h1>
-          </header>
           {alertBadge && (
             <div
               style={{
@@ -551,29 +554,29 @@ export default function PortalGlucosas() {
             <>
               <ChartCard
                 title="Glucosa en ayuno"
-                subtitle="Meta habitual en ayuno: 80–130 mg/dL"
+                subtitle="Rango habitual en ayuno: 80-130 mg/dL"
                 chartData={fastingChartData}
                 yTicks={fastingTicks}
-                emptyTitle="Aún no tienes registros de glucosa en ayuno"
-                emptyHint="Registra una medición para ver tu evolución"
+                emptyTitle="Aun no hay registros de glucosa en ayuno"
+                emptyHint="Registre una medicion para ver su progreso."
                 badge={fastingBadge}
               />
               <ChartCard
-                title="Glucosa postprandial"
-                subtitle="Meta postprandial (2 horas): <180 mg/dL"
+                title="Glucosa despues de comer"
+                subtitle="Rango despues de comer (2 horas): menos de 180 mg/dL"
                 chartData={postprandialChartData}
                 yTicks={postprandialTicks}
-                emptyTitle="Aún no tienes registros posprandiales"
-                emptyHint="Registra una medición para ver tu evolución"
+                emptyTitle="Aun no hay registros despues de comer"
+                emptyHint="Registre una medicion para ver su progreso."
                 badge={postprandialBadge}
               />
               <div className="chart-disclaimer">
-                Esta visualización es informativa y no reemplaza la evaluación médica.
+                Estos graficos resumen sus valores recientes para el seguimiento.
               </div>
 
               <div className="list">
                 {!filteredLogs.length && (
-                  <div className="muted">Sin registros para el filtro seleccionado.</div>
+                  <div className="muted">No hay registros para el periodo seleccionado.</div>
                 )}
                 {filteredLogs.map((log, index) => {
                   if (!log || typeof log !== "object") return null;
@@ -586,7 +589,7 @@ export default function PortalGlucosas() {
                       ? "Despues de comer"
                       : logTypeRaw === "fasting" || logTypeRaw === "ayuno"
                         ? "Ayuno"
-                        : "Sin tipo";
+                        : "Sin tipo registrado";
                   const previousValue = Number(filteredLogs[index + 1]?.value);
                   const trend = getTrend(logValue, previousValue);
                   return (
@@ -595,7 +598,7 @@ export default function PortalGlucosas() {
                         <div className="list-title">
                           {formatDate(log.taken_at || log.created_at)} - {logType} -{" "}
                           <strong>
-                            {Number.isFinite(logValue) ? logValue : "Sin valor"} mg/dL
+                            {Number.isFinite(logValue) ? logValue : "Sin valor registrado"} mg/dL
                           </strong>
                         </div>
                       </div>
@@ -734,3 +737,12 @@ export default function PortalGlucosas() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+

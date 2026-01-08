@@ -520,7 +520,7 @@ export default function Portal() {
           {error && <div className="error">{error}</div>}
           {message && <div className="muted">{message}</div>}
           <section className="portal-section rounded-2xl border border-slate-200/80 p-4 shadow-sm sm:p-6">
-            <div className="section-title">Su tratamiento y plan actual</div>
+            <div className="section-title">Medicacion actual (tratamiento vigente)</div>
             {loadingCurrent ? (
               <SkeletonCard style={{ marginTop: 8 }}>
                 <SkeletonLine width="70%" height={16} />
@@ -530,17 +530,20 @@ export default function Portal() {
               <>
                 <div className="portal-card portal-card-highlight">
                   <div className="portal-card-title">
-                    Consulta del {formatDate(current.created_at)}
+                    Como tomar sus medicamentos
                   </div>
-                  <div className="portal-card-note">Ultima consulta registrada</div>
+                  <div className="portal-card-note">
+                    Duracion y observaciones: indicadas en la consulta del{" "}
+                    {formatDate(current.created_at)}.
+                  </div>
                 </div>
                 <Link className="button button-secondary" href={`/portal/consultas/${current.id}`}>
-                  Ver detalles de la consulta
+                  Ver historial de medicacion
                 </Link>
               </>
             ) : (
               <div className="portal-card">
-                <div className="portal-card-note">Aun no hay consultas registradas.</div>
+                <div className="portal-card-note">Aun no hay medicacion registrada.</div>
               </div>
             )}
           </section>

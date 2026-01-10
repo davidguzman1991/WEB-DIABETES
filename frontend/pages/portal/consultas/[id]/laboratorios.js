@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/router";
 
 import { apiFetch, logout } from "../../../../lib/auth";
 import { useAuthGuard } from "../../../../hooks/useAuthGuard";
+import Button from "../../../../components/ui/Button";
+import Card from "../../../../components/ui/Card";
+import SectionTitle from "../../../../components/ui/SectionTitle";
 
 export default function LaboratoriosConsulta() {
   const router = useRouter();
@@ -41,51 +43,108 @@ export default function LaboratoriosConsulta() {
 
   if (loading) {
     return (
-      <div className="page">
-        <div className="card portal-detail-card">
-          <h1>Resultados de laboratorio</h1>
-          <p className="muted">Cargando...</p>
+      <div className="min-h-screen bg-slate-50">
+        <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
+          <Card className="p-5 sm:p-8">
+            <SectionTitle
+              title="Resultados de laboratorio"
+              subtitle="Resultados actuales"
+              rightSlot={
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    router.push(
+                      consultationId
+                        ? `/portal/consultas/${consultationId}`
+                        : "/portal/historial"
+                    )
+                  }
+                >
+                  Volver a consulta
+                </Button>
+              }
+            />
+            <p className="mt-6 text-sm text-slate-500">Cargando...</p>
+          </Card>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="page">
-      <div className="card portal-detail-card">
-        <h1>Resultados de laboratorio</h1>
-        <Link
-          className="button button-secondary"
-          href={consultationId ? `/portal/consultas/${consultationId}` : "/portal/historial"}
-        >
-          Volver a consulta
-        </Link>
-        {error && <div className="error">{error}</div>}
-        <div className="medications-list">
-          {labs.length === 0 && <div className="muted">No hay resultados registrados.</div>}
-          {labs.map((lab, index) => {
-            if (!lab || typeof lab !== "object") return null;
-            const resultValue = lab.valor_num ?? lab.valor_texto ?? "";
-            const resultLabel = resultValue !== "" ? resultValue : "Sin resultado";
-            const unit = lab.unidad_snapshot ? ` ${lab.unidad_snapshot}` : "";
-            const labKey = `${lab.lab_nombre || "lab"}-${index}`;
-            return (
-              <div key={labKey} className="flash-card">
-                <div className="flash-title">{lab.lab_nombre || "Examen"}</div>
-                <div className="flash-row">
-                  <span className="flash-label">Resultado</span>
-                  <span className="flash-value">
-                    {resultLabel}
-                    {resultValue !== "" ? unit : ""}
-                  </span>
-                </div>
-                {lab.rango_ref_snapshot && (
-                  <div className="flash-note">Rango: {lab.rango_ref_snapshot}</div>
-                )}
+    <div className="min-h-screen bg-slate-50">
+      <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
+        <Card className="p-5 sm:p-8">
+          <SectionTitle
+            title="Resultados de laboratorio"
+            subtitle="Resultados actuales"
+            rightSlot={
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  router.push(
+                    consultationId
+                      ? `/portal/consultas/${consultationId}`
+                      : "/portal/historial"
+                  )
+                }
+              >
+                Volver a consulta
+              </Button>
+            }
+          />
+
+          <div className="mt-6 space-y-4">
+            {error && (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {error}
               </div>
-            );
-          })}
-        </div>
+            )}
+
+            {labs.length === 0 && !error && (
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+                No hay resultados registrados.
+              </div>
+            )}
+
+            {labs.length > 0 && (
+              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                <div className="divide-y divide-slate-200">
+                  {labs.map((lab, index) => {
+                    if (!lab || typeof lab !== "object") return null;
+                    const resultValue = lab.valor_num ?? lab.valor_texto ?? "";
+                    const resultLabel = resultValue !== "" ? resultValue : "Sin resultado";
+                    const unit = lab.unidad_snapshot ? ` ${lab.unidad_snapshot}` : "";
+                    const labKey = `${lab.lab_nombre || "lab"}-${index}`;
+                    return (
+                      <div key={labKey} className="px-4 py-4">
+                        <div className="text-sm font-semibold text-slate-900">
+                          {lab.lab_nombre || "Examen"}
+                        </div>
+                        <div className="mt-2 text-xs font-medium text-slate-500">
+                          Resultado
+                        </div>
+                        <div className="mt-1 text-sm text-slate-700">
+                          {resultLabel}
+                          {resultValue !== "" ? unit : ""}
+                        </div>
+                        {lab.rango_ref_snapshot && (
+                          <div className="mt-2 text-xs text-slate-500">
+                            Rango: {lab.rango_ref_snapshot}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </Card>
       </div>
     </div>
   );

@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { getToken, logout } from "../lib/auth";
+import Button from "../components/ui/Button";
+import SectionTitle from "../components/ui/SectionTitle";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 if (!API_URL) {
@@ -864,11 +866,26 @@ export default function Portal() {
                 </div>
               )}
               {glucoseOpen && (
-                <form onSubmit={onGlucoseSubmit} className="form glucose-form">
-                  <fieldset className="glucose-type">
-                    <legend>Tipo de control de glucosa</legend>
-                    <div className="glucose-type-options">
-                      <label className="glucose-option">
+                <form
+                  onSubmit={onGlucoseSubmit}
+                  className="form glucose-form mt-5 space-y-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6"
+                >
+                  <SectionTitle
+                    title="Registro de glucosa"
+                    subtitle="Ingrese el control solicitado por su médico"
+                  />
+                  <fieldset className="glucose-type space-y-3">
+                    <legend className="text-sm font-medium text-slate-700">
+                      Tipo de control de glucosa
+                    </legend>
+                    <div className="glucose-type-options grid gap-3 sm:grid-cols-2">
+                      <label
+                        className={`glucose-option group flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 transition sm:items-center ${
+                          glucoseForm.type === "ayuno"
+                            ? "border-emerald-500 bg-emerald-50/60"
+                            : "border-slate-200 bg-white hover:border-slate-300"
+                        }`}
+                      >
                         <input
                           type="radio"
                           name="type"
@@ -876,14 +893,24 @@ export default function Portal() {
                           checked={glucoseForm.type === "ayuno"}
                           onChange={onGlucoseChange}
                           required
-                          className="glucose-option-input"
+                          className="glucose-option-input sr-only"
                         />
-                        <span className="glucose-option-card">
-                          <span className="glucose-option-title">Ayuno</span>
-                          <span className="glucose-option-desc">Antes de comer.</span>
+                        <span className="glucose-option-card flex flex-col gap-1">
+                          <span className="glucose-option-title text-sm font-semibold text-slate-900">
+                            Ayuno
+                          </span>
+                          <span className="glucose-option-desc text-xs text-slate-500">
+                            Antes de comer.
+                          </span>
                         </span>
                       </label>
-                      <label className="glucose-option">
+                      <label
+                        className={`glucose-option group flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 transition sm:items-center ${
+                          glucoseForm.type === "postprandial"
+                            ? "border-emerald-500 bg-emerald-50/60"
+                            : "border-slate-200 bg-white hover:border-slate-300"
+                        }`}
+                      >
                         <input
                           type="radio"
                           name="type"
@@ -891,53 +918,73 @@ export default function Portal() {
                           checked={glucoseForm.type === "postprandial"}
                           onChange={onGlucoseChange}
                           required
-                          className="glucose-option-input"
+                          className="glucose-option-input sr-only"
                         />
-                        <span className="glucose-option-card">
-                          <span className="glucose-option-title">Despues de comer</span>
-                          <span className="glucose-option-desc">Dos horas despues de comer.</span>
+                        <span className="glucose-option-card flex flex-col gap-1">
+                          <span className="glucose-option-title text-sm font-semibold text-slate-900">
+                            Despues de comer
+                          </span>
+                          <span className="glucose-option-desc text-xs text-slate-500">
+                            Dos horas despues de comer.
+                          </span>
                         </span>
                       </label>
                     </div>
                   </fieldset>
-                  <label>
-                    Fecha del control
-                    <input
-                      type="date"
-                      name="date"
-                      value={glucoseForm.date}
-                      onChange={onGlucoseChange}
-                      required
-                    />
-                  </label>
-                  <label>
-                    Valor de glucosa (mg/dL)
-                    <input
-                      type="number"
-                      name="value"
-                      min="21"
-                      max="599"
-                      value={glucoseForm.value}
-                      onChange={onGlucoseChange}
-                      required
-                    />
-                  </label>
-                  <label>
-                    Observacion adicional (opcional)
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="space-y-2 text-sm font-medium text-slate-700">
+                      <span>Fecha del control</span>
+                      <input
+                        type="date"
+                        name="date"
+                        value={glucoseForm.date}
+                        onChange={onGlucoseChange}
+                        required
+                        className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      />
+                    </label>
+                    <label className="space-y-2 text-sm font-medium text-slate-700">
+                      <span>Valor de glucosa</span>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          name="value"
+                          min="21"
+                          max="599"
+                          value={glucoseForm.value}
+                          onChange={onGlucoseChange}
+                          required
+                          className="w-full rounded-xl border border-slate-300 px-3 py-2 pr-16 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        />
+                        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-slate-500">
+                          mg/dL
+                        </span>
+                      </div>
+                    </label>
+                  </div>
+                  <label className="space-y-2 text-sm font-medium text-slate-700">
+                    <span>Observacion adicional (opcional)</span>
                     <textarea
                       name="observation"
                       value={glucoseForm.observation}
                       onChange={onGlucoseChange}
+                      className="min-h-[90px] w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
                     />
                   </label>
-                  {glucoseError && <div className="error">{glucoseError}</div>}
-                  <button
-                    type="submit"
-                    className="button-secondary"
-                    disabled={glucoseSaving || !isGlucoseFormValid}
-                  >
-                    {glucoseSaving ? "Guardando..." : "Guardar control"}
-                  </button>
+                  {glucoseError && (
+                    <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                      {glucoseError}
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+                    <Button
+                      type="submit"
+                      className="w-full sm:w-auto"
+                      disabled={glucoseSaving || !isGlucoseFormValid}
+                    >
+                      {glucoseSaving ? "Guardando..." : "Guardar control"}
+                    </Button>
+                  </div>
                 </form>
               )}
             </div>

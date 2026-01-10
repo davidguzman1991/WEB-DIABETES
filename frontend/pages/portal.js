@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { getToken, logout } from "../lib/auth";
@@ -86,7 +86,8 @@ export default function Portal() {
     value: "",
     observation: "",
   });
-  const [showGlucoseForm, setShowGlucoseForm] = useState(false);
+  const [glucoseOpen, setGlucoseOpen] = useState(false);
+  const [glucoseHighlight, setGlucoseHighlight] = useState(false);
   const [glucoseLogs, setGlucoseLogs] = useState([]);
   const [glucoseLoading, setGlucoseLoading] = useState(false);
   const [glucoseError, setGlucoseError] = useState("");
@@ -94,6 +95,9 @@ export default function Portal() {
   const [hba1cSummary, setHba1cSummary] = useState(null);
   const [hba1cLoading, setHba1cLoading] = useState(false);
   const [hba1cError, setHba1cError] = useState("");
+  const glucoseSectionRef = useRef(null);
+  const glucoseFormRef = useRef(null);
+  const glucoseHighlightTimer = useRef(null);
 
   const getDisplayName = (payload) => {
     const safeValue = (value) => (typeof value === "string" ? value.trim() : "");
@@ -367,6 +371,50 @@ export default function Portal() {
     };
   }, [router, token, user?.id]);
 
+  useEffect(() => {
+    return () => {
+      if (glucoseHighlightTimer.current) {
+        clearTimeout(glucoseHighlightTimer.current);
+      }
+    };
+  }, []);
+
+  const scrollToRef = (ref) => {
+    if (!ref?.current) return;
+    ref.current.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const triggerGlucoseHighlight = () => {
+    setGlucoseHighlight(true);
+    if (glucoseHighlightTimer.current) {
+      clearTimeout(glucoseHighlightTimer.current);
+    }
+    glucoseHighlightTimer.current = setTimeout(() => {
+      setGlucoseHighlight(false);
+    }, 1500);
+  };
+
+  const openGlucoseForm = () => {
+    setGlucoseOpen(true);
+    setTimeout(() => {
+      scrollToRef(glucoseFormRef);
+      triggerGlucoseHighlight();
+    }, 120);
+  };
+
+  const closeGlucoseForm = () => {
+    setGlucoseOpen(false);
+    scrollToRef(glucoseSectionRef);
+  };
+
+  const toggleGlucoseForm = () => {
+    if (glucoseOpen) {
+      closeGlucoseForm();
+    } else {
+      openGlucoseForm();
+    }
+  };
+
   const onGlucoseChange = (event) => {
     const { name, value } = event.target;
     setGlucoseForm((prev) => ({ ...prev, [name]: value }));
@@ -415,7 +463,7 @@ export default function Portal() {
         return;
       }
       setGlucoseForm({ type: "", date: "", value: "", observation: "" });
-      setShowGlucoseForm(false);
+      setGlucoseOpen(false);
       const resList = await authFetch(`/glucoses/patient/${user.id}`);
       if (resList.status === 404) {
         setGlucoseLogs([]);
@@ -496,6 +544,51 @@ export default function Portal() {
     () => orderedGlucoseLogs.slice(0, 3),
     [orderedGlucoseLogs]
   );
+  const lastGlucoseLog = orderedGlucoseLogs[0] || null;
+  const lastGlucoseDateValue =
+    lastGlucoseLog?.taken_at || lastGlucoseLog?.created_at || "";
+  const lastGlucoseDate = formatDate(lastGlucoseDateValue);
+  const lastGlucoseValue =
+    lastGlucoseLog?.value !== null && lastGlucoseLog?.value !== undefined
+      ? `${lastGlucoseLog.value} mg/dL`
+      : "";
+  const lastGlucoseType = lastGlucoseLog?.type
+    ? formatGlucoseType(lastGlucoseLog.type)
+    : "";
+  const glucoseBubbleLines = useMemo(() => {
+    if (!orderedGlucoseLogs.length) {
+      return { primary: "Primera vez aqui?", secondary: "Registra tu glucosa" };
+    }
+    if (!lastGlucoseDateValue) {
+      return { primary: "Registra tu glucosa" };
+    }
+    const lastDate = new Date(lastGlucoseDateValue);
+    if (Number.isNaN(lastDate.getTime())) {
+      return { primary: "Registra tu glucosa" };
+    }
+    const todayDate = new Date();
+    const normalizedToday = new Date(
+      todayDate.getFullYear(),
+      todayDate.getMonth(),
+      todayDate.getDate()
+    );
+    const normalizedLast = new Date(
+      lastDate.getFullYear(),
+      lastDate.getMonth(),
+      lastDate.getDate()
+    );
+    const diffDays = Math.floor((normalizedToday - normalizedLast) / 86400000);
+    if (diffDays <= 0) {
+      return { primary: "Gracias ✅", secondary: "Registro actualizado hoy" };
+    }
+    if (diffDays >= 2) {
+      return {
+        primary: `Han pasado ${diffDays} dias.`,
+        secondary: "Registra tu glucosa",
+      };
+    }
+    return { primary: "Registra tu glucosa" };
+  }, [lastGlucoseDateValue, orderedGlucoseLogs.length]);
 
   if (authLoading) {
     return <PortalSkeleton />;
@@ -513,7 +606,7 @@ export default function Portal() {
   }
 
   return (
-    <div className="page portal-bg">
+    <div className="page portal-bg pb-24">
       <div className="portal-bg-overlay" aria-hidden="true" />
       <div className="portal-bg-content mx-auto w-full max-w-5xl">
         <div className="card portal-shell portal-main-card w-full !max-w-5xl !mt-6 sm:!mt-10">
@@ -713,6 +806,7 @@ export default function Portal() {
 
           <section
             id="glucosas"
+            ref={glucoseSectionRef}
             className="portal-section rounded-2xl border border-slate-200/80 p-4 shadow-sm sm:p-6"
           >
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -736,17 +830,40 @@ export default function Portal() {
                 <button
                   type="button"
                   className="button button-secondary small"
-                  onClick={() => setShowGlucoseForm((prev) => !prev)}
+                  onClick={toggleGlucoseForm}
                 >
-                  {showGlucoseForm ? "Cerrar formulario" : "Registrar control"}
+                  {glucoseOpen ? "Cerrar formulario" : "Registrar control"}
                 </button>
               </div>
             </div>
-            <div className="portal-card glucose-card" aria-busy={glucoseLoading ? "true" : "false"}>
+            <div
+              ref={glucoseFormRef}
+              className={`portal-card glucose-card transition ${
+                glucoseHighlight
+                  ? "ring-2 ring-emerald-300 ring-offset-2 ring-offset-white"
+                  : ""
+              }`}
+              aria-busy={glucoseLoading ? "true" : "false"}
+            >
               <div className="glucose-helper">
                 Registre su control de glucosa cuando su medico se lo solicite
               </div>
-              {showGlucoseForm && (
+              {!glucoseOpen && (
+                <div className="mt-4 rounded-xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-600">
+                  <div className="font-medium text-slate-700">
+                    Formulario listo para registrar su control.
+                  </div>
+                  {(lastGlucoseDate || lastGlucoseValue) && (
+                    <div className="mt-2 text-xs text-slate-500">
+                      Ultimo registro:{" "}
+                      {[lastGlucoseDate, lastGlucoseType, lastGlucoseValue]
+                        .filter(Boolean)
+                        .join(" | ")}
+                    </div>
+                  )}
+                </div>
+              )}
+              {glucoseOpen && (
                 <form onSubmit={onGlucoseSubmit} className="form glucose-form">
                   <fieldset className="glucose-type">
                     <legend>Tipo de control de glucosa</legend>
@@ -981,6 +1098,43 @@ export default function Portal() {
           </div>
           </div>
         </div>
+      </div>
+      <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-2">
+        {!glucoseOpen && (
+          <div className="max-w-[220px] rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 shadow-lg">
+            <div className="font-semibold">{glucoseBubbleLines.primary}</div>
+            {glucoseBubbleLines.secondary && (
+              <div className="mt-0.5 text-[11px] text-slate-500">
+                {glucoseBubbleLines.secondary}
+              </div>
+            )}
+          </div>
+        )}
+        <button
+          type="button"
+          className="flex items-center gap-2 rounded-full bg-emerald-700 px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-800"
+          onClick={toggleGlucoseForm}
+          aria-label="Registra tu glucosa"
+        >
+          <span
+            className={`flex h-5 w-5 items-center justify-center rounded-full bg-white/20 ${
+              glucoseOpen ? "" : "animate-pulse"
+            }`}
+            aria-hidden="true"
+          >
+            <svg
+              viewBox="0 0 20 20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="h-3 w-3"
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 4v12m6-6H4" />
+            </svg>
+          </span>
+          <span className="hidden sm:inline">Registra tu glucosa</span>
+        </button>
       </div>
     </div>
   );

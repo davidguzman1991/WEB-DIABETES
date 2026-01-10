@@ -1191,6 +1191,13 @@ export default function Dashboard() {
           >
             Abrir nueva consulta
           </button>
+          <button
+            type="button"
+            className="admin-toggle flex-1 rounded-lg text-sm font-semibold text-slate-500 transition hover:text-slate-700 hover:!bg-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 !bg-transparent !border-transparent"
+            onClick={() => router.push("/admin/consultations/list")}
+          >
+            Ver consultas
+          </button>
         </div>
         <div className="consultation-card !rounded-2xl !border-slate-200/70 !bg-slate-50/70 !shadow-sm">
           <div className="flex flex-wrap items-center gap-2">

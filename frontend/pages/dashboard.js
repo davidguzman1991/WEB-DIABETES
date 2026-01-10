@@ -755,10 +755,15 @@ export default function Dashboard() {
     }
     timers[medId] = setTimeout(async () => {
       if (medicationAutocompleteQueryRef.current[medId] !== trimmed) return;
+      const endpoint = `/admin/medications/autocomplete?q=${encodeURIComponent(trimmed)}`;
       try {
-        const res = await apiFetch(
-          `/admin/medications/autocomplete?q=${encodeURIComponent(trimmed)}`
-        );
+        const res = await apiFetch(endpoint);
+        if (process.env.NODE_ENV === "development") {
+          console.log("medications autocomplete response", {
+            endpoint,
+            status: res.status,
+          });
+        }
         if (res.status === 401 || res.status === 403) {
           logout(router, "/login?type=admin");
           return;
@@ -776,6 +781,12 @@ export default function Dashboard() {
           }))
           .filter((item) => item._label)
           .slice(0, MEDICATION_AUTOCOMPLETE_LIMIT);
+        if (process.env.NODE_ENV === "development") {
+          console.log("medications autocomplete results", {
+            endpoint,
+            count: filtered.length,
+          });
+        }
         setMedicationSuggestions((prev) => ({ ...prev, [medId]: filtered }));
         setActiveMedicationId((current) =>
           filtered.length ? medId : current === medId ? null : current

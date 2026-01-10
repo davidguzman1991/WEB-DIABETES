@@ -167,6 +167,19 @@ const normalizeConsultationDateInput = (value) => {
   return trimmed;
 };
 
+const formatConsultationDate = (item) => {
+  if (!item || typeof item !== "object") return "";
+  const rawDate = item.consultation_date || item.created_at || "";
+  if (!rawDate) return "";
+  const parsed = new Date(rawDate);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return parsed.toLocaleDateString("es-EC", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
+
 const canSubmit = (form, dateError) => {
   if (dateError) return false;
   if (!form.cedula.trim()) return false;
@@ -1628,9 +1641,7 @@ export default function Dashboard() {
                   {safeConsultas.map((item, index) => {
                     if (!item || typeof item !== "object") return null;
                     const itemId = item.id || `consulta-${index}`;
-                    const createdAt = item.created_at
-                      ? new Date(item.created_at).toLocaleDateString()
-                      : "";
+                    const createdAt = formatConsultationDate(item);
                     const diagnosisText = item.diagnosis || "";
                     const canNavigate = Boolean(item.id);
                     const handleOpen = () => {

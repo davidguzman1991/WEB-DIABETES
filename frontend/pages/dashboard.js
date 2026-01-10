@@ -1561,63 +1561,104 @@ export default function Dashboard() {
       )}
 
       {sectionsOpen.createConsultation && (
-        <section className="card admin-section">
-          <h2>Nueva consulta clinica</h2>
-          {consultaError && <div className="error">{consultaError}</div>}
-          {consultaSuccess && <div className="success">{consultaSuccess}</div>}
-          <form onSubmit={onSubmitConsulta} className="form">
-            <label>
-              Buscar por nombre o apellido (opcional)
-              <input
-                name="consultation_name_search"
-                value={consultationSearch.query}
-                onChange={(event) => consultationSearch.setQuery(event.target.value)}
-                placeholder="Ingrese nombres o apellidos"
-              />
-            </label>
-            {renderPatientSearchResults(consultationSearch, (patient) =>
-              applyPatientSelection(patient, consultationSearch.clear)
-            )}
-            <label>
-              Cedula paciente
-              <input
-                name="patient_username"
-                value={consultaForm.patient_username}
-                onChange={onConsultaChange}
-                required
-              />
-            </label>
-            {patientLookupStatus === "loading" && (
-              <div className="muted">Validando paciente...</div>
-            )}
-            {patientLookupStatus === "found" && (
-              <div className="success">{patientLookupMessage}</div>
-            )}
-            {patientLookupStatus !== "found" && patientLookupMessage && (
-              <div className="error">{patientLookupMessage}</div>
-            )}
-            <label>
-              Nombres
-              <input value={patientInfo?.nombres || ""} disabled readOnly />
-            </label>
-            <label>
-              Apellidos
-              <input value={patientInfo?.apellidos || ""} disabled readOnly />
-            </label>
-            <label>
+        <section className="card admin-section !rounded-2xl !border !border-slate-200/70 !bg-white !shadow-sm !p-6 md:!p-8">
+          <h2 className="text-2xl font-semibold text-slate-900 md:text-3xl">
+            Nueva consulta clinica
+          </h2>
+          {consultaError && (
+            <div className="error border border-red-200 text-sm">{consultaError}</div>
+          )}
+          {consultaSuccess && (
+            <div className="success rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              {consultaSuccess}
+            </div>
+          )}
+          <form onSubmit={onSubmitConsulta} className="form !gap-6">
+            <div className="grid gap-6 lg:grid-cols-2">
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-slate-700">
+                  Buscar por nombre o apellido (opcional)
+                  <input
+                    name="consultation_name_search"
+                    value={consultationSearch.query}
+                    onChange={(event) =>
+                      consultationSearch.setQuery(event.target.value)
+                    }
+                    placeholder="Ingrese nombres o apellidos"
+                    className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
+                  />
+                </label>
+                {renderPatientSearchResults(consultationSearch, (patient) =>
+                  applyPatientSelection(patient, consultationSearch.clear)
+                )}
+              </div>
+              <label className="text-sm font-medium text-slate-700">
+                Cedula paciente
+                <input
+                  name="patient_username"
+                  value={consultaForm.patient_username}
+                  onChange={onConsultaChange}
+                  required
+                  className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
+                />
+              </label>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+              <div className="space-y-2">
+                {patientLookupStatus === "loading" && (
+                  <div className="muted text-sm">Validando paciente...</div>
+                )}
+                {patientLookupStatus === "found" && (
+                  <div className="success rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                    {patientLookupMessage}
+                  </div>
+                )}
+                {patientLookupStatus !== "found" && patientLookupMessage && (
+                  <div className="error border border-red-200 text-sm">
+                    {patientLookupMessage}
+                  </div>
+                )}
+              </div>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <label className="text-sm font-medium text-slate-700">
+                  Nombres
+                  <input
+                    value={patientInfo?.nombres || ""}
+                    disabled
+                    readOnly
+                    className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
+                  />
+                </label>
+                <label className="text-sm font-medium text-slate-700">
+                  Apellidos
+                  <input
+                    value={patientInfo?.apellidos || ""}
+                    disabled
+                    readOnly
+                    className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
+                  />
+                </label>
+              </div>
+            </div>
+            <label className="text-sm font-medium text-slate-700">
               Fecha de consulta
-              <span className="muted">Puede registrar una consulta en una fecha anterior.</span>
+              <span className="muted text-xs text-slate-500">
+                Puede registrar una consulta en una fecha anterior.
+              </span>
               <input
                 type="date"
                 name="consultation_date"
                 value={consultaForm.consultation_date}
                 onChange={onConsultaChange}
+                className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
               />
             </label>
-            <details className="admin-section-group">
-              <summary className="admin-section-title">Signos vitales</summary>
-              <div className="admin-section-content form two">
-                <label>
+            <details className="admin-section-group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+              <summary className="admin-section-title flex cursor-pointer items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50">
+                Signos vitales
+              </summary>
+              <div className="admin-section-content form two px-4 pb-4 pt-2">
+                <label className="text-sm font-medium text-slate-700">
                   Peso (kg)
                   <input
                     type="number"
@@ -1625,9 +1666,10 @@ export default function Dashboard() {
                     name="weight"
                     value={consultaForm.weight}
                     onChange={onConsultaChange}
+                    className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
                   />
                 </label>
-                <label>
+                <label className="text-sm font-medium text-slate-700">
                   Talla (cm)
                   <input
                     type="number"
@@ -1635,35 +1677,39 @@ export default function Dashboard() {
                     name="height"
                     value={consultaForm.height}
                     onChange={onConsultaChange}
+                    className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
                   />
                 </label>
-                <label>
+                <label className="text-sm font-medium text-slate-700">
                   Presion arterial
                   <input
                     name="blood_pressure"
                     value={consultaForm.blood_pressure}
                     onChange={onConsultaChange}
+                    className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
                   />
                 </label>
-                <label>
+                <label className="text-sm font-medium text-slate-700">
                   Frecuencia cardiaca
                   <input
                     type="number"
                     name="heart_rate"
                     value={consultaForm.heart_rate}
                     onChange={onConsultaChange}
+                    className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
                   />
                 </label>
-                <label>
+                <label className="text-sm font-medium text-slate-700">
                   Saturacion O2
                   <input
                     type="number"
                     name="oxygen_saturation"
                     value={consultaForm.oxygen_saturation}
                     onChange={onConsultaChange}
+                    className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
                   />
                 </label>
-                <label>
+                <label className="text-sm font-medium text-slate-700">
                   Circunferencia abdominal
                   <input
                     type="number"
@@ -1671,84 +1717,101 @@ export default function Dashboard() {
                     name="abdominal_circumference"
                     value={consultaForm.abdominal_circumference}
                     onChange={onConsultaChange}
+                    className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
                   />
                 </label>
               </div>
             </details>
 
-            <details className="admin-section-group">
-              <summary className="admin-section-title">Motivo de consulta</summary>
-              <div className="admin-section-content">
-                <label>
+            <details className="admin-section-group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+              <summary className="admin-section-title flex cursor-pointer items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50">
+                Motivo de consulta
+              </summary>
+              <div className="admin-section-content px-4 pb-4 pt-2">
+                <label className="text-sm font-medium text-slate-700">
                   Motivo de consulta
                   <textarea
                     name="reason_for_visit"
                     value={consultaForm.reason_for_visit}
                     onChange={onConsultaChange}
+                    className="min-h-[110px] w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
                   />
                 </label>
               </div>
             </details>
 
-            <details className="admin-section-group">
-              <summary className="admin-section-title">Historia actual</summary>
-              <div className="admin-section-content">
-                <label>
+            <details className="admin-section-group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+              <summary className="admin-section-title flex cursor-pointer items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50">
+                Historia actual
+              </summary>
+              <div className="admin-section-content px-4 pb-4 pt-2">
+                <label className="text-sm font-medium text-slate-700">
                   Historia actual
                   <textarea
                     name="current_illness"
                     value={consultaForm.current_illness}
                     onChange={onConsultaChange}
+                    className="min-h-[110px] w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
                   />
                 </label>
               </div>
             </details>
 
-            <details className="admin-section-group">
-              <summary className="admin-section-title">Examen fisico</summary>
-              <div className="admin-section-content">
-                <label>
+            <details className="admin-section-group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+              <summary className="admin-section-title flex cursor-pointer items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50">
+                Examen fisico
+              </summary>
+              <div className="admin-section-content px-4 pb-4 pt-2">
+                <label className="text-sm font-medium text-slate-700">
                   Examen fisico
                   <textarea
                     name="physical_exam"
                     value={consultaForm.physical_exam}
                     onChange={onConsultaChange}
+                    className="min-h-[110px] w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
                   />
                 </label>
               </div>
             </details>
 
-            <details className="admin-section-group" open>
-              <summary className="admin-section-title">Diagnostico</summary>
-              <div className="admin-section-content">
-                <label>
+            <details className="admin-section-group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm" open>
+              <summary className="admin-section-title flex cursor-pointer items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50">
+                Diagnostico
+              </summary>
+              <div className="admin-section-content px-4 pb-4 pt-2">
+                <label className="text-sm font-medium text-slate-700">
                   Diagnostico
                   <textarea
                     name="diagnostico"
                     value={consultaForm.diagnostico}
                     onChange={onConsultaChange}
+                    className="min-h-[110px] w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
                   />
                 </label>
-                <label>
+                <label className="text-sm font-medium text-slate-700">
                   Notas medicas
                   <textarea
                     name="notas_medicas"
                     value={consultaForm.notas_medicas}
                     onChange={onConsultaChange}
+                    className="min-h-[110px] w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
                   />
                 </label>
               </div>
             </details>
 
-            <details className="admin-section-group" open>
-              <summary className="admin-section-title">Tratamiento</summary>
-              <div className="admin-section-content">
-                <label>
+            <details className="admin-section-group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm" open>
+              <summary className="admin-section-title flex cursor-pointer items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50">
+                Tratamiento
+              </summary>
+              <div className="admin-section-content px-4 pb-4 pt-2">
+                <label className="text-sm font-medium text-slate-700">
                   Indicaciones generales
                   <textarea
                     name="indicaciones_generales"
                     value={consultaForm.indicaciones_generales}
                     onChange={onConsultaChange}
+                    className="min-h-[110px] w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
                   />
                 </label>
                 <div className="list">
@@ -1758,45 +1821,49 @@ export default function Dashboard() {
                     return (
                       <div key={medId} className="item-block">
                         <div className="form two">
-                          <label>
+                          <label className="text-sm font-medium text-slate-700">
                             Medicamento
                             <input
                               name="nombre"
                               value={med.nombre || ""}
                               onChange={(e) => onMedicamentoChange(index, e)}
+                              className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
                             />
                           </label>
-                          <label>
+                          <label className="text-sm font-medium text-slate-700">
                             Cantidad
                             <input
                               type="number"
                               name="cantidad"
                               value={med.cantidad || ""}
                               onChange={(e) => onMedicamentoChange(index, e)}
+                              className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
                             />
                           </label>
-                          <label>
+                          <label className="text-sm font-medium text-slate-700">
                             Descripcion
                             <textarea
                               name="descripcion"
                               value={med.descripcion || ""}
                               onChange={(e) => onMedicamentoChange(index, e)}
+                              className="min-h-[110px] w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
                             />
                           </label>
-                          <label>
+                          <label className="text-sm font-medium text-slate-700">
                             Duracion (dias)
                             <input
                               type="number"
                               name="duracion_dias"
                               value={med.duracion_dias || ""}
                               onChange={(e) => onMedicamentoChange(index, e)}
+                              className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
                             />
                           </label>
                         </div>
                         <div className="row-actions">
                           <button
                             type="button"
-                            className="ghost"
+                            className="ghost rounded-lg px-3 py-2 text-sm"
                             onClick={() => removeMedicamento(index)}
                           >
                             Quitar
@@ -1806,29 +1873,38 @@ export default function Dashboard() {
                     );
                   })}
                 </div>
-                <button type="button" onClick={addMedicamento}>
+                <button
+                  type="button"
+                  onClick={addMedicamento}
+                  className="mt-2 inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                >
                   Agregar medicamento
                 </button>
               </div>
             </details>
 
-            <details className="admin-section-group">
-              <summary className="admin-section-title">Laboratorios</summary>
-              <div className="admin-section-content">
-                {labsError && <div className="error">{labsError}</div>}
-                {labsMessage && <div className="muted">{labsMessage}</div>}
+            <details className="admin-section-group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+              <summary className="admin-section-title flex cursor-pointer items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50">
+                Laboratorios
+              </summary>
+              <div className="admin-section-content px-4 pb-4 pt-2">
+                {labsError && (
+                  <div className="error border border-red-200 text-sm">{labsError}</div>
+                )}
+                {labsMessage && <div className="muted text-sm">{labsMessage}</div>}
                 <div className="list">
                   {safeLabs.map((row, index) => {
                     if (!row || typeof row !== "object") return null;
                     const rowId = row.id || `lab-${index}`;
                     return (
                       <div key={rowId} className="list-item">
-                        <label>
+                        <label className="text-sm font-medium text-slate-700">
                           Laboratorio
                           <select
                             name="lab_id"
                             value={row.lab_id || ""}
                             onChange={(e) => handleLabChange(index, e)}
+                            className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
                           >
                             <option value="">Seleccionar</option>
                             {safeLabCatalog.map((lab, labIndex) => {
@@ -1842,7 +1918,7 @@ export default function Dashboard() {
                             })}
                           </select>
                         </label>
-                        <label>
+                        <label className="text-sm font-medium text-slate-700">
                           Valor
                           <input
                             type="number"
@@ -1850,6 +1926,7 @@ export default function Dashboard() {
                             name="valor"
                             value={row.valor ?? ""}
                             onChange={(e) => handleLabChange(index, e)}
+                            className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
                           />
                         </label>
                         {safeLabRowErrors[rowId] && (
@@ -1860,56 +1937,78 @@ export default function Dashboard() {
                           {row.unidad_snapshot && row.rango_ref_snapshot ? " | " : ""}
                           {row.rango_ref_snapshot && `Rango: ${row.rango_ref_snapshot}`}
                         </div>
-                        <button type="button" onClick={() => removeLabRow(index)}>
+                        <button
+                          type="button"
+                          onClick={() => removeLabRow(index)}
+                          className="mt-2 inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                        >
                           Quitar
                         </button>
                       </div>
                     );
                   })}
                 </div>
-                {labCatalogError && <div className="error">{labCatalogError}</div>}
-                <button type="button" onClick={addLabRow}>
+                {labCatalogError && (
+                  <div className="error border border-red-200 text-sm">
+                    {labCatalogError}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={addLabRow}
+                  className="mt-2 inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                >
                   Agregar laboratorio
                 </button>
               </div>
             </details>
 
-            <details className="admin-section-group">
-              <summary className="admin-section-title">Examenes solicitados</summary>
-              <div className="admin-section-content">
-                <label>
+            <details className="admin-section-group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+              <summary className="admin-section-title flex cursor-pointer items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50">
+                Examenes solicitados
+              </summary>
+              <div className="admin-section-content px-4 pb-4 pt-2">
+                <label className="text-sm font-medium text-slate-700">
                   Examenes solicitados
                   <textarea
                     name="requested_exams"
                     value={consultaForm.requested_exams}
                     onChange={onConsultaChange}
+                    className="min-h-[110px] w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
                   />
                 </label>
               </div>
             </details>
 
-            <details className="admin-section-group">
-              <summary className="admin-section-title">Proxima cita</summary>
-              <div className="admin-section-content">
-                <label>
+            <details className="admin-section-group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+              <summary className="admin-section-title flex cursor-pointer items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50">
+                Proxima cita
+              </summary>
+              <div className="admin-section-content px-4 pb-4 pt-2">
+                <label className="text-sm font-medium text-slate-700">
                   Proxima cita
                   <input
                     type="date"
                     name="next_visit_date"
                     value={consultaForm.next_visit_date}
                     onChange={onConsultaChange}
+                    className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
                   />
                 </label>
               </div>
             </details>
             <button
               type="submit"
-              className="button-primary"
+              className="button-primary w-full rounded-lg px-4 py-3 text-sm font-semibold shadow-sm transition hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200 disabled:cursor-not-allowed disabled:opacity-60"
               disabled={patientLookupStatus !== "found"}
             >
               Guardar consulta
             </button>
-            <button type="button" className="button-secondary" onClick={discardDraft}>
+            <button
+              type="button"
+              className="button-secondary w-full rounded-lg px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-200"
+              onClick={discardDraft}
+            >
               Descartar borrador
             </button>
           </form>

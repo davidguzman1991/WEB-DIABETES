@@ -15,6 +15,14 @@ const NAME_SEARCH_DEBOUNCE_MS = 400;
 const CONSULTA_DRAFT_KEY = "draft_consultation_admin";
 const CONSULTA_DRAFT_DEBOUNCE_MS = 2500;
 
+const getTodayInputValue = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 const DEFAULT_CONSULTA_FORM = {
   patient_username: "",
   diagnostico: "",
@@ -31,6 +39,7 @@ const DEFAULT_CONSULTA_FORM = {
   physical_exam: "",
   requested_exams: "",
   next_visit_date: "",
+  consultation_date: getTodayInputValue(),
 };
 
 const hasDraftValue = (value) => String(value ?? "").trim().length > 0;
@@ -918,6 +927,7 @@ export default function Dashboard() {
         setLabsError("No se pudo cargar catalogo de laboratorios");
         return;
       }
+      const consultationDate = (consultaForm.consultation_date || "").trim();
       const { payload: labsPayload, errors } = validateLabs(labs);
       if (Object.keys(errors).length) {
         setLabRowErrors(errors);
@@ -942,6 +952,7 @@ export default function Dashboard() {
           physical_exam: consultaForm.physical_exam.trim() || null,
           requested_exams: consultaForm.requested_exams.trim() || null,
           next_visit_date: consultaForm.next_visit_date || null,
+          ...(consultationDate ? { consultation_date: consultationDate } : {}),
           medications: touchedMeds.map((med, index) => {
             const quantity = Number(med.cantidad);
             const durationDays = med.duracion_dias ? Number(med.duracion_dias) : null;
@@ -1592,6 +1603,16 @@ export default function Dashboard() {
             <label>
               Apellidos
               <input value={patientInfo?.apellidos || ""} disabled readOnly />
+            </label>
+            <label>
+              Fecha de consulta
+              <span className="muted">Puede registrar una consulta en una fecha anterior.</span>
+              <input
+                type="date"
+                name="consultation_date"
+                value={consultaForm.consultation_date}
+                onChange={onConsultaChange}
+              />
             </label>
             <details className="admin-section-group">
               <summary className="admin-section-title">Signos vitales</summary>

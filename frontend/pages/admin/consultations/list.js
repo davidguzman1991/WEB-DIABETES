@@ -10,7 +10,12 @@ const DEFAULT_RANGE_DAYS = 7;
 const toDateInputValue = (date) => date.toISOString().slice(0, 10);
 
 const parseConsultationDate = (item) => {
-  const raw = item?.created_at || item?.fecha || item?.date || item?.createdAt;
+  const raw =
+    item?.consultation_date ||
+    item?.created_at ||
+    item?.fecha ||
+    item?.date ||
+    item?.createdAt;
   if (!raw) return null;
   const date = new Date(raw);
   if (Number.isNaN(date.getTime())) return null;

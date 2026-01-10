@@ -201,6 +201,9 @@ export default function Dashboard() {
   const [medicamentos, setMedicamentos] = useState(() => [createMedicamento()]);
   const [consultaError, setConsultaError] = useState("");
   const [consultaSuccess, setConsultaSuccess] = useState("");
+  const [stats, setStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsError, setStatsError] = useState("");
   const [consultas, setConsultas] = useState([]);
   const [glucoseLogs, setGlucoseLogs] = useState([]);
   const [glucoseLoading, setGlucoseLoading] = useState(false);
@@ -250,6 +253,37 @@ export default function Dashboard() {
     if (String(user.role).toLowerCase() !== "admin") {
       logout(router, "/login?type=admin");
     }
+  }, [router, user]);
+
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    setStatsLoading(true);
+    setStatsError("");
+    apiFetch("/admin/stats")
+      .then(async (res) => {
+        if (res.status === 401 || res.status === 403) {
+          logout(router, "/login?type=admin");
+          return;
+        }
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          if (active) setStatsError(data.detail || "No se pudo cargar los indicadores.");
+          return;
+        }
+        const data = await res.json().catch(() => null);
+        if (active) setStats(data);
+      })
+      .catch(() => {
+        if (active) setStatsError("No se pudo cargar los indicadores.");
+      })
+      .finally(() => {
+        if (active) setStatsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, [router, user]);
 
   useEffect(() => {
@@ -1108,6 +1142,28 @@ export default function Dashboard() {
           >
             Abrir nueva consulta
           </button>
+        </div>
+        <div className="consultation-card">
+          <div className="section-title">Indicadores globales</div>
+          {statsLoading && <div className="muted">Cargando indicadores...</div>}
+          {statsError && <div className="error">{statsError}</div>}
+          {!statsLoading && !statsError && !stats && (
+            <div className="muted">Sin datos disponibles.</div>
+          )}
+          {!statsLoading && !statsError && stats && (
+            <div className="list">
+              <div className="list-item">
+                <div className="list-title">
+                  Pacientes: <strong>{stats.total_patients}</strong>
+                </div>
+              </div>
+              <div className="list-item">
+                <div className="list-title">
+                  Consultas: <strong>{stats.total_consultations}</strong>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

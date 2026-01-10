@@ -1,8 +1,9 @@
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import Navigation from "../../../components/Navigation";
 import { useAdminGuard } from "../../../hooks/useAdminGuard";
-import { adminRequest, getAdminToken } from "../../../lib/adminApi";
+import { apiFetch, logout } from "../../../lib/auth";
 
 const MAX_PATIENTS = 50;
 const DEFAULT_RANGE_DAYS = 7;
@@ -42,6 +43,56 @@ export default function AdminConsultationsList() {
   const [consultations, setConsultations] = useState([]);
   const [loadingList, setLoadingList] = useState(false);
   const [error, setError] = useState("");
+  const [debugError, setDebugError] = useState(null);
+  const isDev = process.env.NODE_ENV === "development";
+
+  const requestJson = async (endpoint) => {
+    let res = null;
+    try {
+      res = await apiFetch(endpoint);
+    } catch (err) {
+      const networkError = new Error("Error de red / CORS / backend no disponible");
+      networkError.endpoint = endpoint;
+      networkError.isNetwork = true;
+      throw networkError;
+    }
+
+    if (res.status === 401 || res.status === 403) {
+      logout(router, "/admin/login");
+      const authError = new Error("Unauthorized");
+      authError.endpoint = endpoint;
+      authError.status = res.status;
+      authError.authFailure = true;
+      throw authError;
+    }
+
+    let data = null;
+    try {
+      data = await res.json();
+    } catch {
+      data = null;
+    }
+
+    if (!res.ok) {
+      const detail = data?.detail || `Error ${res.status}`;
+      const apiError = new Error(detail);
+      apiError.endpoint = endpoint;
+      apiError.status = res.status;
+      apiError.detail = data?.detail || "";
+      throw apiError;
+    }
+
+    return data;
+  };
+
+  const reportError = (message, details) => {
+    setError(message);
+    if (isDev && details) {
+      setDebugError(details);
+    } else {
+      setDebugError(null);
+    }
+  };
 
   const onClear = () => {
     setFromDate("");
@@ -49,12 +100,14 @@ export default function AdminConsultationsList() {
     setQuery("");
     setConsultations([]);
     setError("");
+    setDebugError(null);
   };
 
   const onSearch = async (event) => {
     event.preventDefault();
     setError("");
     setConsultations([]);
+    setDebugError(null);
 
     const trimmedQuery = query.trim();
     let effectiveFrom = fromDate;
@@ -83,10 +136,7 @@ export default function AdminConsultationsList() {
 
     setLoadingList(true);
     try {
-      const data = await adminRequest("/admin/patients", {
-        token: getAdminToken(),
-        router,
-      });
+      const data = await requestJson("/admin/patients");
       const patients = Array.isArray(data) ? data : [];
       const queryValue = normalizeText(trimmedQuery);
       const filtered = queryValue
@@ -99,26 +149,33 @@ export default function AdminConsultationsList() {
       const limitedPatients = filtered.slice(0, MAX_PATIENTS);
       let partialError = false;
 
+      let lastDebug = null;
       const nestedConsultations = await Promise.all(
         limitedPatients.map(async (patient) => {
           const patientCedula = getPatientCedula(patient);
           const patientName = buildPatientName(patient);
           let list = [];
+          let endpoint = "";
           try {
             if (patientCedula) {
-              list = await adminRequest(
-                `/admin/consultations?cedula=${encodeURIComponent(patientCedula)}`,
-                { token: getAdminToken(), router }
-              );
+              endpoint = `/admin/consultations?cedula=${encodeURIComponent(patientCedula)}`;
+              list = await requestJson(endpoint);
             } else if (patient?.username || patient?.id) {
               const identifier = patient.username || patient.id;
-              list = await adminRequest(
-                `/admin/patients/${encodeURIComponent(identifier)}/consultas`,
-                { token: getAdminToken(), router }
-              );
+              endpoint = `/admin/patients/${encodeURIComponent(identifier)}/consultas`;
+              list = await requestJson(endpoint);
             }
-          } catch {
+          } catch (err) {
+            console.error("Consultations list error", endpoint, err);
+            if (err?.authFailure) throw err;
             partialError = true;
+            if (isDev && endpoint) {
+              lastDebug = {
+                endpoint,
+                status: err?.status,
+                detail: err?.detail || err?.message || "",
+              };
+            }
             return [];
           }
           const items = Array.isArray(list) ? list : [];
@@ -145,10 +202,21 @@ export default function AdminConsultationsList() {
       );
       setConsultations(filteredByDate);
       if (partialError) {
-        setError("No se pudieron cargar algunas consultas.");
+        const partialMessage =
+          lastDebug?.detail || "No se pudieron cargar algunas consultas.";
+        reportError(partialMessage, lastDebug);
       }
     } catch (err) {
-      setError(err.message || "No se pudieron cargar las consultas.");
+      console.error("Consultations list error", err?.endpoint, err);
+      if (err?.authFailure) return;
+      const message = err?.isNetwork
+        ? "Error de red / CORS / backend no disponible"
+        : err?.message || "No se pudieron cargar las consultas.";
+      reportError(message, {
+        endpoint: err?.endpoint,
+        status: err?.status,
+        detail: err?.detail || err?.message || "",
+      });
     } finally {
       setLoadingList(false);
     }
@@ -198,6 +266,20 @@ export default function AdminConsultationsList() {
               <h1 className="text-2xl font-semibold text-slate-900">Consultas realizadas</h1>
               <p className="text-sm text-slate-500">Filtra por fecha y paciente</p>
             </div>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-700"
+            >
+              Dashboard
+            </Link>
+            <Link
+              href="/admin/consultations"
+              className="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-700"
+            >
+              Nueva consulta
+            </Link>
           </div>
           <form onSubmit={onSearch} className="mt-4 grid gap-3 lg:grid-cols-12">
             <label className="flex flex-col gap-1 text-sm text-slate-600 lg:col-span-3">
@@ -250,6 +332,13 @@ export default function AdminConsultationsList() {
           {error && (
             <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
               {error}
+              {isDev && debugError && (
+                <div className="mt-2 text-xs text-rose-600">
+                  {debugError.endpoint && <div>Endpoint: {debugError.endpoint}</div>}
+                  {debugError.status && <div>Status: {debugError.status}</div>}
+                  {debugError.detail && <div>Detail: {debugError.detail}</div>}
+                </div>
+              )}
             </div>
           )}
 

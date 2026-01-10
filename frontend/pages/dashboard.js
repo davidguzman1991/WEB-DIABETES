@@ -17,6 +17,9 @@ const GLUCOSE_CHART_HEIGHT = 200;
 const GLUCOSE_CHART_PADDING = 24;
 const GLUCOSE_CHART_WIDTH = 600;
 const NAME_SEARCH_DEBOUNCE_MS = 400;
+const MEDICATION_AUTOCOMPLETE_MIN_CHARS = 2;
+const MEDICATION_AUTOCOMPLETE_LIMIT = 8;
+const MEDICATION_AUTOCOMPLETE_DEBOUNCE_MS = 250;
 const CONSULTA_DRAFT_KEY = "draft_consultation_admin";
 const CONSULTA_DRAFT_DEBOUNCE_MS = 2500;
 
@@ -125,6 +128,13 @@ const getMaxNumericId = (items) => {
     }
   });
   return maxId;
+};
+
+const getMedicationSuggestionLabel = (item) => {
+  if (!item || typeof item !== "object") return "";
+  return String(
+    item.nombre_generico || item.generic_name || item.nombre || item.name || ""
+  ).trim();
 };
 
 const formatShortDate = (value) => {
@@ -267,11 +277,22 @@ export default function Dashboard() {
   const [patientLookupStatus, setPatientLookupStatus] = useState("idle");
   const [patientLookupMessage, setPatientLookupMessage] = useState("");
   const medIdRef = useRef(0);
+  const medicationAutocompleteTimersRef = useRef({});
+  const medicationAutocompleteQueryRef = useRef({});
   const createMedicamento = () => {
     const id = String((medIdRef.current += 1));
-    return { id, nombre: "", cantidad: "", descripcion: "", duracion_dias: "" };
+    return {
+      id,
+      nombre: "",
+      cantidad: "",
+      descripcion: "",
+      duracion_dias: "",
+      medication_id: null,
+    };
   };
   const [medicamentos, setMedicamentos] = useState(() => [createMedicamento()]);
+  const [medicationSuggestions, setMedicationSuggestions] = useState({});
+  const [activeMedicationId, setActiveMedicationId] = useState(null);
   const [consultaError, setConsultaError] = useState("");
   const [consultaSuccess, setConsultaSuccess] = useState("");
   const [stats, setStats] = useState(null);
@@ -677,6 +698,13 @@ export default function Dashboard() {
       });
   }, [router, user]);
 
+  useEffect(() => {
+    return () => {
+      const timers = medicationAutocompleteTimersRef.current;
+      Object.keys(timers).forEach((key) => clearTimeout(timers[key]));
+    };
+  }, []);
+
   const onChange = (event) => {
     const { name, value } = event.target;
     setForm({ ...form, [name]: value });
@@ -709,6 +737,71 @@ export default function Dashboard() {
     resetPatientLookupState();
   };
 
+  const clearMedicationSuggestions = (medId) => {
+    if (!medId) return;
+    setMedicationSuggestions((prev) => ({ ...prev, [medId]: [] }));
+    setActiveMedicationId((current) => (current === medId ? null : current));
+  };
+
+  const scheduleMedicationAutocomplete = (medId, query) => {
+    if (!medId) return;
+    const trimmed = String(query || "").trim();
+    medicationAutocompleteQueryRef.current[medId] = trimmed;
+    const timers = medicationAutocompleteTimersRef.current;
+    if (timers[medId]) clearTimeout(timers[medId]);
+    if (trimmed.length < MEDICATION_AUTOCOMPLETE_MIN_CHARS) {
+      clearMedicationSuggestions(medId);
+      return;
+    }
+    timers[medId] = setTimeout(async () => {
+      if (medicationAutocompleteQueryRef.current[medId] !== trimmed) return;
+      try {
+        const res = await apiFetch(
+          `/admin/medications/autocomplete?q=${encodeURIComponent(trimmed)}`
+        );
+        if (res.status === 401 || res.status === 403) {
+          logout(router, "/login?type=admin");
+          return;
+        }
+        if (!res.ok) {
+          clearMedicationSuggestions(medId);
+          return;
+        }
+        const data = await res.json().catch(() => []);
+        const list = Array.isArray(data) ? data : [];
+        const filtered = list
+          .map((item) => ({
+            ...item,
+            _label: getMedicationSuggestionLabel(item),
+          }))
+          .filter((item) => item._label)
+          .slice(0, MEDICATION_AUTOCOMPLETE_LIMIT);
+        setMedicationSuggestions((prev) => ({ ...prev, [medId]: filtered }));
+        setActiveMedicationId((current) =>
+          filtered.length ? medId : current === medId ? null : current
+        );
+      } catch {
+        clearMedicationSuggestions(medId);
+      }
+    }, MEDICATION_AUTOCOMPLETE_DEBOUNCE_MS);
+  };
+
+  const selectMedicationSuggestion = (index, medId, suggestion) => {
+    const label = suggestion?._label || getMedicationSuggestionLabel(suggestion);
+    if (!label) return;
+    setMedicamentos((prev) => {
+      const next = [...prev];
+      if (!next[index]) return prev;
+      next[index] = {
+        ...next[index],
+        nombre: label,
+        medication_id: suggestion?.id || null,
+      };
+      return next;
+    });
+    clearMedicationSuggestions(medId);
+  };
+
   const updateMedicamentoField = (index, name, value) => {
     setMedicamentos((prev) => {
       const next = [...prev];
@@ -719,6 +812,19 @@ export default function Dashboard() {
 
   const onMedicamentoChange = (index, event) => {
     const { name, value } = event.target;
+    if (name === "nombre") {
+      const medId = medicamentos?.[index]?.id;
+      setMedicamentos((prev) => {
+        const next = [...prev];
+        if (!next[index]) return prev;
+        next[index] = { ...next[index], nombre: value, medication_id: null };
+        return next;
+      });
+      if (medId) {
+        scheduleMedicationAutocomplete(medId, value);
+      }
+      return;
+    }
     updateMedicamentoField(index, name, value);
   };
 
@@ -732,7 +838,17 @@ export default function Dashboard() {
   const removeMedicamento = (index) => {
     const list = Array.isArray(medicamentos) ? medicamentos : [];
     if (list.length === 1) return;
+    const removedId = list[index]?.id;
     setMedicamentos(list.filter((_, i) => i !== index));
+    if (removedId) {
+      const timers = medicationAutocompleteTimersRef.current;
+      if (timers[removedId]) {
+        clearTimeout(timers[removedId]);
+        delete timers[removedId];
+      }
+      delete medicationAutocompleteQueryRef.current[removedId];
+      clearMedicationSuggestions(removedId);
+    }
   };
 
   const createLabRow = () => {
@@ -1088,6 +1204,7 @@ export default function Dashboard() {
               description: med.descripcion || null,
               duration_days: durationDays,
               sort_order: index,
+              ...(med.medication_id ? { medication_id: med.medication_id } : {}),
             };
           }),
         },
@@ -2013,17 +2130,71 @@ export default function Dashboard() {
                   {safeMedicamentos.map((med, index) => {
                     if (!med || typeof med !== "object") return null;
                     const medId = med.id || `med-${index}`;
+                    const suggestions = medicationSuggestions[medId] || [];
+                    const showSuggestions =
+                      activeMedicationId === medId && suggestions.length > 0;
                     return (
                       <div key={medId} className="item-block">
                         <div className="form two">
                           <label className="text-sm font-medium text-slate-700">
                             Medicamento
-                            <input
-                              name="nombre"
-                              value={med.nombre || ""}
-                              onChange={(e) => onMedicamentoChange(index, e)}
-                              className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
-                            />
+                            <div className="relative">
+                              <input
+                                name="nombre"
+                                value={med.nombre || ""}
+                                onChange={(e) => onMedicamentoChange(index, e)}
+                                onKeyDown={(event) => {
+                                  if (event.key === "Escape") {
+                                    clearMedicationSuggestions(medId);
+                                  }
+                                }}
+                                autoComplete="off"
+                                className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
+                              />
+                              {showSuggestions && (
+                                <div className="absolute z-10 mt-2 w-full rounded-lg border border-slate-200 bg-white shadow-lg">
+                                  <ul className="max-h-56 overflow-auto py-1 text-sm">
+                                    {suggestions.map((suggestion) => {
+                                      const label =
+                                        suggestion._label ||
+                                        getMedicationSuggestionLabel(suggestion);
+                                      const meta = [
+                                        suggestion.presentacion || suggestion.base_concentration,
+                                        suggestion.forma || suggestion.form,
+                                      ]
+                                        .filter(Boolean)
+                                        .join(" - ");
+                                      if (!label) return null;
+                                      return (
+                                        <li key={suggestion.id || label}>
+                                          <button
+                                            type="button"
+                                            className="flex w-full flex-col items-start px-3 py-2 text-left text-slate-700 hover:bg-slate-50"
+                                            onMouseDown={(event) => {
+                                              event.preventDefault();
+                                              selectMedicationSuggestion(
+                                                index,
+                                                medId,
+                                                suggestion
+                                              );
+                                            }}
+                                          >
+                                            <span className="text-sm font-medium text-slate-900">
+                                              {label}
+                                            </span>
+                                            {meta ? (
+                                              <span className="text-xs text-slate-500">
+                                                {meta}
+                                              </span>
+                                            ) : null}
+                                          </button>
+                                        </li>
+                                      );
+                                    })}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
                           </label>
                           <label className="text-sm font-medium text-slate-700">
                             Cantidad

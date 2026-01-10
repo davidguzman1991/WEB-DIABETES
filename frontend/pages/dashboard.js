@@ -204,6 +204,8 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(false);
   const [statsError, setStatsError] = useState("");
+  const [animatedPatients, setAnimatedPatients] = useState(0);
+  const [animatedConsultations, setAnimatedConsultations] = useState(0);
   const [consultas, setConsultas] = useState([]);
   const [glucoseLogs, setGlucoseLogs] = useState([]);
   const [glucoseLoading, setGlucoseLoading] = useState(false);
@@ -285,6 +287,37 @@ export default function Dashboard() {
       active = false;
     };
   }, [router, user]);
+
+  useEffect(() => {
+    if (!stats) {
+      setAnimatedPatients(0);
+      setAnimatedConsultations(0);
+      return;
+    }
+    if (typeof window === "undefined") return;
+    const targetPatients = Number(stats.total_patients) || 0;
+    const targetConsultations = Number(stats.total_consultations) || 0;
+    const durationMs = 760;
+    const start = window.performance?.now?.() || Date.now();
+    const easeOutQuad = (t) => 1 - (1 - t) * (1 - t);
+    let frameId = 0;
+
+    const animate = (now) => {
+      const current = now || Date.now();
+      const elapsed = Math.min((current - start) / durationMs, 1);
+      const eased = easeOutQuad(elapsed);
+      setAnimatedPatients(Math.round(targetPatients * eased));
+      setAnimatedConsultations(Math.round(targetConsultations * eased));
+      if (elapsed < 1) {
+        frameId = window.requestAnimationFrame(animate);
+      }
+    };
+
+    frameId = window.requestAnimationFrame(animate);
+    return () => {
+      if (frameId) window.cancelAnimationFrame(frameId);
+    };
+  }, [stats]);
 
   useEffect(() => {
     draftRef.current = { consultaForm, medicamentos, labs };
@@ -1160,21 +1193,49 @@ export default function Dashboard() {
           </button>
         </div>
         <div className="consultation-card !rounded-2xl !border-slate-200/70 !bg-slate-50/70 !shadow-sm">
-          <div className="section-title">Indicadores globales</div>
-          {statsLoading && <div className="muted">Cargando indicadores...</div>}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center rounded-full border border-slate-200/70 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              Indicadores globales
+            </span>
+            {!statsLoading && !statsError && stats && (
+              <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600">
+                Actualizado
+              </span>
+            )}
+            {statsError && (
+              <span className="inline-flex items-center rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-semibold text-rose-600">
+                Sin conexion
+              </span>
+            )}
+          </div>
+          {statsLoading && (
+            <>
+              <div className="muted text-sm">Cargando indicadores...</div>
+              <div className="kpi-grid mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2" aria-hidden="true">
+                <div className="kpi-skeleton">
+                  <div className="kpi-skeleton-line kpi-skeleton-label" />
+                  <div className="kpi-skeleton-line kpi-skeleton-value" />
+                </div>
+                <div className="kpi-skeleton">
+                  <div className="kpi-skeleton-line kpi-skeleton-label" />
+                  <div className="kpi-skeleton-line kpi-skeleton-value" />
+                </div>
+              </div>
+            </>
+          )}
           {statsError && <div className="error">{statsError}</div>}
           {!statsLoading && !statsError && !stats && (
             <div className="muted">Sin datos disponibles.</div>
           )}
           {!statsLoading && !statsError && stats && (
             <div className="kpi-grid mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div className="kpi-card flex items-center justify-between rounded-xl border border-slate-200/70 bg-white px-4 py-3 shadow-sm transition hover:shadow-md">
+              <div className="kpi-card flex items-center justify-between rounded-xl border border-slate-200/70 bg-white px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
                 <div>
                   <div className="kpi-label text-xs font-medium uppercase tracking-wide text-slate-500">
                     Pacientes registrados
                   </div>
-                  <div className="kpi-value text-2xl font-semibold text-slate-900">
-                    {stats.total_patients}
+                  <div className="kpi-value text-2xl font-semibold text-slate-900 tabular-nums">
+                    {animatedPatients}
                   </div>
                 </div>
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500">
@@ -1193,13 +1254,13 @@ export default function Dashboard() {
                   </svg>
                 </div>
               </div>
-              <div className="kpi-card flex items-center justify-between rounded-xl border border-slate-200/70 bg-white px-4 py-3 shadow-sm transition hover:shadow-md">
+              <div className="kpi-card flex items-center justify-between rounded-xl border border-slate-200/70 bg-white px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
                 <div>
                   <div className="kpi-label text-xs font-medium uppercase tracking-wide text-slate-500">
                     Consultas realizadas
                   </div>
-                  <div className="kpi-value text-2xl font-semibold text-slate-900">
-                    {stats.total_consultations}
+                  <div className="kpi-value text-2xl font-semibold text-slate-900 tabular-nums">
+                    {animatedConsultations}
                   </div>
                 </div>
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500">
@@ -1785,6 +1846,63 @@ export default function Dashboard() {
         .clickable-consultation:hover {
           box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
           transform: translateY(-1px);
+        }
+
+        .kpi-skeleton {
+          position: relative;
+          overflow: hidden;
+          border-radius: 16px;
+          border: 1px solid rgba(226, 232, 240, 0.7);
+          background: #f1f5f9;
+          padding: 14px 16px;
+          min-height: 84px;
+        }
+
+        .kpi-skeleton::after {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: -60%;
+          width: 60%;
+          height: 100%;
+          background: linear-gradient(
+            90deg,
+            rgba(241, 245, 249, 0) 0%,
+            rgba(255, 255, 255, 0.6) 50%,
+            rgba(241, 245, 249, 0) 100%
+          );
+          animation: kpi-shimmer 1.2s ease-in-out infinite;
+        }
+
+        .kpi-skeleton-line {
+          height: 12px;
+          border-radius: 999px;
+          background: #e2e8f0;
+        }
+
+        .kpi-skeleton-label {
+          width: 55%;
+          margin-bottom: 12px;
+        }
+
+        .kpi-skeleton-value {
+          width: 35%;
+          height: 20px;
+        }
+
+        @keyframes kpi-shimmer {
+          0% {
+            transform: translateX(-60%);
+          }
+          100% {
+            transform: translateX(220%);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .kpi-skeleton::after {
+            animation: none;
+          }
         }
       `}</style>
     </div>

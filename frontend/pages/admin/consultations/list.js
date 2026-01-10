@@ -169,15 +169,16 @@ export default function AdminConsultationsList() {
   }
 
   return (
-    <div className="page">
-      <Navigation
-        title="Consultas"
-        links={[
-          { href: "/admin", label: "Dashboard" },
-          { href: "/admin/consultations", label: "Nueva consulta" },
-        ]}
-      />
-      <div className="mx-auto w-full max-w-6xl space-y-6 px-4 pb-10">
+    <div className="admin-consultations-list-page">
+      <div className="page">
+        <Navigation
+          title="Consultas"
+          links={[
+            { href: "/admin", label: "Dashboard" },
+            { href: "/admin/consultations", label: "Nueva consulta" },
+          ]}
+        />
+        <div className="mx-auto w-full max-w-6xl space-y-6 px-4 pb-10">
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -327,7 +328,13 @@ export default function AdminConsultationsList() {
             </div>
           )}
         </section>
+        </div>
       </div>
+      <style jsx global>{`
+        .admin-consultations-list-page .nav {
+          display: none;
+        }
+      `}</style>
     </div>
   );
 }

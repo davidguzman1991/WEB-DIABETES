@@ -1294,37 +1294,78 @@ export default function Dashboard() {
       </div>
 
       {sectionsOpen.createPatient && (
-        <section className="card admin-section">
-          <h2>Registro de paciente</h2>
-          {error && <div className="error">{error}</div>}
-          {success && <div className="success">{success}</div>}
-          <form onSubmit={onSubmit} className="form">
-            <label>
+        <section className="card admin-section rounded-2xl border border-slate-200/70 bg-white shadow-sm">
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold text-slate-900">Registro de paciente</h2>
+            <p className="text-sm text-slate-500">
+              Complete los datos para crear un nuevo paciente
+            </p>
+          </div>
+          {error && (
+            <div className="error rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="success rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+              {success}
+            </div>
+          )}
+          <form onSubmit={onSubmit} className="form grid grid-cols-1 gap-4 md:grid-cols-2">
+            <label className="text-sm font-medium text-slate-700">
               Cedula
-              <input name="cedula" value={form.cedula} onChange={onChange} required />
+              <input
+                name="cedula"
+                value={form.cedula}
+                onChange={onChange}
+                required
+                placeholder="Ingrese la cedula"
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-300/60"
+              />
             </label>
-            <label>
+            <label className="text-sm font-medium text-slate-700">
               Password
-              <input type="password" name="password" value={form.password} onChange={onChange} />
+              <input
+                type="password"
+                name="password"
+                value={form.password}
+                onChange={onChange}
+                placeholder="Ingrese un password"
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-300/60"
+              />
             </label>
-            <label>
+            <label className="text-sm font-medium text-slate-700">
               Confirmar password
               <input
                 type="password"
                 name="confirmPassword"
                 value={form.confirmPassword}
                 onChange={onChange}
+                placeholder="Repita el password"
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-300/60"
               />
             </label>
-            <label>
+            <label className="text-sm font-medium text-slate-700">
               Nombres
-              <input name="nombres" value={form.nombres} onChange={onChange} />
+              <input
+                name="nombres"
+                value={form.nombres}
+                onChange={onChange}
+                placeholder="Ingrese los nombres"
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-300/60"
+              />
             </label>
-            <label>
+            <label className="text-sm font-medium text-slate-700">
               Apellidos
-              <input name="apellidos" value={form.apellidos} onChange={onChange} />
+              <input
+                name="apellidos"
+                value={form.apellidos}
+                onChange={onChange}
+                placeholder="Ingrese los apellidos"
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-300/60"
+              />
             </label>
-            <label>
+            <label className="text-sm font-medium text-slate-700">
               Fecha de nacimiento
               <input
                 type="date"
@@ -1332,14 +1373,23 @@ export default function Dashboard() {
                 value={form.fecha_nacimiento}
                 onChange={onChange}
                 required
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-300/60"
               />
             </label>
-            {dateError && <div className="error">{dateError}</div>}
-            {!dateError && age !== null && <div className="muted">Edad: {age} anos</div>}
-            {!dateError && age === null && form.fecha_nacimiento && <div className="muted">Edad: -</div>}
+            {dateError && (
+              <div className="error rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 md:col-span-2">
+                {dateError}
+              </div>
+            )}
+            {!dateError && age !== null && (
+              <div className="muted text-sm md:col-span-2">Edad: {age} anos</div>
+            )}
+            {!dateError && age === null && form.fecha_nacimiento && (
+              <div className="muted text-sm md:col-span-2">Edad: -</div>
+            )}
             <button
               type="submit"
-              className="button-primary"
+              className="button-primary w-full rounded-lg bg-teal-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-300/60 disabled:cursor-not-allowed disabled:opacity-60 md:col-span-2"
               disabled={!canSubmit(form, dateError)}
             >
               Registrar paciente

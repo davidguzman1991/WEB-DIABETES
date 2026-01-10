@@ -2,6 +2,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { apiFetch, logout } from "../lib/auth";
 import { useAuthGuard } from "../hooks/useAuthGuard";
+import Badge from "../components/ui/Badge";
+import Button from "../components/ui/Button";
+import Card from "../components/ui/Card";
+import Input from "../components/ui/Input";
+import SectionTitle from "../components/ui/SectionTitle";
 
 const LAB_VALUE_EMPTY = "";
 const GLUCOSE_MAX_RECORDS = 10;
@@ -1410,153 +1415,196 @@ export default function Dashboard() {
       )}
 
       {sectionsOpen.searchPatient && (
-        <section className="card admin-section">
-          <h2>Acceso a ficha del paciente</h2>
-          <div className="consultation-card">
-            <div className="section-title">Ficha del paciente</div>
-            <div className="form">
-              <label>
-                Cedula paciente
-                <input
-                  name="patient_username"
-                  value={consultaForm.patient_username}
-                  onChange={onConsultaChange}
-                  placeholder="Ingrese la cedula"
-                />
-              </label>
-              <label>
-                Buscar por nombre o apellido (opcional)
-                <input
-                  name="patient_name_search"
-                  value={searchPatient.query}
-                  onChange={(event) => searchPatient.setQuery(event.target.value)}
-                  placeholder="Ingrese nombres o apellidos"
-                />
-              </label>
-              {renderPatientSearchResults(searchPatient, (patient) =>
-                applyPatientSelection(patient, searchPatient.clear)
-              )}
-              {patientLookupStatus === "loading" && (
-                <div className="muted">Validando paciente...</div>
-              )}
-              {patientLookupStatus === "found" && (
-                <div className="success">{patientLookupMessage}</div>
-              )}
-              {patientLookupStatus !== "found" && patientLookupMessage && (
-                <div className="error">{patientLookupMessage}</div>
-              )}
-              <label>
-                Nombres
-                <input value={patientInfo?.nombres || ""} disabled readOnly />
-              </label>
-              <label>
-                Apellidos
-                <input value={patientInfo?.apellidos || ""} disabled readOnly />
-              </label>
-            </div>
-          </div>
-          <div className="consultation-card">
-            <div className="section-title">Consultas recientes del paciente</div>
-            <button type="button" className="button-primary" onClick={loadConsultas}>
-              Ver consultas recientes
-            </button>
-          </div>
-          <div className="consultation-card">
-            {consultaError && <div className="error">{consultaError}</div>}
-            <div className="list">
-              {safeConsultas.map((item, index) => {
-                if (!item || typeof item !== "object") return null;
-                const itemId = item.id || `consulta-${index}`;
-                const createdAt = item.created_at
-                  ? new Date(item.created_at).toLocaleDateString()
-                  : "";
-                const diagnosisText = item.diagnosis || "";
-                const canNavigate = Boolean(item.id);
-                const handleOpen = () => {
-                  if (!item.id) return;
-                  router.push(`/dashboard/consultas/${item.id}`);
-                };
-                return (
-                  <div
-                    key={itemId}
-                    className={`list-item${canNavigate ? " clickable-consultation" : ""}`}
-                    onClick={canNavigate ? handleOpen : undefined}
-                    onKeyDown={
-                      canNavigate
-                        ? (event) => {
-                            if (event.key === "Enter" || event.key === " ") {
-                              event.preventDefault();
-                              handleOpen();
-                            }
-                          }
-                        : undefined
-                    }
-                    role={canNavigate ? "button" : undefined}
-                    tabIndex={canNavigate ? 0 : undefined}
-                  >
-                    <div className="list-title">{createdAt}</div>
-                    {diagnosisText && <div className="list-meta">{diagnosisText}</div>}
-                  </div>
-                );
-                })}
-            </div>
-          </div>
-          <div className="consultation-card">
-            <div className="section-title">
-              Alertas y seguimiento de glucosa{" "}
-              {glucoseTrend && (
-                <span style={{ color: glucoseTrend.color, fontWeight: 700 }}>
-                  {glucoseTrend.icon}
-                </span>
-              )}
-            </div>
-            <div className="list">
-              {glucoseLoading && <div className="muted">Cargando historial...</div>}
-              {glucoseError && <div className="error">{glucoseError}</div>}
-              {!glucoseLoading && !glucoseError && glucoseMessage && (
-                <div className="muted">{glucoseMessage}</div>
-              )}
-              {!glucoseLoading &&
-                !glucoseError &&
-                glucoseSummaryLogs.map((log, index) => {
-                  if (!log || typeof log !== "object") return null;
-                  const logId =
-                    log.id ||
-                    `${log.taken_at || log.created_at || "glucose"}-${index}`;
-                  const logDate = formatDate(log.taken_at || log.created_at);
-                  const logType =
-                    log.type === "postprandial"
-                      ? "Postprandial"
-                      : log.type === "ayuno"
-                        ? "Ayuno"
-                        : "Sin tipo";
-                  const logValue =
-                    log.value !== null && log.value !== undefined
-                      ? `${log.value} mg/dL`
-                      : "Sin valor";
-                  return (
-                    <div key={logId} className="list-item">
-                      <div className="list-title">
-                        {logDate} - {logType} - <strong>{logValue}</strong>
-                      </div>
+        <section className="admin-section">
+          <Card className="p-6 md:p-8">
+            <SectionTitle
+              title="Acceso a ficha del paciente"
+              subtitle="Abra la ficha del paciente por cédula o por búsqueda."
+            />
+            <div className="mt-6 space-y-6">
+              <Card className="p-4 md:p-5">
+                <div className="text-sm font-semibold text-slate-800">
+                  Ficha del paciente
+                </div>
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  <Input
+                    label="Cedula paciente"
+                    name="patient_username"
+                    value={consultaForm.patient_username}
+                    onChange={onConsultaChange}
+                    placeholder="Ingrese la cedula"
+                  />
+                  <Input
+                    label="Buscar por nombre o apellido (opcional)"
+                    name="patient_name_search"
+                    value={searchPatient.query}
+                    onChange={(event) => searchPatient.setQuery(event.target.value)}
+                    placeholder="Ingrese nombres o apellidos"
+                  />
+                </div>
+                <div className="mt-3">
+                  {renderPatientSearchResults(searchPatient, (patient) =>
+                    applyPatientSelection(patient, searchPatient.clear)
+                  )}
+                </div>
+                <div className="mt-3 space-y-2">
+                  {patientLookupStatus === "loading" && (
+                    <Badge variant="warning" className="w-fit">
+                      Validando paciente...
+                    </Badge>
+                  )}
+                  {patientLookupStatus === "found" && (
+                    <Badge variant="success" className="w-fit">
+                      {patientLookupMessage}
+                    </Badge>
+                  )}
+                  {patientLookupStatus !== "found" && patientLookupMessage && (
+                    <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                      {patientLookupMessage}
                     </div>
-                  );
-                })}
+                  )}
+                </div>
+                <div className="my-4 h-px w-full bg-slate-200/80" />
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Input
+                    label="Nombres"
+                    value={patientInfo?.nombres || ""}
+                    disabled
+                    readOnly
+                  />
+                  <Input
+                    label="Apellidos"
+                    value={patientInfo?.apellidos || ""}
+                    disabled
+                    readOnly
+                  />
+                </div>
+              </Card>
+              <Card className="p-4 md:p-5">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="text-sm font-semibold text-slate-800">
+                    Consultas recientes del paciente
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={loadConsultas}
+                    className="w-full md:w-auto"
+                  >
+                    Ver consultas recientes
+                  </Button>
+                </div>
+              </Card>
+              <Card className="p-4 md:p-5">
+                {consultaError && (
+                  <div className="error text-sm">{consultaError}</div>
+                )}
+                <div className="list">
+                  {safeConsultas.map((item, index) => {
+                    if (!item || typeof item !== "object") return null;
+                    const itemId = item.id || `consulta-${index}`;
+                    const createdAt = item.created_at
+                      ? new Date(item.created_at).toLocaleDateString()
+                      : "";
+                    const diagnosisText = item.diagnosis || "";
+                    const canNavigate = Boolean(item.id);
+                    const handleOpen = () => {
+                      if (!item.id) return;
+                      router.push(`/dashboard/consultas/${item.id}`);
+                    };
+                    return (
+                      <div
+                        key={itemId}
+                        className={`list-item${canNavigate ? " clickable-consultation" : ""}`}
+                        onClick={canNavigate ? handleOpen : undefined}
+                        onKeyDown={
+                          canNavigate
+                            ? (event) => {
+                                if (event.key === "Enter" || event.key === " ") {
+                                  event.preventDefault();
+                                  handleOpen();
+                                }
+                              }
+                            : undefined
+                        }
+                        role={canNavigate ? "button" : undefined}
+                        tabIndex={canNavigate ? 0 : undefined}
+                      >
+                        <div className="list-title">{createdAt}</div>
+                        {diagnosisText && (
+                          <div className="list-meta">{diagnosisText}</div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+              <Card className="p-4 md:p-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="text-sm font-semibold text-slate-800">
+                    Alertas y seguimiento de glucosa{" "}
+                    {glucoseTrend && (
+                      <span style={{ color: glucoseTrend.color, fontWeight: 700 }}>
+                        {glucoseTrend.icon}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="list mt-4">
+                  {glucoseLoading && (
+                    <div className="muted text-sm text-slate-500">
+                      Cargando historial...
+                    </div>
+                  )}
+                  {glucoseError && <div className="error">{glucoseError}</div>}
+                  {!glucoseLoading && !glucoseError && glucoseMessage && (
+                    <div className="muted text-sm text-slate-500">
+                      {glucoseMessage}
+                    </div>
+                  )}
+                  {!glucoseLoading &&
+                    !glucoseError &&
+                    glucoseSummaryLogs.map((log, index) => {
+                      if (!log || typeof log !== "object") return null;
+                      const logId =
+                        log.id ||
+                        `${log.taken_at || log.created_at || "glucose"}-${index}`;
+                      const logDate = formatDate(log.taken_at || log.created_at);
+                      const logType =
+                        log.type === "postprandial"
+                          ? "Postprandial"
+                          : log.type === "ayuno"
+                            ? "Ayuno"
+                            : "Sin tipo";
+                      const logValue =
+                        log.value !== null && log.value !== undefined
+                          ? `${log.value} mg/dL`
+                          : "Sin valor";
+                      return (
+                        <div key={logId} className="list-item">
+                          <div className="list-title">
+                            {logDate} - {logType} - <strong>{logValue}</strong>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="mt-4 w-full md:w-auto"
+                  onClick={() => {
+                    if (!patientCedula) return;
+                    router.push(
+                      `/dashboard/patient/${encodeURIComponent(patientCedula)}/glucosas`
+                    );
+                  }}
+                  disabled={!patientCedula}
+                >
+                  Ver registros de glucosa
+                </Button>
+              </Card>
             </div>
-            <button
-              type="button"
-              className="button-secondary"
-              onClick={() => {
-                if (!patientCedula) return;
-                router.push(
-                  `/dashboard/patient/${encodeURIComponent(patientCedula)}/glucosas`
-                );
-              }}
-              disabled={!patientCedula}
-            >
-              Ver registros de glucosa
-            </button>
-          </div>
+          </Card>
         </section>
       )}
 

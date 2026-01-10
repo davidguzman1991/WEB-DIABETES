@@ -1151,16 +1151,14 @@ export default function Dashboard() {
             <div className="muted">Sin datos disponibles.</div>
           )}
           {!statsLoading && !statsError && stats && (
-            <div className="list">
-              <div className="list-item">
-                <div className="list-title">
-                  Pacientes: <strong>{stats.total_patients}</strong>
-                </div>
+            <div className="kpi-grid">
+              <div className="kpi-card">
+                <div className="kpi-label">Pacientes registrados</div>
+                <div className="kpi-value">{stats.total_patients}</div>
               </div>
-              <div className="list-item">
-                <div className="list-title">
-                  Consultas: <strong>{stats.total_consultations}</strong>
-                </div>
+              <div className="kpi-card">
+                <div className="kpi-label">Consultas realizadas</div>
+                <div className="kpi-value">{stats.total_consultations}</div>
               </div>
             </div>
           )}
@@ -1727,6 +1725,38 @@ export default function Dashboard() {
         .clickable-consultation:hover {
           box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
           transform: translateY(-1px);
+        }
+
+        .kpi-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+          gap: 8px;
+          margin-top: 8px;
+        }
+
+        .kpi-card {
+          background: #f8fafc;
+          border: 1px solid #e5e7eb;
+          border-radius: 10px;
+          padding: 10px 12px;
+          transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .kpi-card:hover {
+          box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+          transform: translateY(-1px);
+        }
+
+        .kpi-label {
+          font-size: 12px;
+          color: #6b7280;
+          margin-bottom: 4px;
+        }
+
+        .kpi-value {
+          font-size: 20px;
+          font-weight: 700;
+          color: #0f172a;
         }
       `}</style>
     </div>

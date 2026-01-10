@@ -1,19 +1,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-if (!API_URL) {
-  throw new Error("NEXT_PUBLIC_API_URL is not set");
-}
+import { apiFetch, logout } from "../../../lib/auth";
 
 const readAdminToken = () => {
   if (typeof window === "undefined") return null;
   return localStorage.getItem("token");
-};
-
-const clearAdminToken = () => {
-  if (typeof window === "undefined") return;
-  localStorage.removeItem("token");
 };
 
 const formatDate = (value) => {
@@ -25,6 +16,11 @@ const formatDate = (value) => {
     month: "2-digit",
     year: "numeric",
   });
+};
+
+const formatConsultationDate = (item) => {
+  if (!item || typeof item !== "object") return "";
+  return formatDate(item.consultation_date || item.created_at);
 };
 
 export default function AdminConsultationDetail() {
@@ -67,15 +63,10 @@ export default function AdminConsultationDetail() {
     setLoading(true);
     setError("");
 
-    fetch(`${API_URL}/admin/consultations/${consultationId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    apiFetch(`/admin/consultations/${consultationId}`)
       .then(async (res) => {
         if (res.status === 401 || res.status === 403) {
-          clearAdminToken();
-          router.replace("/login?type=admin");
+          logout(router, "/login?type=admin");
           return;
         }
         if (res.status === 404) {
@@ -95,6 +86,9 @@ export default function AdminConsultationDetail() {
         }
         const data = await res.json().catch(() => null);
         if (active) {
+          if (data && !data.consultation_date) {
+            console.warn("Consulta sin consultation_date en detalle", data);
+          }
           setDetail(data);
           setLoading(false);
         }
@@ -150,6 +144,7 @@ export default function AdminConsultationDetail() {
   ].filter((row) => hasValue(row.value));
 
   const medications = Array.isArray(detail?.medications) ? detail.medications : [];
+  const formattedDate = formatConsultationDate(detail);
 
   if (loading) {
     return (
@@ -187,10 +182,8 @@ export default function AdminConsultationDetail() {
                       .filter(Boolean)
                       .join(" ")}
                 </div>
-                {(detail.date || detail.created_at) && (
-                  <div className="consultation-date">
-                    {formatDate(detail.date || detail.created_at)}
-                  </div>
+                {formattedDate && (
+                  <div className="consultation-date">{formattedDate}</div>
                 )}
               </div>
 

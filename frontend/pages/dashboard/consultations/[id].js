@@ -1,25 +1,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import { apiFetch, logout } from "../../../lib/auth";
 import Badge from "../../../components/ui/Badge";
 import Button from "../../../components/ui/Button";
 import Card from "../../../components/ui/Card";
 import EmptyState from "../../../components/ui/EmptyState";
 import SectionTitle from "../../../components/ui/SectionTitle";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-if (!API_URL) {
-  throw new Error("NEXT_PUBLIC_API_URL is not set");
-}
-
-const readAdminToken = () => {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("token");
-};
-
-const clearAdminToken = () => {
-  if (typeof window === "undefined") return;
-  localStorage.removeItem("token");
-};
 
 const formatDate = (value) => {
   if (!value) return "";
@@ -32,43 +18,33 @@ const formatDate = (value) => {
   });
 };
 
+const formatConsultationDate = (item) => {
+  if (!item || typeof item !== "object") return "";
+  return formatDate(item.consultation_date || item.created_at);
+};
+
 export default function AdminConsultationDetail() {
   const router = useRouter();
-  const [token, setToken] = useState(undefined);
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setToken(readAdminToken());
-  }, []);
-
-  useEffect(() => {
-    if (!router.isReady || token === undefined) return;
+    if (!router.isReady) return;
     const consultationId = Array.isArray(router.query.id)
       ? router.query.id[0]
       : router.query.id;
 
-    if (!token) {
-      setLoading(false);
-      router.replace("/login?type=admin");
-      return;
-    }
     if (!consultationId) return;
 
     let active = true;
     setLoading(true);
     setError("");
 
-    fetch(`${API_URL}/admin/consultations/${consultationId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    apiFetch(`/admin/consultations/${consultationId}`)
       .then(async (res) => {
         if (res.status === 401 || res.status === 403) {
-          clearAdminToken();
-          router.replace("/login?type=admin");
+          logout(router, "/login?type=admin");
           return;
         }
         if (!res.ok) {
@@ -81,6 +57,9 @@ export default function AdminConsultationDetail() {
         }
         const data = await res.json().catch(() => null);
         if (active) {
+          if (data && !data.consultation_date) {
+            console.warn("Consulta sin consultation_date en detalle", data);
+          }
           setDetail(data);
           setLoading(false);
         }
@@ -95,13 +74,11 @@ export default function AdminConsultationDetail() {
     return () => {
       active = false;
     };
-  }, [router, router.isReady, router.query.id, token]);
+  }, [router, router.isReady, router.query.id]);
 
   const medications = Array.isArray(detail?.medications) ? detail.medications : [];
   const labs = Array.isArray(detail?.labs) ? detail.labs : [];
-  const consultationDate =
-    detail?.consultation_date || detail?.date || detail?.created_at || "";
-  const formattedDate = formatDate(consultationDate);
+  const formattedDate = formatConsultationDate(detail);
   const patientName = detail?.patient_full_name || "";
   const patientCedula =
     detail?.patient_cedula || detail?.patient_username || detail?.cedula || "";

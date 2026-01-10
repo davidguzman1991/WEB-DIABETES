@@ -1104,23 +1104,31 @@ export default function Dashboard() {
 
   return (
     <div className="page">
-      <div className="card admin-shell">
-        <header className="admin-header">
-          <div>
-            <h1>Portal administrativo clinico</h1>
-            <p className="muted">Sesion activa: {user.username}</p>
-            <div className="admin-meta">
+      <div className="card admin-shell space-y-4">
+        <header className="admin-header flex flex-col gap-3 md:flex-row md:items-center md:justify-between !bg-white !border-slate-200/70 !shadow-sm !rounded-2xl">
+          <div className="space-y-1">
+            <h1 className="text-xl font-semibold text-slate-900">Portal administrativo clinico</h1>
+            <p className="muted text-sm">Sesion activa: {user.username}</p>
+            <div className="admin-meta text-sm">
               Rol: {user.role} | Activo: {user.activo ? "Si" : "No"}
             </div>
           </div>
-          <button type="button" onClick={() => logout(router)}>
+          <button
+            type="button"
+            onClick={() => logout(router)}
+            className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-700 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60"
+          >
             Cerrar sesion
           </button>
         </header>
-        <div className="admin-actions">
+        <div className="admin-actions !flex !flex-wrap !gap-2 rounded-xl border border-slate-200/70 bg-slate-50 p-2">
           <button
             type="button"
-            className={`admin-toggle ${sectionsOpen.createPatient ? "is-open" : ""}`}
+            className={`admin-toggle ${sectionsOpen.createPatient ? "is-open" : ""} flex-1 rounded-lg text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 ${
+              sectionsOpen.createPatient
+                ? "!bg-white !border-slate-200/70 text-slate-900 shadow-sm"
+                : "!bg-transparent !border-transparent text-slate-500 hover:text-slate-700 hover:!bg-white/70"
+            }`}
             onClick={() => toggleSection("createPatient")}
             aria-expanded={sectionsOpen.createPatient}
           >
@@ -1128,7 +1136,11 @@ export default function Dashboard() {
           </button>
           <button
             type="button"
-            className={`admin-toggle ${sectionsOpen.searchPatient ? "is-open" : ""}`}
+            className={`admin-toggle ${sectionsOpen.searchPatient ? "is-open" : ""} flex-1 rounded-lg text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 ${
+              sectionsOpen.searchPatient
+                ? "!bg-white !border-slate-200/70 text-slate-900 shadow-sm"
+                : "!bg-transparent !border-transparent text-slate-500 hover:text-slate-700 hover:!bg-white/70"
+            }`}
             onClick={() => toggleSection("searchPatient")}
             aria-expanded={sectionsOpen.searchPatient}
           >
@@ -1136,14 +1148,18 @@ export default function Dashboard() {
           </button>
           <button
             type="button"
-            className={`admin-toggle ${sectionsOpen.createConsultation ? "is-open" : ""}`}
+            className={`admin-toggle ${sectionsOpen.createConsultation ? "is-open" : ""} flex-1 rounded-lg text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 ${
+              sectionsOpen.createConsultation
+                ? "!bg-white !border-slate-200/70 text-slate-900 shadow-sm"
+                : "!bg-transparent !border-transparent text-slate-500 hover:text-slate-700 hover:!bg-white/70"
+            }`}
             onClick={() => toggleSection("createConsultation")}
             aria-expanded={sectionsOpen.createConsultation}
           >
             Abrir nueva consulta
           </button>
         </div>
-        <div className="consultation-card">
+        <div className="consultation-card !rounded-2xl !border-slate-200/70 !bg-slate-50/70 !shadow-sm">
           <div className="section-title">Indicadores globales</div>
           {statsLoading && <div className="muted">Cargando indicadores...</div>}
           {statsError && <div className="error">{statsError}</div>}
@@ -1151,14 +1167,58 @@ export default function Dashboard() {
             <div className="muted">Sin datos disponibles.</div>
           )}
           {!statsLoading && !statsError && stats && (
-            <div className="kpi-grid">
-              <div className="kpi-card">
-                <div className="kpi-label">Pacientes registrados</div>
-                <div className="kpi-value">{stats.total_patients}</div>
+            <div className="kpi-grid mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="kpi-card flex items-center justify-between rounded-xl border border-slate-200/70 bg-white px-4 py-3 shadow-sm transition hover:shadow-md">
+                <div>
+                  <div className="kpi-label text-xs font-medium uppercase tracking-wide text-slate-500">
+                    Pacientes registrados
+                  </div>
+                  <div className="kpi-value text-2xl font-semibold text-slate-900">
+                    {stats.total_patients}
+                  </div>
+                </div>
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 24 24"
+                    className="h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M18 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" />
+                    <path d="M5 21a7 7 0 0 1 14 0" />
+                  </svg>
+                </div>
               </div>
-              <div className="kpi-card">
-                <div className="kpi-label">Consultas realizadas</div>
-                <div className="kpi-value">{stats.total_consultations}</div>
+              <div className="kpi-card flex items-center justify-between rounded-xl border border-slate-200/70 bg-white px-4 py-3 shadow-sm transition hover:shadow-md">
+                <div>
+                  <div className="kpi-label text-xs font-medium uppercase tracking-wide text-slate-500">
+                    Consultas realizadas
+                  </div>
+                  <div className="kpi-value text-2xl font-semibold text-slate-900">
+                    {stats.total_consultations}
+                  </div>
+                </div>
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 24 24"
+                    className="h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M8 7h8" />
+                    <path d="M8 11h8" />
+                    <path d="M8 15h5" />
+                    <path d="M6 3h9l4 4v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" />
+                  </svg>
+                </div>
               </div>
             </div>
           )}
@@ -1725,38 +1785,6 @@ export default function Dashboard() {
         .clickable-consultation:hover {
           box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
           transform: translateY(-1px);
-        }
-
-        .kpi-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-          gap: 8px;
-          margin-top: 8px;
-        }
-
-        .kpi-card {
-          background: #f8fafc;
-          border: 1px solid #e5e7eb;
-          border-radius: 10px;
-          padding: 10px 12px;
-          transition: box-shadow 0.2s ease, transform 0.2s ease;
-        }
-
-        .kpi-card:hover {
-          box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
-          transform: translateY(-1px);
-        }
-
-        .kpi-label {
-          font-size: 12px;
-          color: #6b7280;
-          margin-bottom: 4px;
-        }
-
-        .kpi-value {
-          font-size: 20px;
-          font-weight: 700;
-          color: #0f172a;
         }
       `}</style>
     </div>

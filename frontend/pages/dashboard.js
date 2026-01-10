@@ -293,6 +293,17 @@ export default function Dashboard() {
   const [medicamentos, setMedicamentos] = useState(() => [createMedicamento()]);
   const [medicationSuggestions, setMedicationSuggestions] = useState({});
   const [activeMedicationId, setActiveMedicationId] = useState(null);
+  const [medicationAutocompleteStatus, setMedicationAutocompleteStatus] = useState({});
+  const [catalogModalOpen, setCatalogModalOpen] = useState(false);
+  const [catalogForm, setCatalogForm] = useState({
+    medId: null,
+    index: null,
+    nombre_generico: "",
+    presentacion: "",
+    forma: "",
+  });
+  const [catalogFormError, setCatalogFormError] = useState("");
+  const [catalogFormLoading, setCatalogFormLoading] = useState(false);
   const [consultaError, setConsultaError] = useState("");
   const [consultaSuccess, setConsultaSuccess] = useState("");
   const [stats, setStats] = useState(null);
@@ -740,7 +751,98 @@ export default function Dashboard() {
   const clearMedicationSuggestions = (medId) => {
     if (!medId) return;
     setMedicationSuggestions((prev) => ({ ...prev, [medId]: [] }));
+    setMedicationAutocompleteStatus((prev) => ({ ...prev, [medId]: { state: "idle", query: "" } }));
     setActiveMedicationId((current) => (current === medId ? null : current));
+  };
+
+  const openMedicationCatalogModal = (index, medId, query) => {
+    setCatalogForm({
+      medId,
+      index,
+      nombre_generico: query,
+      presentacion: "",
+      forma: "",
+    });
+    setCatalogFormError("");
+    setCatalogFormLoading(false);
+    setCatalogModalOpen(true);
+    setActiveMedicationId(null);
+  };
+
+  const closeMedicationCatalogModal = () => {
+    setCatalogModalOpen(false);
+    setCatalogFormError("");
+    setCatalogFormLoading(false);
+  };
+
+  const onCatalogFormChange = (event) => {
+    const { name, value } = event.target;
+    setCatalogForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const submitCatalogForm = async (event) => {
+    event.preventDefault();
+    if (catalogFormLoading) return;
+    const nombreGenerico = catalogForm.nombre_generico.trim();
+    if (!nombreGenerico) {
+      setCatalogFormError("Nombre generico requerido");
+      return;
+    }
+    setCatalogFormLoading(true);
+    setCatalogFormError("");
+    try {
+      const res = await apiFetch("/admin/medications/catalog", {
+        method: "POST",
+        body: {
+          nombre_generico: nombreGenerico,
+          presentacion: catalogForm.presentacion.trim() || null,
+          forma: catalogForm.forma.trim() || null,
+          activo: true,
+        },
+      });
+      if (res.status === 401 || res.status === 403) {
+        logout(router, "/login?type=admin");
+        return;
+      }
+      if (res.status === 409) {
+        setCatalogFormError("El medicamento ya existe");
+        return;
+      }
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setCatalogFormError(data.detail || "No se pudo crear el medicamento");
+        return;
+      }
+      const data = await res.json().catch(() => null);
+      if (!data?.id) {
+        setCatalogFormError("No se pudo crear el medicamento");
+        return;
+      }
+      const medId = catalogForm.medId;
+      setMedicamentos((prev) => {
+        const next = [...prev];
+        const idx = next.findIndex((item) => item?.id === medId);
+        if (idx === -1) return prev;
+        next[idx] = {
+          ...next[idx],
+          nombre: data.nombre_generico || nombreGenerico,
+          medication_id: data.id,
+        };
+        return next;
+      });
+      if (medId) {
+        setMedicationSuggestions((prev) => ({ ...prev, [medId]: [data] }));
+        setMedicationAutocompleteStatus((prev) => ({
+          ...prev,
+          [medId]: { state: "ready", query: nombreGenerico },
+        }));
+      }
+      closeMedicationCatalogModal();
+    } catch {
+      setCatalogFormError("No se pudo crear el medicamento");
+    } finally {
+      setCatalogFormLoading(false);
+    }
   };
 
   const scheduleMedicationAutocomplete = (medId, query) => {
@@ -753,6 +855,12 @@ export default function Dashboard() {
       clearMedicationSuggestions(medId);
       return;
     }
+    setMedicationSuggestions((prev) => ({ ...prev, [medId]: [] }));
+    setMedicationAutocompleteStatus((prev) => ({
+      ...prev,
+      [medId]: { state: "loading", query: trimmed },
+    }));
+    setActiveMedicationId(medId);
     timers[medId] = setTimeout(async () => {
       if (medicationAutocompleteQueryRef.current[medId] !== trimmed) return;
       const endpoint = `/admin/medications/autocomplete?q=${encodeURIComponent(trimmed)}`;
@@ -769,6 +877,10 @@ export default function Dashboard() {
           return;
         }
         if (!res.ok) {
+          setMedicationAutocompleteStatus((prev) => ({
+            ...prev,
+            [medId]: { state: "error", query: trimmed },
+          }));
           clearMedicationSuggestions(medId);
           return;
         }
@@ -788,10 +900,18 @@ export default function Dashboard() {
           });
         }
         setMedicationSuggestions((prev) => ({ ...prev, [medId]: filtered }));
+        setMedicationAutocompleteStatus((prev) => ({
+          ...prev,
+          [medId]: { state: "ready", query: trimmed },
+        }));
         setActiveMedicationId((current) =>
-          filtered.length ? medId : current === medId ? null : current
+          current === medId || filtered.length ? medId : current
         );
       } catch {
+        setMedicationAutocompleteStatus((prev) => ({
+          ...prev,
+          [medId]: { state: "error", query: trimmed },
+        }));
         clearMedicationSuggestions(medId);
       }
     }, MEDICATION_AUTOCOMPLETE_DEBOUNCE_MS);
@@ -2142,8 +2262,16 @@ export default function Dashboard() {
                     if (!med || typeof med !== "object") return null;
                     const medId = med.id || `med-${index}`;
                     const suggestions = medicationSuggestions[medId] || [];
+                    const currentQuery = String(med.nombre || "").trim();
+                    const status = medicationAutocompleteStatus[medId];
+                    const canCreateMedication =
+                      status?.state === "ready" &&
+                      status.query === currentQuery &&
+                      currentQuery.length >= MEDICATION_AUTOCOMPLETE_MIN_CHARS &&
+                      suggestions.length === 0;
                     const showSuggestions =
-                      activeMedicationId === medId && suggestions.length > 0;
+                      activeMedicationId === medId &&
+                      (suggestions.length > 0 || canCreateMedication);
                     return (
                       <div key={medId} className="item-block">
                         <div className="form two">
@@ -2202,6 +2330,24 @@ export default function Dashboard() {
                                         </li>
                                       );
                                     })}
+                                    {canCreateMedication && (
+                                      <li>
+                                        <button
+                                          type="button"
+                                          className="w-full px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-50"
+                                          onMouseDown={(event) => {
+                                            event.preventDefault();
+                                            openMedicationCatalogModal(
+                                              index,
+                                              medId,
+                                              currentQuery
+                                            );
+                                          }}
+                                        >
+                                          Crear en catalogo: {currentQuery}
+                                        </button>
+                                      </li>
+                                    )}
                                   </ul>
                                 </div>
                               )}
@@ -2390,6 +2536,67 @@ export default function Dashboard() {
             </button>
           </form>
         </section>
+      )}
+      {catalogModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-lg">
+            <div className="mb-4 space-y-1">
+              <h3 className="text-base font-semibold text-slate-900">
+                Crear en catalogo
+              </h3>
+              <p className="text-sm text-slate-500">
+                Completa la informacion del medicamento.
+              </p>
+            </div>
+            <form onSubmit={submitCatalogForm} className="space-y-3">
+              <label className="text-sm font-medium text-slate-700">
+                Nombre generico
+                <input
+                  name="nombre_generico"
+                  value={catalogForm.nombre_generico}
+                  onChange={onCatalogFormChange}
+                  className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60"
+                />
+              </label>
+              <label className="text-sm font-medium text-slate-700">
+                Presentacion
+                <input
+                  name="presentacion"
+                  value={catalogForm.presentacion}
+                  onChange={onCatalogFormChange}
+                  className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60"
+                />
+              </label>
+              <label className="text-sm font-medium text-slate-700">
+                Forma
+                <input
+                  name="forma"
+                  value={catalogForm.forma}
+                  onChange={onCatalogFormChange}
+                  className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60"
+                />
+              </label>
+              {catalogFormError && (
+                <div className="error border border-red-200 text-sm">
+                  {catalogFormError}
+                </div>
+              )}
+              <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={closeMedicationCatalogModal}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" size="sm" disabled={catalogFormLoading}>
+                  {catalogFormLoading ? "Creando..." : "Crear"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
       <style jsx>{`
         .clickable-consultation {

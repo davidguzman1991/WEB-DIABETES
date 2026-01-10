@@ -28,6 +28,15 @@ const getTodayInputValue = () => {
   return `${year}-${month}-${day}`;
 };
 
+const DEFAULT_PATIENT_FORM = {
+  cedula: "",
+  password: "",
+  confirmPassword: "",
+  nombres: "",
+  apellidos: "",
+  fecha_nacimiento: "",
+};
+
 const DEFAULT_CONSULTA_FORM = {
   patient_username: "",
   diagnostico: "",
@@ -49,31 +58,61 @@ const DEFAULT_CONSULTA_FORM = {
 
 const hasDraftValue = (value) => String(value ?? "").trim().length > 0;
 
-const hasDraftContent = (draft) => {
-  if (!draft || typeof draft !== "object") return false;
-  const formValues = Object.values(draft.consultaForm || {});
-  if (formValues.some(hasDraftValue)) return true;
-  const meds = Array.isArray(draft.medicamentos) ? draft.medicamentos : [];
-  if (
-    meds.some((med) => {
-      if (!med || typeof med !== "object") return false;
-      return ["nombre", "cantidad", "descripcion", "duracion_dias"].some((key) =>
-        hasDraftValue(med[key])
-      );
-    })
-  ) {
-    return true;
-  }
-  const labs = Array.isArray(draft.labs) ? draft.labs : [];
-  if (
-    labs.some((row) => {
-      if (!row || typeof row !== "object") return false;
-      return ["lab_id", "valor"].some((key) => hasDraftValue(row[key]));
-    })
-  ) {
-    return true;
+const normalizeDraftValue = (value) => String(value ?? "").trim();
+
+const isConsultaFormDirty = (form) => {
+  const current = { ...DEFAULT_CONSULTA_FORM, ...(form || {}) };
+  const keys = new Set([
+    ...Object.keys(DEFAULT_CONSULTA_FORM),
+    ...Object.keys(form || {}),
+  ]);
+  for (const key of keys) {
+    if (
+      normalizeDraftValue(current[key]) !== normalizeDraftValue(DEFAULT_CONSULTA_FORM[key])
+    ) {
+      return true;
+    }
   }
   return false;
+};
+
+const isMedicamentosDirty = (items) => {
+  const meds = Array.isArray(items) ? items : [];
+  return meds.some((med) => {
+    if (!med || typeof med !== "object") return false;
+    return ["nombre", "cantidad", "descripcion", "duracion_dias"].some((key) =>
+      hasDraftValue(med[key])
+    );
+  });
+};
+
+const isLabsDirty = (items) => {
+  const labs = Array.isArray(items) ? items : [];
+  return labs.some((row) => {
+    if (!row || typeof row !== "object") return false;
+    return ["lab_id", "valor"].some((key) => hasDraftValue(row[key]));
+  });
+};
+
+const hasDraftContent = (draft) => {
+  if (!draft || typeof draft !== "object") return false;
+  if (isConsultaFormDirty(draft.consultaForm)) return true;
+  if (isMedicamentosDirty(draft.medicamentos)) return true;
+  if (isLabsDirty(draft.labs)) return true;
+  return false;
+};
+
+const getDraftStorage = () => {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage;
+  } catch {
+    try {
+      return window.sessionStorage;
+    } catch {
+      return null;
+    }
+  }
 };
 
 const getMaxNumericId = (items) => {
@@ -191,14 +230,7 @@ const usePatientNameSearch = (router) => {
 export default function Dashboard() {
   const router = useRouter();
   const { user, loading, error: authError } = useAuthGuard();
-  const [form, setForm] = useState({
-    cedula: "",
-    password: "",
-    confirmPassword: "",
-    nombres: "",
-    apellidos: "",
-    fecha_nacimiento: "",
-  });
+  const [form, setForm] = useState(DEFAULT_PATIENT_FORM);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [age, setAge] = useState(null);
@@ -243,11 +275,56 @@ export default function Dashboard() {
   const searchPatient = usePatientNameSearch(router);
   const consultationSearch = usePatientNameSearch(router);
 
+  const focusInput = (selector) => {
+    if (typeof window === "undefined") return;
+    window.requestAnimationFrame(() => {
+      const input = document.querySelector(selector);
+      if (input) input.focus();
+    });
+  };
+
+  const resetPatientLookupState = () => {
+    setPatientInfo(null);
+    setPatientLookupStatus("idle");
+    setPatientLookupMessage("");
+    setConsultas([]);
+    setConsultaError("");
+    setGlucoseLogs([]);
+    setGlucoseError("");
+    setGlucoseMessage("");
+    setGlucoseLoading(false);
+  };
+
+  const resetSearchPatientSection = (shouldFocus = false) => {
+    setConsultaForm((prev) => ({ ...prev, patient_username: "" }));
+    searchPatient.clear();
+    resetPatientLookupState();
+    if (shouldFocus) focusInput('input[name="patient_username"]');
+  };
+
+  const resetConsultationSearch = (shouldFocus = false) => {
+    setConsultaForm((prev) => ({ ...prev, patient_username: "" }));
+    consultationSearch.clear();
+    resetPatientLookupState();
+    if (shouldFocus) focusInput('input[name="patient_username"]');
+  };
+
+  const resetCreatePatientForm = (shouldFocus = false) => {
+    setForm(DEFAULT_PATIENT_FORM);
+    setError("");
+    setSuccess("");
+    setAge(null);
+    setDateError("");
+    if (shouldFocus) focusInput('input[name="cedula"]');
+  };
+
   const clearDraft = () => {
+    const storage = getDraftStorage();
+    if (!storage) return;
     try {
-      sessionStorage.removeItem(CONSULTA_DRAFT_KEY);
+      storage.removeItem(CONSULTA_DRAFT_KEY);
     } catch {
-      // Ignore sessionStorage failures.
+      // Ignore storage failures.
     }
   };
 
@@ -257,10 +334,12 @@ export default function Dashboard() {
       clearDraft();
       return;
     }
+    const storage = getDraftStorage();
+    if (!storage) return;
     try {
-      sessionStorage.setItem(CONSULTA_DRAFT_KEY, JSON.stringify(state));
+      storage.setItem(CONSULTA_DRAFT_KEY, JSON.stringify(state));
     } catch {
-      // Ignore sessionStorage failures.
+      // Ignore storage failures.
     }
   };
 
@@ -343,7 +422,8 @@ export default function Dashboard() {
     draftRestoredRef.current = true;
     let raw = null;
     try {
-      raw = sessionStorage.getItem(CONSULTA_DRAFT_KEY);
+      const storage = getDraftStorage();
+      raw = storage ? storage.getItem(CONSULTA_DRAFT_KEY) : null;
     } catch {
       draftReadyRef.current = true;
       return;
@@ -420,6 +500,18 @@ export default function Dashboard() {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, []);
+
+  useEffect(() => {
+    if (sectionsOpen.createPatient) {
+      resetCreatePatientForm(true);
+    }
+  }, [sectionsOpen.createPatient]);
+
+  useEffect(() => {
+    if (sectionsOpen.searchPatient) {
+      resetSearchPatientSection(true);
+    }
+  }, [sectionsOpen.searchPatient]);
 
   useEffect(() => {
     const cedula = consultaForm.patient_username.trim();
@@ -586,9 +678,8 @@ export default function Dashboard() {
     setLabsMessage("");
     setConsultaError("");
     setConsultaSuccess("");
-    setPatientInfo(null);
-    setPatientLookupStatus("idle");
-    setPatientLookupMessage("");
+    consultationSearch.clear();
+    resetPatientLookupState();
   };
 
   const updateMedicamentoField = (index, name, value) => {
@@ -1410,6 +1501,14 @@ export default function Dashboard() {
             >
               Registrar paciente
             </button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full md:col-span-2"
+              onClick={() => resetCreatePatientForm(true)}
+            >
+              Limpiar formulario
+            </Button>
           </form>
         </section>
       )}
@@ -1463,6 +1562,16 @@ export default function Dashboard() {
                       {patientLookupMessage}
                     </div>
                   )}
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => resetSearchPatientSection(true)}
+                  >
+                    Nueva búsqueda
+                  </Button>
                 </div>
                 <div className="my-4 h-px w-full bg-slate-200/80" />
                 <div className="grid gap-4 md:grid-cols-2">
@@ -1650,6 +1759,16 @@ export default function Dashboard() {
                   className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 disabled:bg-slate-50 disabled:text-slate-700"
                 />
               </label>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => resetConsultationSearch(true)}
+              >
+                Nueva búsqueda
+              </Button>
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
               <div className="space-y-2">

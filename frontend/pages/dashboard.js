@@ -153,6 +153,20 @@ const computeAge = (dateStr) => {
   return { age, error: null };
 };
 
+const normalizeConsultationDateInput = (value) => {
+  const trimmed = String(value || "").trim();
+  if (!trimmed) return "";
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(trimmed)) {
+    const [day, month, year] = trimmed.split("/");
+    return `${year}-${month}-${day}`;
+  }
+  if (/^\d{2}-\d{2}-\d{4}$/.test(trimmed)) {
+    const [day, month, year] = trimmed.split("-");
+    return `${year}-${month}-${day}`;
+  }
+  return trimmed;
+};
+
 const canSubmit = (form, dateError) => {
   if (dateError) return false;
   if (!form.cedula.trim()) return false;
@@ -1023,13 +1037,16 @@ export default function Dashboard() {
         setLabsError("No se pudo cargar catalogo de laboratorios");
         return;
       }
-      const consultationDate = (consultaForm.consultation_date || "").trim();
+      const consultationDate = normalizeConsultationDateInput(
+        consultaForm.consultation_date
+      );
       const { payload: labsPayload, errors } = validateLabs(labs);
       if (Object.keys(errors).length) {
         setLabRowErrors(errors);
         setLabsError("Corrige los laboratorios marcados");
         return;
       }
+      console.log("payload consultation_date", consultationDate);
       const res = await apiFetch("/admin/consultations", {
         method: "POST",
         body: {

@@ -5,26 +5,9 @@ import Navigation from "../../../components/Navigation";
 import { useAdminGuard } from "../../../hooks/useAdminGuard";
 import { apiFetch, logout } from "../../../lib/auth";
 
-const MAX_PATIENTS = 50;
 const DEFAULT_RANGE_DAYS = 7;
 
 const toDateInputValue = (date) => date.toISOString().slice(0, 10);
-const normalizeText = (value) => String(value ?? "").toLowerCase();
-
-const buildPatientName = (patient) => {
-  const fullName = [patient.nombres, patient.apellidos].filter(Boolean).join(" ").trim();
-  return (
-    fullName ||
-    patient.nombre ||
-    patient.name ||
-    patient.username ||
-    patient.cedula ||
-    "Paciente"
-  );
-};
-
-const getPatientCedula = (patient) =>
-  String(patient.cedula || patient.username || patient.id || "").trim();
 
 const parseConsultationDate = (item) => {
   const raw = item?.created_at || item?.fecha || item?.date || item?.createdAt;
@@ -136,76 +119,20 @@ export default function AdminConsultationsList() {
 
     setLoadingList(true);
     try {
-      const data = await requestJson("/admin/patients");
-      const patients = Array.isArray(data) ? data : [];
-      const queryValue = normalizeText(trimmedQuery);
-      const filtered = queryValue
-        ? patients.filter((patient) => {
-            const name = normalizeText(buildPatientName(patient));
-            const cedula = normalizeText(getPatientCedula(patient));
-            return name.includes(queryValue) || cedula.includes(queryValue);
-          })
-        : patients;
-      const limitedPatients = filtered.slice(0, MAX_PATIENTS);
-      let partialError = false;
-
-      let lastDebug = null;
-      const nestedConsultations = await Promise.all(
-        limitedPatients.map(async (patient) => {
-          const patientCedula = getPatientCedula(patient);
-          const patientName = buildPatientName(patient);
-          let list = [];
-          let endpoint = "";
-          try {
-            if (patientCedula) {
-              endpoint = `/admin/consultations?cedula=${encodeURIComponent(patientCedula)}`;
-              list = await requestJson(endpoint);
-            } else if (patient?.username || patient?.id) {
-              const identifier = patient.username || patient.id;
-              endpoint = `/admin/patients/${encodeURIComponent(identifier)}/consultas`;
-              list = await requestJson(endpoint);
-            }
-          } catch (err) {
-            console.error("Consultations list error", endpoint, err);
-            if (err?.authFailure) throw err;
-            partialError = true;
-            if (isDev && endpoint) {
-              lastDebug = {
-                endpoint,
-                status: err?.status,
-                detail: err?.detail || err?.message || "",
-              };
-            }
-            return [];
-          }
-          const items = Array.isArray(list) ? list : [];
-          return items.map((item) => ({
-            ...item,
-            _patientName: patientName,
-            _patientCedula: patientCedula,
-            _dateValue: parseConsultationDate(item),
-          }));
-        })
-      );
-
-      const flattened = nestedConsultations.flat();
-      const fromValue = effectiveFrom ? new Date(`${effectiveFrom}T00:00:00`) : null;
-      const toValue = effectiveTo ? new Date(`${effectiveTo}T23:59:59`) : null;
-      const filteredByDate = flattened.filter((item) => {
-        if (!item._dateValue) return false;
-        if (fromValue && item._dateValue < fromValue) return false;
-        if (toValue && item._dateValue > toValue) return false;
-        return true;
-      });
-      filteredByDate.sort(
-        (a, b) => (b._dateValue?.getTime() || 0) - (a._dateValue?.getTime() || 0)
-      );
-      setConsultations(filteredByDate);
-      if (partialError) {
-        const partialMessage =
-          lastDebug?.detail || "No se pudieron cargar algunas consultas.";
-        reportError(partialMessage, lastDebug);
-      }
+      const params = new URLSearchParams();
+      if (effectiveFrom) params.set("from", effectiveFrom);
+      if (effectiveTo) params.set("to", effectiveTo);
+      if (trimmedQuery) params.set("query", trimmedQuery);
+      const endpoint = params.toString()
+        ? `/admin/consultations/list?${params.toString()}`
+        : "/admin/consultations/list";
+      const data = await requestJson(endpoint);
+      const items = Array.isArray(data?.items) ? data.items : [];
+      const normalized = items.map((item) => ({
+        ...item,
+        _dateValue: parseConsultationDate(item),
+      }));
+      setConsultations(normalized);
     } catch (err) {
       console.error("Consultations list error", err?.endpoint, err);
       if (err?.authFailure) return;
@@ -224,18 +151,9 @@ export default function AdminConsultationsList() {
 
   const handleOpen = (item) => {
     if (!item) return;
-    if (item.id && item._patientCedula) {
-      router.push(
-        `/admin/patients/${encodeURIComponent(item._patientCedula)}/consultations/${item.id}`
-      );
-      return;
-    }
-    if (item._patientCedula) {
-      router.push(`/admin/patients/${encodeURIComponent(item._patientCedula)}`);
-      return;
-    }
-    if (item.id) {
-      router.push(`/dashboard/consultas/${item.id}`);
+    const consultationId = item.consultation_id || item.id;
+    if (consultationId) {
+      router.push(`/dashboard/consultas/${consultationId}`);
     }
   };
 
@@ -375,15 +293,15 @@ export default function AdminConsultationsList() {
                       ? item._dateValue.toLocaleDateString()
                       : "-";
                     const diagnosis = item.diagnosis || item.diagnostico || "";
-                    const canOpen = Boolean(item.id || item._patientCedula);
-                    const rowKey = item.id || `${item._patientCedula}-${index}`;
+                    const canOpen = Boolean(item.consultation_id || item.id);
+                    const rowKey = item.consultation_id || item.id || `consultation-${index}`;
                     return (
                       <tr key={rowKey} className="hover:bg-slate-50">
                         <td className="py-3 pr-4">{dateLabel}</td>
                         <td className="py-3 pr-4 font-medium text-slate-900">
-                          {item._patientName || "Paciente"}
+                          {item.patient_name || "Paciente"}
                         </td>
-                        <td className="py-3 pr-4">{item._patientCedula || "-"}</td>
+                        <td className="py-3 pr-4">{item.patient_cedula || "-"}</td>
                         <td className="py-3 pr-4">
                           {diagnosis ? (
                             <span className="text-slate-600">{diagnosis}</span>

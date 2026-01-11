@@ -638,19 +638,33 @@ button.ghost, .ghost {
 }
 
 .admin-toggle {
-  background: #f8fafc;
-  color: var(--ink);
-  border: 1px solid var(--border);
+  background: #ffffff;
+  color: #334155;
+  border: 1px solid #e2e8f0;
   border-radius: var(--radius);
   padding: 10px 12px;
   text-align: left;
   font-weight: 600;
   min-height: 38px;
+  transition: background-color 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 .admin-toggle.is-open {
-  border-color: #cfe6e1;
-  background: #f3faf8;
+  background: #0f766e;
+  color: #ffffff;
+  border-color: #0f766e;
+  box-shadow: 0 10px 18px rgba(15, 118, 110, 0.25);
+}
+
+.admin-toggle:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.admin-toggle.is-open:hover {
+  background: #0b5f59;
+  border-color: #0b5f59;
 }
 
 .admin-section {

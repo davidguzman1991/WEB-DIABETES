@@ -5,7 +5,6 @@ import { apiFetch, logout } from "../../../../lib/auth";
 import { useAuthGuard } from "../../../../hooks/useAuthGuard";
 import Button from "../../../../components/ui/Button";
 import Card from "../../../../components/ui/Card";
-import SectionTitle from "../../../../components/ui/SectionTitle";
 
 export default function TratamientoConsulta() {
   const router = useRouter();
@@ -43,44 +42,21 @@ export default function TratamientoConsulta() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
         <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
-          <Card className="p-5 sm:p-8">
-            <SectionTitle
-              title="Tratamiento"
-              subtitle="Cómo tomar sus medicamentos"
-              rightSlot={
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    router.push(
-                      consultationId
-                        ? `/portal/consultas/${consultationId}`
-                        : "/portal/historial"
-                    )
-                  }
-                >
-                  Volver a consulta
-                </Button>
-              }
-            />
-            <p className="mt-6 text-sm text-slate-500">Cargando...</p>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
-        <Card className="p-5 sm:p-8">
-          <SectionTitle
-            title="Tratamiento"
-            subtitle="Cómo tomar sus medicamentos"
-            rightSlot={
+          <Card className="border-l-4 border-emerald-500 p-5 sm:p-8">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-emerald-600">
+                  Consulta
+                </div>
+                <h1 className="text-2xl font-semibold text-slate-900">
+                  Tratamiento
+                </h1>
+                <p className="text-sm text-slate-600">
+                  Como tomar sus medicamentos
+                </p>
+              </div>
               <Button
                 type="button"
                 variant="outline"
@@ -95,8 +71,41 @@ export default function TratamientoConsulta() {
               >
                 Volver a consulta
               </Button>
-            }
-          />
+            </div>
+            <p className="mt-6 text-sm text-slate-500">Cargando...</p>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
+        <Card className="border-l-4 border-emerald-500 p-5 sm:p-8">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-emerald-600">
+                Consulta
+              </div>
+              <h1 className="text-2xl font-semibold text-slate-900">Tratamiento</h1>
+              <p className="text-sm text-slate-600">Como tomar sus medicamentos</p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                router.push(
+                  consultationId
+                    ? `/portal/consultas/${consultationId}`
+                    : "/portal/historial"
+                )
+              }
+            >
+              Volver a consulta
+            </Button>
+          </div>
 
           <div className="mt-6 space-y-4">
             {error && (
@@ -120,26 +129,35 @@ export default function TratamientoConsulta() {
                     const durationValue = med.duration_days ?? "";
                     const descriptionValue = med.description ?? "";
                     const medKey = `${med.drug_name || "med"}-${index}`;
-                    const metaItems = [];
-                    if (quantityValue !== "") metaItems.push(`Dosis: ${quantityValue}`);
-                    if (med.horario) metaItems.push(`Horario: ${med.horario}`);
-                    if (med.via) metaItems.push(`Via: ${med.via}`);
-                    if (durationValue !== "") metaItems.push(`Duracion: ${durationValue} dias`);
+                    const chipItems = [];
+                    if (quantityValue !== "") chipItems.push(`Dosis: ${quantityValue}`);
+                    if (med.horario) chipItems.push(`Horario: ${med.horario}`);
+                    if (med.via) chipItems.push(`Via: ${med.via}`);
+                    if (durationValue !== "") {
+                      chipItems.push(`Duracion: ${durationValue} dias`);
+                    }
                     return (
                       <div
                         key={medKey}
-                        className="flex flex-col gap-2 px-4 py-4"
+                        className="flex flex-col gap-3 px-4 py-4"
                       >
                         <div className="text-sm font-semibold text-slate-900">
                           {med.drug_name || "Medicamento"}
                         </div>
-                        {metaItems.length > 0 && (
-                          <div className="text-xs text-slate-500">
-                            {metaItems.join(" · ")}
+                        {chipItems.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {chipItems.map((chip) => (
+                              <span
+                                key={chip}
+                                className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700"
+                              >
+                                {chip}
+                              </span>
+                            ))}
                           </div>
                         )}
                         {descriptionValue && (
-                          <div className="text-sm text-slate-600">
+                          <div className="rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm text-slate-700">
                             {descriptionValue}
                           </div>
                         )}

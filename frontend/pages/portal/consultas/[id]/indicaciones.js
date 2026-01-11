@@ -41,33 +41,37 @@ export default function IndicacionesConsulta() {
 
   if (loading) {
     return (
-      <div className="page">
-        <div className="card portal-detail-card">
-          <h1>Indicaciones</h1>
-          <p className="muted">Cargando...</p>
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+        <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
+          <div className="card portal-detail-card">
+            <h1>Indicaciones</h1>
+            <p className="muted">Cargando...</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="page">
-      <div className="card portal-detail-card">
-        <h1>Indicaciones</h1>
-        <Link
-          className="button button-secondary"
-          href={consultationId ? `/portal/consultas/${consultationId}` : "/portal/historial"}
-        >
-          Volver a consulta
-        </Link>
-        {error && <div className="error">{error}</div>}
-        {indicationsText ? (
-          <div className="flash-card">
-            <div className="flash-note">{indicationsText}</div>
-          </div>
-        ) : (
-          <div className="muted">No hay indicaciones registradas.</div>
-        )}
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
+        <div className="card portal-detail-card">
+          <h1>Indicaciones</h1>
+          <Link
+            className="button button-secondary"
+            href={consultationId ? `/portal/consultas/${consultationId}` : "/portal/historial"}
+          >
+            Volver a consulta
+          </Link>
+          {error && <div className="error">{error}</div>}
+          {indicationsText ? (
+            <div className="flash-card">
+              <div className="flash-note">{indicationsText}</div>
+            </div>
+          ) : (
+            <div className="muted">No hay indicaciones registradas.</div>
+          )}
+        </div>
       </div>
     </div>
   );

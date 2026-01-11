@@ -608,7 +608,7 @@ export default function Portal() {
   }
 
   return (
-    <div className="page portal-bg pb-24">
+    <div className="page portal-bg pb-24 bg-gradient-to-b from-slate-50 to-white">
       <div className="portal-bg-overlay" aria-hidden="true" />
       <div className="portal-bg-content mx-auto w-full max-w-5xl">
         <div className="card portal-shell portal-main-card w-full !max-w-5xl !mt-6 sm:!mt-10">
@@ -826,21 +826,26 @@ export default function Portal() {
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Link className="button button-primary small" href="/portal/glucosas">
-                  Ver
-                </Link>
-                <button
+                <Button
                   type="button"
-                  className="button button-secondary small"
+                  size="sm"
+                  onClick={() => router.push("/portal/glucosas")}
+                >
+                  Ver
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={toggleGlucoseForm}
                 >
                   {glucoseOpen ? "Cerrar formulario" : "Registrar control"}
-                </button>
+                </Button>
               </div>
             </div>
             <div
               ref={glucoseFormRef}
-              className={`portal-card glucose-card transition ${
+              className={`portal-card glucose-card border-l-4 border-blue-500 transition ${
                 glucoseHighlight
                   ? "ring-2 ring-emerald-300 ring-offset-2 ring-offset-white"
                   : ""
@@ -870,10 +875,16 @@ export default function Portal() {
                   onSubmit={onGlucoseSubmit}
                   className="form glucose-form mt-5 space-y-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6"
                 >
-                  <SectionTitle
-                    title="Registro de glucosa"
-                    subtitle="Ingrese el control solicitado por su médico"
-                  />
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-xs font-semibold text-blue-700">
+                      GL
+                    </div>
+                    <SectionTitle
+                      title="Registro de glucosa"
+                      subtitle="Ingrese el control solicitado por su medico"
+                      className="flex-1"
+                    />
+                  </div>
                   <fieldset className="glucose-type space-y-3">
                     <legend className="text-sm font-medium text-slate-700">
                       Tipo de control de glucosa

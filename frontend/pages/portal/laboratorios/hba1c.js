@@ -198,18 +198,21 @@ export default function HbA1cHistory() {
 
   if (authLoading || loading) {
     return (
-      <div className="page">
-        <div className="card portal-detail-card">
-          <h1>HbA1c</h1>
-          <p className="muted">Cargando...</p>
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+        <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
+          <div className="card portal-detail-card">
+            <h1>HbA1c</h1>
+            <p className="muted">Cargando...</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="page">
-      <div className="card portal-detail-card">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
+        <div className="card portal-detail-card">
         <header className="portal-header">
           <h1 className="portal-title">HbA1c</h1>
           <p className="portal-subtitle">Evolución en el tiempo</p>
@@ -373,6 +376,7 @@ export default function HbA1cHistory() {
                 <div className="list-meta">{formatHbA1cValue(entry.value)}</div>
               </div>
             ))}
+        </div>
         </div>
       </div>
       <style jsx>{`

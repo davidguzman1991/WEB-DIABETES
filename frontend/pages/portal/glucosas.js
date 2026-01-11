@@ -486,13 +486,15 @@ export default function PortalGlucosas() {
 
   if (!authReady || loading) {
     return (
-      <div className="page">
-        <div className="card portal-shell">
-          <div className="portal-dashboard">
-            <SkeletonLine width="50%" height={20} />
-            <SkeletonLine width="35%" height={12} />
-            <SkeletonBlock />
-            <SkeletonLine width="100%" height={CHART_HEIGHT} />
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+        <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
+          <div className="card portal-shell">
+            <div className="portal-dashboard">
+              <SkeletonLine width="50%" height={20} />
+              <SkeletonLine width="35%" height={12} />
+              <SkeletonBlock />
+              <SkeletonLine width="100%" height={CHART_HEIGHT} />
+            </div>
           </div>
         </div>
       </div>
@@ -504,9 +506,10 @@ export default function PortalGlucosas() {
   }
 
   return (
-    <div className="page">
-      <div className="card portal-shell">
-        <div className="portal-dashboard">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
+        <div className="card portal-shell">
+          <div className="portal-dashboard">
           <header className="portal-header">
             <h1 className="portal-title">
               Mis registros anteriores. Registre su glucosa cuando su medico se lo
@@ -609,6 +612,8 @@ export default function PortalGlucosas() {
               </div>
             </>
           )}
+        </div>
+          </div>
         </div>
       </div>
       <style jsx>{`

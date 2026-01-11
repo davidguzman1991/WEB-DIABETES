@@ -72,7 +72,7 @@ export default function ConsultaDetalle() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
         <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
           <Card className="p-5 sm:p-8">
             <SectionTitle
@@ -97,7 +97,7 @@ export default function ConsultaDetalle() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
         <Card className="p-5 sm:p-8">
           <SectionTitle

@@ -1523,29 +1523,51 @@ export default function Dashboard() {
   return (
     <div className="page">
       <div className="card admin-shell space-y-4">
-        <header className="admin-header flex flex-col gap-3 md:flex-row md:items-center md:justify-between !bg-white !border-slate-200/70 !shadow-sm !rounded-2xl">
-          <div className="space-y-1">
-            <h1 className="text-xl font-semibold text-slate-900">Portal administrativo clinico</h1>
-            <p className="muted text-sm">Sesion activa: {user.username}</p>
-            <div className="admin-meta text-sm">
-              Rol: {user.role} | Activo: {user.activo ? "Si" : "No"}
+        <div className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm">
+          <div className="h-2 w-full bg-gradient-to-r from-teal-500 via-sky-500 to-blue-500" />
+          <header className="admin-header flex flex-col gap-3 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-6">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-teal-50 text-teal-700">
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 5v14" />
+                  <path d="M5 12h14" />
+                </svg>
+              </div>
+              <div className="space-y-1">
+                <h1 className="text-xl font-semibold text-slate-900">
+                  Portal administrativo clinico
+                </h1>
+                <p className="muted text-sm">Sesion activa: {user.username}</p>
+                <div className="admin-meta text-sm">
+                  Rol: {user.role} | Activo: {user.activo ? "Si" : "No"}
+                </div>
+              </div>
             </div>
-          </div>
+            <button
+              type="button"
+              onClick={() => logout(router)}
+              className="inline-flex items-center justify-center rounded-full border border-teal-200 bg-white px-4 py-2 text-sm font-semibold text-teal-700 transition hover:border-teal-300 hover:bg-teal-50 hover:text-teal-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200"
+            >
+              Cerrar sesion
+            </button>
+          </header>
+        </div>
+        <div className="admin-actions !flex !flex-wrap !gap-2 rounded-full border border-slate-200/70 bg-white/80 p-2 shadow-sm">
           <button
             type="button"
-            onClick={() => logout(router)}
-            className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-700 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60"
-          >
-            Cerrar sesion
-          </button>
-        </header>
-        <div className="admin-actions !flex !flex-wrap !gap-2 rounded-xl border border-slate-200/70 bg-slate-50 p-2">
-          <button
-            type="button"
-            className={`admin-toggle ${sectionsOpen.createPatient ? "is-open" : ""} flex-1 rounded-lg text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 ${
+            className={`admin-toggle ${sectionsOpen.createPatient ? "is-open" : ""} flex-1 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200 ${
               sectionsOpen.createPatient
-                ? "!bg-white !border-slate-200/70 text-slate-900 shadow-sm"
-                : "!bg-transparent !border-transparent text-slate-500 hover:text-slate-700 hover:!bg-white/70"
+                ? "bg-teal-600 text-white shadow-sm hover:bg-teal-700"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-700"
             }`}
             onClick={() => toggleSection("createPatient")}
             aria-expanded={sectionsOpen.createPatient}
@@ -1554,10 +1576,10 @@ export default function Dashboard() {
           </button>
           <button
             type="button"
-            className={`admin-toggle ${sectionsOpen.searchPatient ? "is-open" : ""} flex-1 rounded-lg text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 ${
+            className={`admin-toggle ${sectionsOpen.searchPatient ? "is-open" : ""} flex-1 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200 ${
               sectionsOpen.searchPatient
-                ? "!bg-white !border-slate-200/70 text-slate-900 shadow-sm"
-                : "!bg-transparent !border-transparent text-slate-500 hover:text-slate-700 hover:!bg-white/70"
+                ? "bg-teal-600 text-white shadow-sm hover:bg-teal-700"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-700"
             }`}
             onClick={() => toggleSection("searchPatient")}
             aria-expanded={sectionsOpen.searchPatient}
@@ -1566,10 +1588,10 @@ export default function Dashboard() {
           </button>
           <button
             type="button"
-            className={`admin-toggle ${sectionsOpen.createConsultation ? "is-open" : ""} flex-1 rounded-lg text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 ${
+            className={`admin-toggle ${sectionsOpen.createConsultation ? "is-open" : ""} flex-1 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200 ${
               sectionsOpen.createConsultation
-                ? "!bg-white !border-slate-200/70 text-slate-900 shadow-sm"
-                : "!bg-transparent !border-transparent text-slate-500 hover:text-slate-700 hover:!bg-white/70"
+                ? "bg-teal-600 text-white shadow-sm hover:bg-teal-700"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-700"
             }`}
             onClick={() => toggleSection("createConsultation")}
             aria-expanded={sectionsOpen.createConsultation}
@@ -1578,14 +1600,14 @@ export default function Dashboard() {
           </button>
           <button
             type="button"
-            className="admin-toggle flex-1 rounded-lg text-sm font-semibold text-slate-500 transition hover:text-slate-700 hover:!bg-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 !bg-transparent !border-transparent"
+            className="admin-toggle flex-1 rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-200 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200 bg-slate-100"
             onClick={() => router.push("/admin/consultations/list")}
           >
             Ver consultas
           </button>
           <button
             type="button"
-            className="admin-toggle flex-1 rounded-lg text-sm font-semibold text-slate-500 transition hover:text-slate-700 hover:!bg-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60 !bg-transparent !border-transparent"
+            className="admin-toggle flex-1 rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-200 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200 bg-slate-100"
             onClick={() => router.push("/audit")}
           >
             Auditoria
@@ -1628,7 +1650,7 @@ export default function Dashboard() {
           )}
           {!statsLoading && !statsError && stats && (
             <div className="kpi-grid mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div className="kpi-card flex items-center justify-between rounded-xl border border-slate-200/70 bg-white px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+              <div className="kpi-card flex items-center justify-between rounded-xl border border-slate-200/70 border-l-4 border-teal-500 bg-white px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
                 <div>
                   <div className="kpi-label text-xs font-medium uppercase tracking-wide text-slate-500">
                     Pacientes registrados
@@ -1637,7 +1659,7 @@ export default function Dashboard() {
                     {animatedPatients}
                   </div>
                 </div>
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-teal-50 text-teal-600">
                   <svg
                     aria-hidden="true"
                     viewBox="0 0 24 24"
@@ -1653,7 +1675,7 @@ export default function Dashboard() {
                   </svg>
                 </div>
               </div>
-              <div className="kpi-card flex items-center justify-between rounded-xl border border-slate-200/70 bg-white px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+              <div className="kpi-card flex items-center justify-between rounded-xl border border-slate-200/70 border-l-4 border-sky-500 bg-white px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
                 <div>
                   <div className="kpi-label text-xs font-medium uppercase tracking-wide text-slate-500">
                     Consultas realizadas
@@ -1662,7 +1684,7 @@ export default function Dashboard() {
                     {animatedConsultations}
                   </div>
                 </div>
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sky-50 text-sky-600">
                   <svg
                     aria-hidden="true"
                     viewBox="0 0 24 24"
@@ -1781,7 +1803,7 @@ export default function Dashboard() {
             )}
             <button
               type="submit"
-              className="button-primary w-full rounded-lg bg-teal-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-300/60 disabled:cursor-not-allowed disabled:opacity-60 md:col-span-2"
+              className="button-primary w-full rounded-lg bg-gradient-to-r from-teal-600 to-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:from-teal-700 hover:to-sky-700 focus:outline-none focus:ring-2 focus:ring-teal-200 disabled:cursor-not-allowed disabled:opacity-60 md:col-span-2"
               disabled={!canSubmit(form, dateError)}
             >
               Registrar paciente
@@ -1789,7 +1811,7 @@ export default function Dashboard() {
             <Button
               type="button"
               variant="outline"
-              className="w-full md:col-span-2"
+              className="w-full border-teal-200 text-teal-700 hover:border-teal-300 hover:bg-teal-50 focus-visible:ring-teal-200 md:col-span-2"
               onClick={() => resetCreatePatientForm(true)}
             >
               Limpiar formulario
@@ -1853,6 +1875,7 @@ export default function Dashboard() {
                     type="button"
                     variant="outline"
                     size="sm"
+                    className="border-teal-200 text-teal-700 hover:border-teal-300 hover:bg-teal-50 focus-visible:ring-teal-200"
                     onClick={() => resetSearchPatientSection(true)}
                   >
                     Nueva búsqueda
@@ -1882,7 +1905,7 @@ export default function Dashboard() {
                   <Button
                     type="button"
                     onClick={loadConsultas}
-                    className="w-full md:w-auto"
+                    className="w-full bg-teal-600 text-white hover:bg-teal-700 focus-visible:ring-teal-200 md:w-auto"
                   >
                     Ver consultas recientes
                   </Button>
@@ -1983,7 +2006,7 @@ export default function Dashboard() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="mt-4 w-full md:w-auto"
+                  className="mt-4 w-full border-teal-200 text-teal-700 hover:border-teal-300 hover:bg-teal-50 focus-visible:ring-teal-200 md:w-auto"
                   onClick={() => {
                     if (!patientCedula) return;
                     router.push(
@@ -2048,6 +2071,7 @@ export default function Dashboard() {
                 type="button"
                 variant="outline"
                 size="sm"
+                className="border-teal-200 text-teal-700 hover:border-teal-300 hover:bg-teal-50 focus-visible:ring-teal-200"
                 onClick={() => resetConsultationSearch(true)}
               >
                 Nueva búsqueda
@@ -2529,14 +2553,14 @@ export default function Dashboard() {
             </details>
             <button
               type="submit"
-              className="button-primary w-full rounded-lg px-4 py-3 text-sm font-semibold shadow-sm transition hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200 disabled:cursor-not-allowed disabled:opacity-60"
+              className="button-primary w-full rounded-lg bg-gradient-to-r from-teal-600 to-sky-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:from-teal-700 hover:to-sky-700 hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200 disabled:cursor-not-allowed disabled:opacity-60"
               disabled={patientLookupStatus !== "found"}
             >
               Guardar consulta
             </button>
             <button
               type="button"
-              className="button-secondary w-full rounded-lg px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-200"
+              className="button-secondary w-full rounded-lg border border-teal-200 px-4 py-3 text-sm font-medium text-teal-700 transition hover:border-teal-300 hover:bg-teal-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200"
               onClick={discardDraft}
             >
               Descartar borrador
@@ -2593,11 +2617,17 @@ export default function Dashboard() {
                   type="button"
                   variant="outline"
                   size="sm"
+                  className="border-teal-200 text-teal-700 hover:border-teal-300 hover:bg-teal-50 focus-visible:ring-teal-200"
                   onClick={closeMedicationCatalogModal}
                 >
                   Cancelar
                 </Button>
-                <Button type="submit" size="sm" disabled={catalogFormLoading}>
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="bg-teal-600 text-white hover:bg-teal-700 focus-visible:ring-teal-200"
+                  disabled={catalogFormLoading}
+                >
                   {catalogFormLoading ? "Creando..." : "Crear"}
                 </Button>
               </div>

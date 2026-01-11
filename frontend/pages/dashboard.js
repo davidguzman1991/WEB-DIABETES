@@ -1564,10 +1564,10 @@ export default function Dashboard() {
         <div className="admin-actions !flex !flex-wrap !gap-2 rounded-full border border-slate-200/70 bg-white/80 p-2 shadow-sm">
           <button
             type="button"
-            className={`admin-toggle ${sectionsOpen.createPatient ? "is-open" : ""} flex-1 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200 ${
+            className={`admin-toggle ${sectionsOpen.createPatient ? "is-open" : ""} flex-1 rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200 ${
               sectionsOpen.createPatient
-                ? "bg-teal-600 text-white shadow-sm hover:bg-teal-700"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-700"
+                ? "bg-gradient-to-r from-teal-600 to-blue-600 text-white shadow-md border-transparent ring-2 ring-teal-200 -translate-y-[1px]"
+                : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
             }`}
             onClick={() => toggleSection("createPatient")}
             aria-expanded={sectionsOpen.createPatient}
@@ -1576,10 +1576,10 @@ export default function Dashboard() {
           </button>
           <button
             type="button"
-            className={`admin-toggle ${sectionsOpen.searchPatient ? "is-open" : ""} flex-1 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200 ${
+            className={`admin-toggle ${sectionsOpen.searchPatient ? "is-open" : ""} flex-1 rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200 ${
               sectionsOpen.searchPatient
-                ? "bg-teal-600 text-white shadow-sm hover:bg-teal-700"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-700"
+                ? "bg-gradient-to-r from-teal-600 to-blue-600 text-white shadow-md border-transparent ring-2 ring-teal-200 -translate-y-[1px]"
+                : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
             }`}
             onClick={() => toggleSection("searchPatient")}
             aria-expanded={sectionsOpen.searchPatient}
@@ -1588,10 +1588,10 @@ export default function Dashboard() {
           </button>
           <button
             type="button"
-            className={`admin-toggle ${sectionsOpen.createConsultation ? "is-open" : ""} flex-1 rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200 ${
+            className={`admin-toggle ${sectionsOpen.createConsultation ? "is-open" : ""} flex-1 rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200 ${
               sectionsOpen.createConsultation
-                ? "bg-teal-600 text-white shadow-sm hover:bg-teal-700"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-700"
+                ? "bg-gradient-to-r from-teal-600 to-blue-600 text-white shadow-md border-transparent ring-2 ring-teal-200 -translate-y-[1px]"
+                : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
             }`}
             onClick={() => toggleSection("createConsultation")}
             aria-expanded={sectionsOpen.createConsultation}
@@ -1600,14 +1600,14 @@ export default function Dashboard() {
           </button>
           <button
             type="button"
-            className="admin-toggle flex-1 rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-200 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200 bg-slate-100"
+            className="admin-toggle flex-1 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200"
             onClick={() => router.push("/admin/consultations/list")}
           >
             Ver consultas
           </button>
           <button
             type="button"
-            className="admin-toggle flex-1 rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-200 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200 bg-slate-100"
+            className="admin-toggle flex-1 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200"
             onClick={() => router.push("/audit")}
           >
             Auditoria

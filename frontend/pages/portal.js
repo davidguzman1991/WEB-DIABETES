@@ -97,6 +97,9 @@ export default function Portal() {
   const [hba1cSummary, setHba1cSummary] = useState(null);
   const [hba1cLoading, setHba1cLoading] = useState(false);
   const [hba1cError, setHba1cError] = useState("");
+  const [allLabs, setAllLabs] = useState([]);
+  const [allLabsLoading, setAllLabsLoading] = useState(false);
+  const [allLabsError, setAllLabsError] = useState("");
   const glucoseSectionRef = useRef(null);
   const glucoseFormRef = useRef(null);
   const glucoseHighlightTimer = useRef(null);
@@ -368,6 +371,85 @@ export default function Portal() {
       }
     };
     load();
+    return () => {
+      active = false;
+    };
+  }, [router, token, user?.id]);
+
+  // Cargar todos los laboratorios del paciente
+  useEffect(() => {
+    if (!token || !user?.id) return;
+    let active = true;
+    const loadAllLabs = async () => {
+      setAllLabsLoading(true);
+      setAllLabsError("");
+      try {
+        const res = await authFetch("/patient/consultations");
+        if (res.status === 401 || res.status === 403) {
+          logout(router, "/login");
+          return;
+        }
+        if (!res.ok) {
+          if (active) setAllLabsError("No se pudo cargar laboratorios");
+          return;
+        }
+        const data = await res.json().catch(() => []);
+        const consultations = Array.isArray(data) ? data : [];
+        if (!consultations.length) {
+          if (active) setAllLabs([]);
+          return;
+        }
+        const ordered = consultations
+          .slice()
+          .sort((a, b) => new Date(b?.created_at || 0) - new Date(a?.created_at || 0));
+        const limited = ordered.slice(0, 12).filter((item) => item?.id);
+        const labsMap = new Map();
+        for (const consulta of limited) {
+          if (!active) return;
+          try {
+            const detailRes = await authFetch(`/consultations/${consulta.id}/print`);
+            if (detailRes.status === 401 || detailRes.status === 403) {
+              logout(router, "/login");
+              return;
+            }
+            if (!detailRes.ok) {
+              continue;
+            }
+            const detail = await detailRes.json().catch(() => null);
+            const labs = Array.isArray(detail?.labs) ? detail.labs : [];
+            labs.forEach((lab) => {
+              if (!lab || !lab.lab_nombre) return;
+              const labName = lab.lab_nombre.trim();
+              if (!labsMap.has(labName)) {
+                labsMap.set(labName, {
+                  ...lab,
+                  consulta_id: consulta.id,
+                  consulta_date: detail?.consultation?.created_at || consulta.created_at,
+                });
+              }
+            });
+          } catch (err) {
+            continue;
+          }
+        }
+        if (!active) return;
+        const importantLabs = ["HbA1c", "Glucosa ayunas", "Creatinina", "TFG", "UACR"];
+        const sortedLabs = Array.from(labsMap.values()).sort((a, b) => {
+          const aIndex = importantLabs.indexOf(a.lab_nombre);
+          const bIndex = importantLabs.indexOf(b.lab_nombre);
+          if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+          if (aIndex !== -1) return -1;
+          if (bIndex !== -1) return 1;
+          return (a.lab_nombre || "").localeCompare(b.lab_nombre || "");
+        });
+        if (active) setAllLabs(sortedLabs);
+      } catch (err) {
+        if (active) setAllLabsError("No se pudo cargar laboratorios");
+      } finally {
+        if (active) setAllLabsLoading(false);
+      }
+    };
+    loadAllLabs();
     return () => {
       active = false;
     };
@@ -1026,25 +1108,53 @@ export default function Portal() {
               </div>
             </div>
             <div className="portal-card">
-              {hba1cLoading && <div className="muted">Cargando resultados de laboratorio...</div>}
-              {hba1cError && <div className="error">{hba1cError}</div>}
-              {!hba1cLoading && !hba1cError && !hba1cSummary && (
-                <div className="muted">Aun no hay resultados de HbA1c.</div>
+              {(allLabsLoading || hba1cLoading) && (
+                <div className="muted">Cargando resultados de laboratorio...</div>
               )}
-              {!hba1cLoading && !hba1cError && hba1cSummary && (
+              {(allLabsError || hba1cError) && (
+                <div className="error">{allLabsError || hba1cError}</div>
+              )}
+              {!allLabsLoading && !hba1cLoading && !allLabsError && !hba1cError && allLabs.length === 0 && (
+                <div className="muted">Aún no hay resultados de laboratorio registrados.</div>
+              )}
+              {!allLabsLoading && !hba1cLoading && !allLabsError && !hba1cError && allLabs.length > 0 && (
                 <div className="list">
-                  <div className="list-item">
-                    <div className="list-title">HbA1c (promedio de glucosa)</div>
-                    <div className="list-meta">
-                      Valor {formatHbA1cValue(hba1cSummary.value)} del{" "}
-                      {formatDate(hba1cSummary.date)}
-                    </div>
-                  </div>
+                  {allLabs.map((lab, index) => {
+                    if (!lab || typeof lab !== "object") return null;
+                    const resultValue = lab.valor_num ?? lab.valor_texto ?? "";
+                    const resultLabel = resultValue !== "" ? resultValue : "Sin resultado";
+                    const unit = lab.unidad_snapshot ? ` ${lab.unidad_snapshot}` : "";
+                    const labKey = `${lab.lab_nombre || "lab"}-${index}`;
+                    const labDate = lab.consulta_date ? formatDate(lab.consulta_date) : "";
+                    return (
+                      <div key={labKey} className="list-item">
+                        <div className="list-title">{lab.lab_nombre || "Examen"}</div>
+                        <div className="list-meta">
+                          {resultLabel}
+                          {unit}
+                          {labDate && ` - ${labDate}`}
+                        </div>
+                        {lab.rango_ref_snapshot && (
+                          <div className="list-meta">Rango: {lab.rango_ref_snapshot}</div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
-              <Link className="button button-secondary" href="/portal/laboratorios/hba1c">
-                Ver resultado de HbA1c
-              </Link>
+              <div className="flex flex-wrap gap-2 mt-4">
+                <Link className="button button-secondary" href="/portal/laboratorios/hba1c">
+                  Ver historial de HbA1c
+                </Link>
+                {allLabs.length > 0 && (
+                  <Link
+                    className="button button-secondary"
+                    href={allLabs[0]?.consulta_id ? `/portal/consultas/${allLabs[0].consulta_id}/laboratorios` : "/portal/historial"}
+                  >
+                    Ver todos los laboratorios
+                  </Link>
+                )}
+              </div>
             </div>
           </section>
 

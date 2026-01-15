@@ -99,7 +99,7 @@ export default function AuditMedications() {
 
   if (loading) {
     return (
-      <div className="page">
+      <div className="page admin-page">
         <div className="card">
           <p className="muted">Cargando...</p>
         </div>
@@ -109,7 +109,7 @@ export default function AuditMedications() {
 
   if (!user) {
     return (
-      <div className="page">
+      <div className="page admin-page">
         <div className="card">
           <p className="muted">Cargando...</p>
         </div>
@@ -118,7 +118,7 @@ export default function AuditMedications() {
   }
 
   return (
-    <div className="page">
+    <div className="page admin-page">
       <div className="card admin-shell space-y-4">
         <header className="admin-header flex flex-col gap-3 md:flex-row md:items-center md:justify-between !bg-white !border-slate-200/70 !shadow-sm !rounded-2xl">
           <div className="space-y-1">

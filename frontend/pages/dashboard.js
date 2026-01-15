@@ -1492,7 +1492,7 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="page">
+      <div className="page admin-page">
         <div className="card">
           <p className="muted">Cargando...</p>
         </div>
@@ -1502,7 +1502,7 @@ export default function Dashboard() {
 
   if (authError) {
     return (
-      <div className="page">
+      <div className="page admin-page">
         <div className="card">
           <div className="error">{authError}</div>
         </div>
@@ -1512,7 +1512,7 @@ export default function Dashboard() {
 
   if (!user) {
     return (
-      <div className="page">
+      <div className="page admin-page">
         <div className="card">
           <p className="muted">Cargando...</p>
         </div>
@@ -1521,7 +1521,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="page">
+    <div className="page admin-page">
       <div className="card admin-shell space-y-4">
         <div className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm">
           <div className="h-2 w-full bg-gradient-to-r from-teal-500 via-sky-500 to-blue-500" />

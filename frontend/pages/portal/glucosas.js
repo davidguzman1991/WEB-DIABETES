@@ -59,6 +59,17 @@ export default function GlucosasPage() {
     if (!records?.length) return null;
     return records[0];
   }, [records]);
+  const lastRecordDate = lastRecord
+    ? formatDateShort(lastRecord?.date || lastRecord?.fecha || lastRecord?.created_at)
+    : "";
+  const lastRecordType = lastRecord ? String(lastRecord?.type || lastRecord?.tipo || "-") : "";
+  const lastRecordValue =
+    lastRecord && lastRecord?.value !== undefined && lastRecord?.value !== null
+      ? String(lastRecord.value)
+      : lastRecord?.valor !== undefined && lastRecord?.valor !== null
+        ? String(lastRecord.valor)
+        : "";
+  const recordsCount = Array.isArray(records) ? records.length : 0;
 
   // =============================
   // Auth bootstrap
@@ -188,11 +199,14 @@ export default function GlucosasPage() {
   // =============================
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#fbf6ef]">
-        <div className="mx-auto max-w-5xl px-4 py-10">
-          <div className="rounded-2xl border bg-white p-6 shadow-sm">
-            <p className="text-sm text-gray-500">Cargando…</p>
-          </div>
+      <div className="page" style={{ background: "#f8fafc", minHeight: "100vh" }}>
+        <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+          <section className="portal-medical-card">
+            <div className="portal-medical-empty-state">
+              <div className="portal-medical-empty-state-icon">...</div>
+              <p className="portal-medical-empty-state-text">Cargando...</p>
+            </div>
+          </section>
         </div>
       </div>
     );
@@ -200,123 +214,159 @@ export default function GlucosasPage() {
 
   if (!token) {
     return (
-      <div className="min-h-screen bg-[#fbf6ef]">
-        <div className="mx-auto max-w-5xl px-4 py-10">
-          <div className="rounded-2xl border bg-white p-6 shadow-sm">
-            <h1 className="text-lg font-semibold">Sesión no iniciada</h1>
-            <p className="mt-2 text-sm text-gray-600">
-              No se encontró token de paciente. Inicie sesión nuevamente.
-            </p>
-            <button
-              onClick={() => router.push("/portal")}
-              className="mt-4 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800"
-            >
-              Ir al portal
-            </button>
-          </div>
+      <div className="page" style={{ background: "#f8fafc", minHeight: "100vh" }}>
+        <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+          <section className="portal-medical-card">
+            <div className="portal-medical-card-header">
+              <div className="portal-medical-card-title-section">
+                <div className="portal-medical-card-icon glucose">GL</div>
+                <div className="portal-medical-card-title-group">
+                  <h1 className="portal-medical-card-title">Sesion no iniciada</h1>
+                  <p className="portal-medical-card-subtitle">
+                    No se encontro token de paciente. Inicie sesion nuevamente.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="portal-medical-card-content">
+              <button
+                type="button"
+                onClick={() => router.push("/portal")}
+                className="portal-medical-button portal-medical-button-primary"
+              >
+                Ir al portal
+              </button>
+            </div>
+          </section>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#fbf6ef]">
-      <div className="mx-auto max-w-5xl px-4 py-10">
-        {/* Header */}
-        <div className="rounded-2xl border bg-white p-6 shadow-sm">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800 font-semibold">
-                GL
-              </div>
-              <div>
-                <h1 className="text-base font-semibold text-gray-900">
-                  Seguimiento indicado por su médico
-                </h1>
-                <p className="text-sm text-gray-600">
-                  Registre su glucosa cuando su médico se lo solicite.
-                </p>
-              </div>
+    <div className="page" style={{ background: "#f8fafc", minHeight: "100vh" }}>
+      <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+        <header className="portal-medical-header">
+          <h1>Control de glucosa</h1>
+          <p className="portal-medical-header-subtitle">
+            Seguimiento de glucosa indicado por su medico.
+          </p>
+          <div className="portal-medical-header-info">
+            <div className="portal-medical-header-info-item">
+              <span className="portal-medical-header-info-label">Ultimo registro</span>
+              <span className="portal-medical-header-info-value">
+                {lastRecordDate || "Sin registros"}
+              </span>
             </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setFormOpen((s) => !s)}
-                className={cx(
-                  "rounded-xl px-4 py-2 text-sm font-medium transition",
-                  formOpen
-                    ? "border border-gray-200 bg-white hover:bg-gray-50"
-                    : "bg-emerald-700 text-white hover:bg-emerald-800"
-                )}
-              >
-                {formOpen ? "Cerrar formulario" : "Registrar control"}
-              </button>
-
-              <button
-                onClick={() => router.push("/portal")}
-                className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50"
-              >
-                Volver
-              </button>
+            <div className="portal-medical-header-info-item">
+              <span className="portal-medical-header-info-label">Registros</span>
+              <span className="portal-medical-header-info-value">{recordsCount}</span>
             </div>
           </div>
-        </div>
+          <div className="portal-medical-header-actions">
+            <button
+              type="button"
+              onClick={() => setFormOpen((s) => !s)}
+              className={cx(
+                "portal-medical-button portal-medical-button-small",
+                formOpen
+                  ? "portal-medical-button-secondary"
+                  : "portal-medical-button-primary"
+              )}
+            >
+              {formOpen ? "Cerrar formulario" : "Registrar control"}
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/portal")}
+              className="portal-medical-button portal-medical-button-secondary portal-medical-button-small"
+            >
+              Volver al portal
+            </button>
+          </div>
+        </header>
 
         {/* Alerts */}
         {(error || success) && (
-          <div className="mt-4">
-            {error && (
-              <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-                {error}
-              </div>
-            )}
-            {success && (
-              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
-                {success}
-              </div>
-            )}
-          </div>
+          <section className="portal-medical-card">
+            <div className="portal-medical-card-content">
+              {error && (
+                <div className="portal-medical-alert portal-medical-alert-error">
+                  {error}
+                </div>
+              )}
+              {success && (
+                <div className="portal-medical-alert portal-medical-alert-success">
+                  {success}
+                </div>
+              )}
+            </div>
+          </section>
         )}
 
         {/* Last record summary */}
-        <div className="mt-6 rounded-2xl border bg-white p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-gray-900">Estado del seguimiento</h2>
-          <p className="mt-1 text-sm text-gray-600">
-            {records.length === 0
-              ? "Aún no tiene registros."
-              : "Formulario listo para registrar su control."}
-          </p>
-
-          {lastRecord && (
-            <div className="mt-4 rounded-xl bg-gray-50 p-4">
-              <p className="text-xs text-gray-500">Último registro</p>
-              <p className="mt-1 text-sm font-medium text-gray-900">
-                {formatDateShort(lastRecord?.date || lastRecord?.fecha || lastRecord?.created_at)} ·{" "}
-                {String(lastRecord?.type || lastRecord?.tipo || "—")} ·{" "}
-                {String(lastRecord?.value ?? lastRecord?.valor ?? "—")} mg/dL
-              </p>
+        <section className="portal-medical-card">
+          <div className="portal-medical-card-header">
+            <div className="portal-medical-card-title-section">
+              <div className="portal-medical-card-icon glucose">GL</div>
+              <div className="portal-medical-card-title-group">
+                <h2 className="portal-medical-card-title">Estado del seguimiento</h2>
+                <p className="portal-medical-card-subtitle">
+                  Revise su ultimo control y el estado del registro.
+                </p>
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+          <div className="portal-medical-card-content">
+            <div className="portal-medical-summary">
+              <div className="portal-medical-summary-row">
+                <span className="portal-medical-summary-label">Estado</span>
+                <span className="portal-medical-summary-value">
+                  {recordsCount === 0
+                    ? "Sin registros"
+                    : "Formulario listo para registrar su control"}
+                </span>
+              </div>
+              <div className="portal-medical-summary-row">
+                <span className="portal-medical-summary-label">Ultimo registro</span>
+                <span className="portal-medical-summary-value">
+                  {lastRecord
+                    ? `${lastRecordDate || "Sin fecha"} - ${
+                        lastRecordType || "Sin tipo"
+                      } - ${lastRecordValue || "-"} mg/dL`
+                    : "Sin registros"}
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Form */}
         {formOpen && (
-          <div className="mt-6 rounded-2xl border bg-white p-6 shadow-sm">
-            <h3 className="text-sm font-semibold text-gray-900">
-              Registre su control de glucosa
-            </h3>
-
-            <form onSubmit={onSubmit} className="mt-4 space-y-5">
+          <section className="portal-medical-card">
+            <div className="portal-medical-card-header">
+              <div className="portal-medical-card-title-section">
+                <div className="portal-medical-card-icon glucose">GL</div>
+                <div className="portal-medical-card-title-group">
+                  <h3 className="portal-medical-card-title">Registrar control de glucosa</h3>
+                  <p className="portal-medical-card-subtitle">
+                    Ingrese el control solicitado por su medico.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="portal-medical-card-content">
+              <form onSubmit={onSubmit} className="space-y-5">
               {/* Tipo control */}
               <div>
-                <label className="block text-sm font-medium text-gray-900">
+                <label className="block text-sm font-medium text-slate-700">
                   Tipo de control
                 </label>
 
                 <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2">
                   {[
                     { key: "AYUNO", label: "Ayuno / Antes de comer" },
-                    { key: "POSPRANDIAL", label: "2 horas después de comer" },
+                    { key: "POSPRANDIAL", label: "2 horas despues de comer" },
                   ].map((opt) => {
                     const active = tipo === opt.key;
                     return (
@@ -327,15 +377,15 @@ export default function GlucosasPage() {
                         className={cx(
                           "flex items-center justify-between rounded-xl border px-4 py-3 text-sm transition",
                           active
-                            ? "border-emerald-200 bg-emerald-50 text-emerald-900"
-                            : "border-gray-200 bg-white hover:bg-gray-50"
+                            ? "border-teal-200 bg-teal-50 text-teal-900"
+                            : "border-slate-200 bg-white hover:bg-slate-50"
                         )}
                       >
                         <span className="font-medium">{opt.label}</span>
                         <span
                           className={cx(
                             "h-4 w-4 rounded-full border",
-                            active ? "border-emerald-700 bg-emerald-700" : "border-gray-300"
+                            active ? "border-teal-600 bg-teal-600" : "border-slate-300"
                           )}
                         />
                       </button>
@@ -347,19 +397,19 @@ export default function GlucosasPage() {
               {/* Fecha + valor */}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <label className="block text-sm font-medium text-gray-900">
+                  <label className="block text-sm font-medium text-slate-700">
                     Fecha del control
                   </label>
                   <input
                     type="date"
                     value={fecha}
                     onChange={(e) => setFecha(e.target.value)}
-                    className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100"
+                    className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-teal-300 focus:ring-2 focus:ring-teal-100"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-900">
+                  <label className="block text-sm font-medium text-slate-700">
                     Valor (mg/dL)
                   </label>
                   <input
@@ -367,22 +417,22 @@ export default function GlucosasPage() {
                     value={valor}
                     onChange={(e) => setValor(e.target.value)}
                     placeholder="Ej: 120"
-                    className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100"
+                    className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-teal-300 focus:ring-2 focus:ring-teal-100"
                   />
                 </div>
               </div>
 
               {/* Observación */}
               <div>
-                <label className="block text-sm font-medium text-gray-900">
-                  Observación adicional <span className="text-gray-400">(opcional)</span>
+                <label className="block text-sm font-medium text-slate-700">
+                  Observacion adicional <span className="text-slate-400">(opcional)</span>
                 </label>
                 <textarea
                   value={obs}
                   onChange={(e) => setObs(e.target.value)}
-                  placeholder="Ej: Me sentí mareada, comí menos…"
+                  placeholder="Ej: Me senti mareada, comi menos."
                   rows={3}
-                  className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100"
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-teal-300 focus:ring-2 focus:ring-teal-100"
                 />
               </div>
 
@@ -390,7 +440,7 @@ export default function GlucosasPage() {
               <div className="flex flex-col gap-2 md:flex-row md:items-center">
                 <button
                   type="submit"
-                  className="rounded-xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-800"
+                  className="portal-medical-button portal-medical-button-primary"
                 >
                   Guardar control
                 </button>
@@ -398,63 +448,76 @@ export default function GlucosasPage() {
                 <button
                   type="button"
                   onClick={() => setFormOpen(false)}
-                  className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium hover:bg-gray-50"
+                  className="portal-medical-button portal-medical-button-secondary"
                 >
                   Cancelar
                 </button>
               </div>
             </form>
           </div>
+        </section>
         )}
 
         {/* Records list */}
-        <div className="mt-6 rounded-2xl border bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between gap-4">
-            <h3 className="text-sm font-semibold text-gray-900">Historial de glucosas</h3>
-            <button
-              onClick={fetchGlucosas}
-              className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50"
-            >
-              Actualizar
-            </button>
+        <section className="portal-medical-card">
+          <div className="portal-medical-card-header">
+            <div className="portal-medical-card-title-section">
+              <div className="portal-medical-card-icon glucose">GL</div>
+              <div className="portal-medical-card-title-group">
+                <h3 className="portal-medical-card-title">Historial de glucosas</h3>
+                <p className="portal-medical-card-subtitle">
+                  Revise sus registros recientes de glucosa.
+                </p>
+              </div>
+            </div>
+            <div className="portal-medical-card-actions">
+              <button
+                type="button"
+                onClick={fetchGlucosas}
+                className="portal-medical-button portal-medical-button-secondary portal-medical-button-small"
+              >
+                Actualizar
+              </button>
+            </div>
           </div>
 
-          <div className="mt-4">
+          <div className="portal-medical-card-content">
             {loading ? (
-              <p className="text-sm text-gray-500">Cargando registros…</p>
-            ) : records.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-6 text-sm text-gray-600">
-                Aún no hay registros. Presione <b>Registrar control</b> para agregar el primero.
+              <div className="portal-medical-empty-state">
+                <div className="portal-medical-empty-state-icon">...</div>
+                <p className="portal-medical-empty-state-text">Cargando registros...</p>
+              </div>
+            ) : recordsCount === 0 ? (
+              <div className="portal-medical-empty-state">
+                <div className="portal-medical-empty-state-icon">GL</div>
+                <p className="portal-medical-empty-state-text">
+                  Sin registros. Use "Registrar control" para agregar el primero.
+                </p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="portal-medical-record-list">
                 {records.map((r, idx) => {
                   const dateText = formatDateShort(r?.date || r?.fecha || r?.created_at);
-                  const typeText = String(r?.type || r?.tipo || "—");
-                  const valueText = String(r?.value ?? r?.valor ?? "—");
+                  const typeText = String(r?.type || r?.tipo || "-");
+                  const valueText = String(r?.value ?? r?.valor ?? "-");
+                  const noteText = r?.note || r?.observacion || r?.obs || "";
 
                   return (
                     <div
                       key={r?.id || `${dateText}-${idx}`}
-                      className="rounded-xl border border-gray-100 bg-white px-4 py-4 shadow-sm"
+                      className="portal-medical-record-item"
                     >
-                      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900">
-                            {valueText} <span className="text-gray-500 font-medium">mg/dL</span>
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {dateText} · {typeText}
-                          </p>
+                      <div>
+                        <div className="portal-medical-record-value">
+                          {valueText} <span className="portal-medical-record-unit">mg/dL</span>
                         </div>
+                        <div className="portal-medical-record-meta">
+                          {dateText} - {typeText}
+                        </div>
+                      </div>
 
-                        {r?.note || r?.observacion || r?.obs ? (
-                          <div className="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-700 md:max-w-[50%]">
-                            {String(r?.note || r?.observacion || r?.obs)}
-                          </div>
-                        ) : (
-                          <div className="text-xs text-gray-400">Sin observación</div>
-                        )}
+                      <div className="portal-medical-record-note">
+                        {noteText ? String(noteText) : "Sin observacion"}
                       </div>
                     </div>
                   );
@@ -462,10 +525,11 @@ export default function GlucosasPage() {
               </div>
             )}
           </div>
-        </div>
+        </section>
 
         {/* Floating CTA */}
         <button
+          type="button"
           onClick={() => {
             setFormOpen(true);
             setTimeout(() => {
@@ -474,24 +538,12 @@ export default function GlucosasPage() {
               } catch {}
             }, 150);
           }}
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-emerald-700 px-4 py-3 text-sm font-semibold text-white shadow-lg hover:bg-emerald-800"
+          className="portal-medical-fab"
         >
-          <span className="grid h-7 w-7 place-items-center rounded-full bg-white/15 text-white">
-            +
-          </span>
-          Registra tu glucosa
+          <span className="portal-medical-fab-icon">+</span>
+          Registrar glucosa
         </button>
       </div>
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-

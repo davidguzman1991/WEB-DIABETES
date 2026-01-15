@@ -3,8 +3,6 @@ import { useRouter } from "next/router";
 
 import { apiFetch, logout } from "../../../../lib/auth";
 import { useAuthGuard } from "../../../../hooks/useAuthGuard";
-import Button from "../../../../components/ui/Button";
-import Card from "../../../../components/ui/Card";
 
 export default function TratamientoConsulta() {
   const router = useRouter();
@@ -39,136 +37,121 @@ export default function TratamientoConsulta() {
 
   const consultationId = typeof router.query.id === "string" ? router.query.id : "";
   const medications = Array.isArray(detail?.medications) ? detail.medications : [];
+  const medicationCount = Array.isArray(medications) ? medications.length : 0;
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-        <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
-          <Card className="border-l-4 border-emerald-500 p-5 sm:p-8">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div className="text-xs font-semibold uppercase tracking-wide text-emerald-600">
-                  Consulta
-                </div>
-                <h1 className="text-2xl font-semibold text-slate-900">
-                  Tratamiento
-                </h1>
-                <p className="text-sm text-slate-600">
-                  Como tomar sus medicamentos
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  router.push(
-                    consultationId
-                      ? `/portal/consultas/${consultationId}`
-                      : "/portal/historial"
-                  )
-                }
-              >
-                Volver a consulta
-              </Button>
+      <div className="page" style={{ background: "#f8fafc", minHeight: "100vh" }}>
+        <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+          <section className="portal-medical-card">
+            <div className="portal-medical-empty-state">
+              <div className="portal-medical-empty-state-icon">...</div>
+              <p className="portal-medical-empty-state-text">Cargando...</p>
             </div>
-            <p className="mt-6 text-sm text-slate-500">Cargando...</p>
-          </Card>
+          </section>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
-        <Card className="border-l-4 border-emerald-500 p-5 sm:p-8">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-wide text-emerald-600">
-                Consulta
-              </div>
-              <h1 className="text-2xl font-semibold text-slate-900">Tratamiento</h1>
-              <p className="text-sm text-slate-600">Como tomar sus medicamentos</p>
+    <div className="page" style={{ background: "#f8fafc", minHeight: "100vh" }}>
+      <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+        <header className="portal-medical-header">
+          <h1>Tratamiento</h1>
+          <p className="portal-medical-header-subtitle">Como tomar sus medicamentos.</p>
+          <div className="portal-medical-header-info">
+            <div className="portal-medical-header-info-item">
+              <span className="portal-medical-header-info-label">Medicamentos</span>
+              <span className="portal-medical-header-info-value">{medicationCount}</span>
             </div>
-            <Button
+          </div>
+          <div className="portal-medical-header-actions">
+            <button
               type="button"
-              variant="outline"
-              size="sm"
               onClick={() =>
                 router.push(
-                  consultationId
-                    ? `/portal/consultas/${consultationId}`
-                    : "/portal/historial"
+                  consultationId ? `/portal/consultas/${consultationId}` : "/portal/historial"
                 )
               }
+              className="portal-medical-button portal-medical-button-secondary portal-medical-button-small"
             >
               Volver a consulta
-            </Button>
+            </button>
           </div>
+        </header>
 
-          <div className="mt-6 space-y-4">
+        <section className="portal-medical-card">
+          <div className="portal-medical-card-header">
+            <div className="portal-medical-card-title-section">
+              <div className="portal-medical-card-icon treatment">TR</div>
+              <div className="portal-medical-card-title-group">
+                <h2 className="portal-medical-card-title">Medicacion</h2>
+                <p className="portal-medical-card-subtitle">
+                  Detalle de medicamentos prescritos.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="portal-medical-card-content">
             {error && (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="portal-medical-alert portal-medical-alert-error">
                 {error}
               </div>
             )}
 
             {medications.length === 0 && !error && (
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
-                No hay medicacion registrada.
+              <div className="portal-medical-empty-state">
+                <div className="portal-medical-empty-state-icon">TR</div>
+                <p className="portal-medical-empty-state-text">
+                  No hay medicacion registrada.
+                </p>
               </div>
             )}
 
             {medications.length > 0 && (
-              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-                <div className="divide-y divide-slate-200">
-                  {medications.map((med, index) => {
-                    if (!med || typeof med !== "object") return null;
-                    const quantityValue = med.quantity ?? "";
-                    const durationValue = med.duration_days ?? "";
-                    const descriptionValue = med.description ?? "";
-                    const medKey = `${med.drug_name || "med"}-${index}`;
-                    const chipItems = [];
-                    if (quantityValue !== "") chipItems.push(`Dosis: ${quantityValue}`);
-                    if (med.horario) chipItems.push(`Horario: ${med.horario}`);
-                    if (med.via) chipItems.push(`Via: ${med.via}`);
-                    if (durationValue !== "") {
-                      chipItems.push(`Duracion: ${durationValue} dias`);
-                    }
-                    return (
-                      <div
-                        key={medKey}
-                        className="flex flex-col gap-3 px-4 py-4"
-                      >
-                        <div className="text-sm font-semibold text-slate-900">
+              <div className="portal-medical-medication-list">
+                {medications.map((med, index) => {
+                  if (!med || typeof med !== "object") return null;
+                  const quantityValue = med.quantity ?? "";
+                  const durationValue = med.duration_days ?? "";
+                  const descriptionValue = med.description ?? "";
+                  const medKey = `${med.drug_name || "med"}-${index}`;
+                  const chipItems = [];
+                  if (quantityValue !== "") chipItems.push(`Dosis: ${quantityValue}`);
+                  if (med.horario) chipItems.push(`Horario: ${med.horario}`);
+                  if (med.via) chipItems.push(`Via: ${med.via}`);
+                  if (durationValue !== "") {
+                    chipItems.push(`Duracion: ${durationValue} dias`);
+                  }
+                  return (
+                    <div key={medKey} className="portal-medical-medication-item">
+                      <div style={{ flex: 1 }}>
+                        <div className="portal-medical-medication-name">
                           {med.drug_name || "Medicamento"}
                         </div>
                         {chipItems.length > 0 && (
-                          <div className="flex flex-wrap gap-2">
+                          <div className="portal-medical-medication-details">
                             {chipItems.map((chip) => (
-                              <span
-                                key={chip}
-                                className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700"
-                              >
+                              <span key={chip} className="portal-medical-medication-badge">
                                 {chip}
                               </span>
                             ))}
                           </div>
                         )}
                         {descriptionValue && (
-                          <div className="rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm text-slate-700">
+                          <div className="portal-medical-note" style={{ marginTop: 12 }}>
                             {descriptionValue}
                           </div>
                         )}
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
-        </Card>
+        </section>
       </div>
     </div>
   );

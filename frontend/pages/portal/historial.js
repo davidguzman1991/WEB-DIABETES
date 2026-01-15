@@ -3,9 +3,6 @@ import { useRouter } from "next/router";
 
 import { apiFetch, logout } from "../../lib/auth";
 import { useAuthGuard } from "../../hooks/useAuthGuard";
-import Card from "../../components/ui/Card";
-import Button from "../../components/ui/Button";
-import SectionTitle from "../../components/ui/SectionTitle";
 
 export default function PortalHistorial() {
   const router = useRouter();
@@ -73,103 +70,107 @@ export default function PortalHistorial() {
   const patientName = items?.[0]?.patient
     ? [items[0].patient.nombres, items[0].patient.apellidos].filter(Boolean).join(" ")
     : "";
+  const recordsCount = Array.isArray(items) ? items.length : 0;
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-        <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
-          <Card className="p-5 sm:p-8">
-            <SectionTitle
-              title="Historial clinico"
-              subtitle="Revise sus consultas anteriores"
-              rightSlot={
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => router.push("/portal")}
-                >
-                  Volver al portal
-                </Button>
-              }
-            />
-            <p className="mt-6 text-sm text-slate-500">Cargando...</p>
-          </Card>
+      <div className="page" style={{ background: "#f8fafc", minHeight: "100vh" }}>
+        <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+          <section className="portal-medical-card">
+            <div className="portal-medical-empty-state">
+              <div className="portal-medical-empty-state-icon">...</div>
+              <p className="portal-medical-empty-state-text">Cargando...</p>
+            </div>
+          </section>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
-        <Card className="p-5 sm:p-8">
-          <SectionTitle
-            title="Historial clinico"
-            subtitle="Revise sus consultas anteriores"
-            rightSlot={
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => router.push("/portal")}
-              >
-                Volver al portal
-              </Button>
-            }
-          />
-          {patientName && (
-            <p className="mt-2 text-sm text-slate-500">{patientName}</p>
-          )}
+    <div className="page" style={{ background: "#f8fafc", minHeight: "100vh" }}>
+      <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+        <header className="portal-medical-header">
+          <h1>Historial clinico</h1>
+          <p className="portal-medical-header-subtitle">
+            Revise sus consultas anteriores.
+          </p>
+          <div className="portal-medical-header-info">
+            <div className="portal-medical-header-info-item">
+              <span className="portal-medical-header-info-label">Paciente</span>
+              <span className="portal-medical-header-info-value">
+                {patientName || "Paciente"}
+              </span>
+            </div>
+            <div className="portal-medical-header-info-item">
+              <span className="portal-medical-header-info-label">Consultas</span>
+              <span className="portal-medical-header-info-value">{recordsCount}</span>
+            </div>
+          </div>
+          <div className="portal-medical-header-actions">
+            <button
+              type="button"
+              onClick={() => router.push("/portal")}
+              className="portal-medical-button portal-medical-button-secondary portal-medical-button-small"
+            >
+              Volver al portal
+            </button>
+          </div>
+        </header>
 
-          <div className="mt-6 space-y-4">
+        <section className="portal-medical-card">
+          <div className="portal-medical-card-header">
+            <div className="portal-medical-card-title-section">
+              <div className="portal-medical-card-icon history">HC</div>
+              <div className="portal-medical-card-title-group">
+                <h2 className="portal-medical-card-title">Consultas</h2>
+                <p className="portal-medical-card-subtitle">
+                  Acceda al detalle de cada consulta registrada.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="portal-medical-card-content">
             {error && (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="portal-medical-alert portal-medical-alert-error">
                 {error}
               </div>
             )}
 
             {message && !error && (
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
-                {message}
+              <div className="portal-medical-empty-state">
+                <div className="portal-medical-empty-state-icon">HC</div>
+                <p className="portal-medical-empty-state-text">{message}</p>
               </div>
             )}
 
             {!message && !error && (
-              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-                <div className="divide-y divide-slate-200">
-                  {items.map((item) => {
-                    const diagnosisText =
-                      item.diagnosis || item.indications || "Consulta registrada";
-                    return (
-                      <div
-                        key={item.id}
-                        className="flex flex-col gap-3 px-4 py-4 transition hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between"
-                      >
-                        <div>
-                          <div className="text-xs font-medium text-slate-500">
-                            Consulta {formatDate(item.consultation_date || item.created_at)}
-                          </div>
-                          <div className="mt-1 text-sm font-semibold text-slate-900">
-                            {diagnosisText}
-                          </div>
+              <div className="portal-medical-list">
+                {items.map((item) => {
+                  const diagnosisText =
+                    item.diagnosis || item.indications || "Consulta registrada";
+                  return (
+                    <div key={item.id} className="portal-medical-list-item">
+                      <div>
+                        <div className="portal-medical-list-title">
+                          Consulta {formatDate(item.consultation_date || item.created_at)}
                         </div>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => router.push(`/portal/consultas/${item.id}`)}
-                        >
-                          Ver consulta
-                        </Button>
+                        <div className="portal-medical-list-meta">{diagnosisText}</div>
                       </div>
-                    );
-                  })}
-                </div>
+                      <button
+                        type="button"
+                        className="portal-medical-button portal-medical-button-secondary portal-medical-button-small"
+                        onClick={() => router.push(`/portal/consultas/${item.id}`)}
+                      >
+                        Ver consulta
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
-        </Card>
+        </section>
       </div>
     </div>
   );

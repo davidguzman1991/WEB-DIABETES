@@ -6,8 +6,8 @@ import { apiFetch, logout } from "../../../lib/auth";
 import { useAuthGuard } from "../../../hooks/useAuthGuard";
 
 const FILTERS = [
-  { key: "6m", label: "Últimos 6 meses", months: 6 },
-  { key: "1y", label: "Último año", months: 12 },
+  { key: "6m", label: "Ultimos 6 meses", months: 6 },
+  { key: "1y", label: "Ultimo ano", months: 12 },
   { key: "all", label: "Todos", months: null },
 ];
 
@@ -198,186 +198,257 @@ export default function HbA1cHistory() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-        <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
-          <div className="card portal-detail-card">
-            <h1>HbA1c</h1>
-            <p className="muted">Cargando...</p>
-          </div>
+      <div className="page" style={{ background: "#f8fafc", minHeight: "100vh" }}>
+        <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+          <section className="portal-medical-card">
+            <div className="portal-medical-empty-state">
+              <div className="portal-medical-empty-state-icon">...</div>
+              <p className="portal-medical-empty-state-text">Cargando...</p>
+            </div>
+          </section>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
-        <div className="card portal-detail-card">
-        <header className="portal-header">
-          <h1 className="portal-title">HbA1c</h1>
-          <p className="portal-subtitle">Evolución en el tiempo</p>
-        </header>
-        <Link className="button button-secondary" href="/portal">
-          &larr; Volver al portal
-        </Link>
-        {error && <div className="error">{error}</div>}
-        {!error && message && <div className="muted">{message}</div>}
-
-        {latestEntry && (
-          <div className="portal-card" style={{ marginTop: 12 }}>
-            <div className="portal-card-title">Último resultado</div>
-            <div className="portal-card-note">
-              {formatHbA1cValue(latestEntry.value)} · {formatDate(latestEntry.date)}
-            </div>
-          </div>
-        )}
-
-        <div className="filter-row">
-          {FILTERS.map((filter) => (
-            <button
-              key={filter.key}
-              type="button"
-              className={`filter-button${rangeKey === filter.key ? " is-active" : ""}`}
-              onClick={() => setRangeKey(filter.key)}
-            >
-              {filter.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="chart-card">
-          <div className="chart-header">
-            <div className="section-title">Tendencia HbA1c</div>
-            <div className="chart-legend">
-              <span className="legend-item">
-                <span className="legend-swatch target" />
-                Meta (≤ 7%)
+    <div className="page" style={{ background: "#f8fafc", minHeight: "100vh" }}>
+      <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+        <header className="portal-medical-header">
+          <h1>HbA1c</h1>
+          <p className="portal-medical-header-subtitle">Evolucion en el tiempo.</p>
+          <div className="portal-medical-header-info">
+            <div className="portal-medical-header-info-item">
+              <span className="portal-medical-header-info-label">Ultimo resultado</span>
+              <span className="portal-medical-header-info-value">
+                {latestEntry
+                  ? `${formatHbA1cValue(latestEntry.value)} - ${formatDate(
+                      latestEntry.date
+                    )}`
+                  : "Sin datos"}
               </span>
             </div>
-          </div>
-          {filteredSeries.length === 1 && (
-            <div className="muted">
-              Se requieren al menos dos mediciones para mostrar la evolución.
+            <div className="portal-medical-header-info-item">
+              <span className="portal-medical-header-info-label">Rango</span>
+              <span className="portal-medical-header-info-value">{activeFilter.label}</span>
             </div>
-          )}
-          {filteredSeries.length > 1 && chartData && (
-            <svg
-              viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
-              width="100%"
-              height={CHART_HEIGHT}
-              role="img"
-              aria-label="Gráfico HbA1c"
+          </div>
+          <div className="portal-medical-header-actions">
+            <Link
+              className="portal-medical-button portal-medical-button-secondary portal-medical-button-small"
+              href="/portal"
             >
-              <rect
-                x={CHART_PADDING.left}
-                y={chartData.valueToY(TARGET_MAX)}
-                width={chartData.plotWidth}
-                height={chartData.valueToY(chartData.chartMin) - chartData.valueToY(TARGET_MAX)}
-                fill="#dcfce7"
-              />
+              Volver al portal
+            </Link>
+          </div>
+        </header>
 
-              <line
-                x1={CHART_PADDING.left}
-                y1={CHART_PADDING.top}
-                x2={CHART_PADDING.left}
-                y2={CHART_HEIGHT - CHART_PADDING.bottom}
-                stroke="#cbd5f5"
-                strokeWidth="1"
-              />
-              <line
-                x1={CHART_PADDING.left}
-                y1={CHART_HEIGHT - CHART_PADDING.bottom}
-                x2={CHART_WIDTH - CHART_PADDING.right}
-                y2={CHART_HEIGHT - CHART_PADDING.bottom}
-                stroke="#cbd5f5"
-                strokeWidth="1"
-              />
+        {error && (
+          <section className="portal-medical-card">
+            <div className="portal-medical-card-content">
+              <div className="portal-medical-alert portal-medical-alert-error">{error}</div>
+            </div>
+          </section>
+        )}
 
-              {yTicks.map((tick) => {
-                const y = chartData.valueToY(tick);
-                return (
-                  <g key={`tick-${tick}`}>
-                    <line
-                      x1={CHART_PADDING.left}
-                      y1={y}
-                      x2={CHART_WIDTH - CHART_PADDING.right}
-                      y2={y}
-                      stroke="#e5e7eb"
-                      strokeDasharray="4 4"
-                    />
-                    <text
-                      x={CHART_PADDING.left - 8}
-                      y={y + 4}
-                      textAnchor="end"
-                      fontSize="10"
-                      fill="#6b7280"
-                    >
-                      {tick}
-                    </text>
-                  </g>
-                );
-              })}
+        {!error && message && (
+          <section className="portal-medical-card">
+            <div className="portal-medical-empty-state">
+              <div className="portal-medical-empty-state-icon">HB</div>
+              <p className="portal-medical-empty-state-text">{message}</p>
+            </div>
+          </section>
+        )}
 
-              <path d={chartData.path} fill="none" stroke="#1e3a5f" strokeWidth="2" />
-
-              {chartData.points.map((point, index) => {
-                const x = CHART_PADDING.left + index * chartData.xStep;
-                const y = chartData.valueToY(point.value);
-                return (
-                  <g key={`${point.label}-${index}`}>
-                    <circle cx={x} cy={y} r="3" fill="#1e3a5f" />
-                    <text
-                      transform={`translate(${x}, ${CHART_HEIGHT - 22}) rotate(-30)`}
-                      textAnchor="end"
-                      fontSize="9"
-                      fill="#6b7280"
-                    >
-                      {point.label}
-                    </text>
-                  </g>
-                );
-              })}
-
-              <text
-                x={CHART_WIDTH / 2}
-                y={CHART_HEIGHT - 6}
-                textAnchor="middle"
-                fontSize="11"
-                fill="#475569"
-              >
-                Fecha
-              </text>
-              <text
-                transform={`translate(14, ${CHART_HEIGHT / 2}) rotate(-90)`}
-                textAnchor="middle"
-                fontSize="11"
-                fill="#475569"
-              >
-                HbA1c (%)
-              </text>
-            </svg>
-          )}
-          {filteredSeries.length === 0 && !message && !error && (
-            <div className="muted">No hay resultados de HbA1c disponibles.</div>
-          )}
-        </div>
-
-        <div className="chart-disclaimer">
-          Esta visualización es informativa y no reemplaza la evaluación médica.
-        </div>
-
-        <div className="list">
-          {filteredSeries
-            .slice()
-            .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
-            .map((entry, index) => (
-              <div key={`${entry.date || "entry"}-${index}`} className="list-item">
-                <div className="list-title">{formatDate(entry.date)}</div>
-                <div className="list-meta">{formatHbA1cValue(entry.value)}</div>
+        <section className="portal-medical-card">
+          <div className="portal-medical-card-header">
+            <div className="portal-medical-card-title-section">
+              <div className="portal-medical-card-icon labs">HB</div>
+              <div className="portal-medical-card-title-group">
+                <h2 className="portal-medical-card-title">Tendencia HbA1c</h2>
+                <p className="portal-medical-card-subtitle">
+                  Seguimiento de resultados en el tiempo.
+                </p>
               </div>
-            ))}
-        </div>
-        </div>
+            </div>
+          </div>
+          <div className="portal-medical-card-content">
+            <div className="filter-row">
+              {FILTERS.map((filter) => (
+                <button
+                  key={filter.key}
+                  type="button"
+                  className={`filter-button${rangeKey === filter.key ? " is-active" : ""}`}
+                  onClick={() => setRangeKey(filter.key)}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="chart-card">
+              <div className="chart-header">
+                <div className="section-title">Evolucion HbA1c</div>
+                <div className="chart-legend">
+                  <span className="legend-item">
+                    <span className="legend-swatch target" />
+                    Meta (= 7%)
+                  </span>
+                </div>
+              </div>
+              {filteredSeries.length === 1 && (
+                <div className="muted">
+                  Se requieren al menos dos mediciones para mostrar la evolucion.
+                </div>
+              )}
+              {filteredSeries.length > 1 && chartData && (
+                <svg
+                  viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
+                  width="100%"
+                  height={CHART_HEIGHT}
+                  role="img"
+                  aria-label="Grafico HbA1c"
+                >
+                  <rect
+                    x={CHART_PADDING.left}
+                    y={chartData.valueToY(TARGET_MAX)}
+                    width={chartData.plotWidth}
+                    height={
+                      chartData.valueToY(chartData.chartMin) -
+                      chartData.valueToY(TARGET_MAX)
+                    }
+                    fill="#dcfce7"
+                  />
+
+                  <line
+                    x1={CHART_PADDING.left}
+                    y1={CHART_PADDING.top}
+                    x2={CHART_PADDING.left}
+                    y2={CHART_HEIGHT - CHART_PADDING.bottom}
+                    stroke="#cbd5f5"
+                    strokeWidth="1"
+                  />
+                  <line
+                    x1={CHART_PADDING.left}
+                    y1={CHART_HEIGHT - CHART_PADDING.bottom}
+                    x2={CHART_WIDTH - CHART_PADDING.right}
+                    y2={CHART_HEIGHT - CHART_PADDING.bottom}
+                    stroke="#cbd5f5"
+                    strokeWidth="1"
+                  />
+
+                  {yTicks.map((tick) => {
+                    const y = chartData.valueToY(tick);
+                    return (
+                      <g key={`tick-${tick}`}>
+                        <line
+                          x1={CHART_PADDING.left}
+                          y1={y}
+                          x2={CHART_WIDTH - CHART_PADDING.right}
+                          y2={y}
+                          stroke="#e5e7eb"
+                          strokeDasharray="4 4"
+                        />
+                        <text
+                          x={CHART_PADDING.left - 8}
+                          y={y + 4}
+                          textAnchor="end"
+                          fontSize="10"
+                          fill="#6b7280"
+                        >
+                          {tick}
+                        </text>
+                      </g>
+                    );
+                  })}
+
+                  <path d={chartData.path} fill="none" stroke="#1e3a5f" strokeWidth="2" />
+
+                  {chartData.points.map((point, index) => {
+                    const x = CHART_PADDING.left + index * chartData.xStep;
+                    const y = chartData.valueToY(point.value);
+                    return (
+                      <g key={`${point.label}-${index}`}>
+                        <circle cx={x} cy={y} r="3" fill="#1e3a5f" />
+                        <text
+                          transform={`translate(${x}, ${CHART_HEIGHT - 22}) rotate(-30)`}
+                          textAnchor="end"
+                          fontSize="9"
+                          fill="#6b7280"
+                        >
+                          {point.label}
+                        </text>
+                      </g>
+                    );
+                  })}
+
+                  <text
+                    x={CHART_WIDTH / 2}
+                    y={CHART_HEIGHT - 6}
+                    textAnchor="middle"
+                    fontSize="11"
+                    fill="#475569"
+                  >
+                    Fecha
+                  </text>
+                  <text
+                    transform={`translate(14, ${CHART_HEIGHT / 2}) rotate(-90)`}
+                    textAnchor="middle"
+                    fontSize="11"
+                    fill="#475569"
+                  >
+                    HbA1c (%)
+                  </text>
+                </svg>
+              )}
+              {filteredSeries.length === 0 && !message && !error && (
+                <div className="muted">No hay resultados de HbA1c disponibles.</div>
+              )}
+            </div>
+
+            <div className="chart-disclaimer">
+              Esta visualizacion es informativa y no reemplaza la evaluacion medica.
+            </div>
+          </div>
+        </section>
+
+        {filteredSeries.length > 0 && (
+          <section className="portal-medical-card">
+            <div className="portal-medical-card-header">
+              <div className="portal-medical-card-title-section">
+                <div className="portal-medical-card-icon labs">HB</div>
+                <div className="portal-medical-card-title-group">
+                  <h2 className="portal-medical-card-title">Resultados</h2>
+                  <p className="portal-medical-card-subtitle">
+                    Valores historicos de HbA1c.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="portal-medical-card-content">
+              <div className="portal-medical-list">
+                {filteredSeries
+                  .slice()
+                  .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+                  .map((entry, index) => (
+                    <div
+                      key={`${entry.date || "entry"}-${index}`}
+                      className="portal-medical-list-item"
+                    >
+                      <div>
+                        <div className="portal-medical-list-title">
+                          {formatDate(entry.date)}
+                        </div>
+                        <div className="portal-medical-list-meta">
+                          {formatHbA1cValue(entry.value)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </section>
+        )}
       </div>
       <style jsx>{`
         .filter-row {

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/router";
 
 import { apiFetch, logout } from "../../../../lib/auth";
@@ -41,37 +40,76 @@ export default function IndicacionesConsulta() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-        <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
-          <div className="card portal-detail-card">
-            <h1>Indicaciones</h1>
-            <p className="muted">Cargando...</p>
-          </div>
+      <div className="page" style={{ background: "#f8fafc", minHeight: "100vh" }}>
+        <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+          <section className="portal-medical-card">
+            <div className="portal-medical-empty-state">
+              <div className="portal-medical-empty-state-icon">...</div>
+              <p className="portal-medical-empty-state-text">Cargando...</p>
+            </div>
+          </section>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
-        <div className="card portal-detail-card">
+    <div className="page" style={{ background: "#f8fafc", minHeight: "100vh" }}>
+      <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+        <header className="portal-medical-header">
           <h1>Indicaciones</h1>
-          <Link
-            className="button button-secondary"
-            href={consultationId ? `/portal/consultas/${consultationId}` : "/portal/historial"}
-          >
-            Volver a consulta
-          </Link>
-          {error && <div className="error">{error}</div>}
-          {indicationsText ? (
-            <div className="flash-card">
-              <div className="flash-note">{indicationsText}</div>
+          <p className="portal-medical-header-subtitle">
+            Recomendaciones para su consulta.
+          </p>
+          <div className="portal-medical-header-actions">
+            <button
+              type="button"
+              onClick={() =>
+                router.push(
+                  consultationId ? `/portal/consultas/${consultationId}` : "/portal/historial"
+                )
+              }
+              className="portal-medical-button portal-medical-button-secondary portal-medical-button-small"
+            >
+              Volver a consulta
+            </button>
+          </div>
+        </header>
+
+        <section className="portal-medical-card">
+          <div className="portal-medical-card-header">
+            <div className="portal-medical-card-title-section">
+              <div className="portal-medical-card-icon history">IN</div>
+              <div className="portal-medical-card-title-group">
+                <h2 className="portal-medical-card-title">Indicaciones medicas</h2>
+                <p className="portal-medical-card-subtitle">
+                  Revise las recomendaciones del especialista.
+                </p>
+              </div>
             </div>
-          ) : (
-            <div className="muted">No hay indicaciones registradas.</div>
-          )}
-        </div>
+          </div>
+          <div className="portal-medical-card-content">
+            {error && (
+              <div className="portal-medical-alert portal-medical-alert-error">
+                {error}
+              </div>
+            )}
+            {!error && indicationsText && (
+              <div className="portal-medical-indications">
+                <div className="portal-medical-indications-title">Indicaciones</div>
+                <p className="portal-medical-indications-text">{indicationsText}</p>
+              </div>
+            )}
+            {!error && !indicationsText && (
+              <div className="portal-medical-empty-state">
+                <div className="portal-medical-empty-state-icon">IN</div>
+                <p className="portal-medical-empty-state-text">
+                  No hay indicaciones registradas.
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
       </div>
     </div>
   );

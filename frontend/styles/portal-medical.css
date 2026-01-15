@@ -447,6 +447,43 @@
   color: var(--medical-text-muted);
 }
 
+.portal-medical-list {
+  display: grid;
+  gap: 12px;
+}
+
+.portal-medical-list-item {
+  background: #ffffff;
+  border: 1px solid var(--medical-border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.portal-medical-list-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--medical-text);
+  margin: 0 0 4px 0;
+}
+
+.portal-medical-list-meta {
+  font-size: 13px;
+  color: var(--medical-text-muted);
+}
+
+.portal-medical-note {
+  background: #f8fafc;
+  border: 1px solid var(--medical-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--medical-text);
+}
+
 .portal-medical-record-list {
   display: grid;
   gap: 12px;
@@ -632,6 +669,11 @@
   .portal-medical-record-item {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .portal-medical-list-item {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .portal-medical-record-note {

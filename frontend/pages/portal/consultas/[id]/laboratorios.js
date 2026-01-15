@@ -3,9 +3,6 @@ import { useRouter } from "next/router";
 
 import { apiFetch, logout } from "../../../../lib/auth";
 import { useAuthGuard } from "../../../../hooks/useAuthGuard";
-import Button from "../../../../components/ui/Button";
-import Card from "../../../../components/ui/Card";
-import SectionTitle from "../../../../components/ui/SectionTitle";
 
 export default function LaboratoriosConsulta() {
   const router = useRouter();
@@ -40,111 +37,110 @@ export default function LaboratoriosConsulta() {
 
   const consultationId = typeof router.query.id === "string" ? router.query.id : "";
   const labs = Array.isArray(detail?.labs) ? detail.labs : [];
+  const labsCount = Array.isArray(labs) ? labs.length : 0;
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-        <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
-          <Card className="p-5 sm:p-8">
-            <SectionTitle
-              title="Resultados de laboratorio"
-              subtitle="Resultados actuales"
-              rightSlot={
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    router.push(
-                      consultationId
-                        ? `/portal/consultas/${consultationId}`
-                        : "/portal/historial"
-                    )
-                  }
-                >
-                  Volver a consulta
-                </Button>
-              }
-            />
-            <p className="mt-6 text-sm text-slate-500">Cargando...</p>
-          </Card>
+      <div className="page" style={{ background: "#f8fafc", minHeight: "100vh" }}>
+        <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+          <section className="portal-medical-card">
+            <div className="portal-medical-empty-state">
+              <div className="portal-medical-empty-state-icon">...</div>
+              <p className="portal-medical-empty-state-text">Cargando...</p>
+            </div>
+          </section>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-10">
-        <Card className="p-5 sm:p-8">
-          <SectionTitle
-            title="Resultados de laboratorio"
-            subtitle="Resultados actuales"
-            rightSlot={
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  router.push(
-                    consultationId
-                      ? `/portal/consultas/${consultationId}`
-                      : "/portal/historial"
-                  )
-                }
-              >
-                Volver a consulta
-              </Button>
-            }
-          />
+    <div className="page" style={{ background: "#f8fafc", minHeight: "100vh" }}>
+      <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+        <header className="portal-medical-header">
+          <h1>Laboratorios</h1>
+          <p className="portal-medical-header-subtitle">Resultados de laboratorio.</p>
+          <div className="portal-medical-header-info">
+            <div className="portal-medical-header-info-item">
+              <span className="portal-medical-header-info-label">Resultados</span>
+              <span className="portal-medical-header-info-value">{labsCount}</span>
+            </div>
+          </div>
+          <div className="portal-medical-header-actions">
+            <button
+              type="button"
+              onClick={() =>
+                router.push(
+                  consultationId ? `/portal/consultas/${consultationId}` : "/portal/historial"
+                )
+              }
+              className="portal-medical-button portal-medical-button-secondary portal-medical-button-small"
+            >
+              Volver a consulta
+            </button>
+          </div>
+        </header>
 
-          <div className="mt-6 space-y-4">
+        <section className="portal-medical-card">
+          <div className="portal-medical-card-header">
+            <div className="portal-medical-card-title-section">
+              <div className="portal-medical-card-icon labs">LB</div>
+              <div className="portal-medical-card-title-group">
+                <h2 className="portal-medical-card-title">Resultados actuales</h2>
+                <p className="portal-medical-card-subtitle">
+                  Revise los valores registrados en la consulta.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="portal-medical-card-content">
             {error && (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="portal-medical-alert portal-medical-alert-error">
                 {error}
               </div>
             )}
 
             {labs.length === 0 && !error && (
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
-                No hay resultados registrados.
+              <div className="portal-medical-empty-state">
+                <div className="portal-medical-empty-state-icon">LB</div>
+                <p className="portal-medical-empty-state-text">
+                  No hay resultados registrados.
+                </p>
               </div>
             )}
 
             {labs.length > 0 && (
-              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-                <div className="divide-y divide-slate-200">
-                  {labs.map((lab, index) => {
-                    if (!lab || typeof lab !== "object") return null;
-                    const resultValue = lab.valor_num ?? lab.valor_texto ?? "";
-                    const resultLabel = resultValue !== "" ? resultValue : "Sin resultado";
-                    const unit = lab.unidad_snapshot ? ` ${lab.unidad_snapshot}` : "";
-                    const labKey = `${lab.lab_nombre || "lab"}-${index}`;
-                    return (
-                      <div key={labKey} className="px-4 py-4">
-                        <div className="text-sm font-semibold text-slate-900">
+              <div className="portal-medical-lab-list">
+                {labs.map((lab, index) => {
+                  if (!lab || typeof lab !== "object") return null;
+                  const resultValue = lab.valor_num ?? lab.valor_texto ?? "";
+                  const resultLabel = resultValue !== "" ? resultValue : "Sin resultado";
+                  const unit = lab.unidad_snapshot ? ` ${lab.unidad_snapshot}` : "";
+                  const labKey = `${lab.lab_nombre || "lab"}-${index}`;
+                  return (
+                    <div key={labKey} className="portal-medical-lab-item">
+                      <div className="portal-medical-lab-header">
+                        <div className="portal-medical-lab-name">
                           {lab.lab_nombre || "Examen"}
                         </div>
-                        <div className="mt-2 text-xs font-medium text-slate-500">
-                          Resultado
-                        </div>
-                        <div className="mt-1 text-sm text-slate-700">
+                        <div className="portal-medical-lab-value">
                           {resultLabel}
                           {resultValue !== "" ? unit : ""}
                         </div>
+                      </div>
+                      <div className="portal-medical-lab-meta">
                         {lab.rango_ref_snapshot && (
-                          <div className="mt-2 text-xs text-slate-500">
-                            Rango: {lab.rango_ref_snapshot}
-                          </div>
+                          <span>Rango: {lab.rango_ref_snapshot}</span>
                         )}
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
-        </Card>
+        </section>
       </div>
     </div>
   );

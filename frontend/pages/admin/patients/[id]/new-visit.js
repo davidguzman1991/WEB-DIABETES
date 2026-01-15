@@ -84,7 +84,7 @@ export default function NewVisit() {
   };
 
   return (
-    <div className="page">
+    <div className="page admin-page">
       <Navigation
         title="Nueva visita"
         links={[

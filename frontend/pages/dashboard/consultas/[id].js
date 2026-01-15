@@ -148,7 +148,7 @@ export default function AdminConsultationDetail() {
 
   if (loading) {
     return (
-      <div className="page">
+      <div className="page admin-page">
         <div className="admin-shell">
           <div className="card portal-detail-card">
             <h1>Consulta</h1>
@@ -160,7 +160,7 @@ export default function AdminConsultationDetail() {
   }
 
   return (
-    <div className="page">
+    <div className="page admin-page">
       <div className="admin-shell">
         <div className="card portal-detail-card">
           <h1>Consulta</h1>

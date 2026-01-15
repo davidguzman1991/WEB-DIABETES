@@ -151,7 +151,7 @@ export default function AdminConsultations() {
 
   if (loading) {
     return (
-      <div className="page">
+      <div className="page admin-page">
         <div className="card">
           <h1>Consultas</h1>
           <p className="muted">Cargando...</p>
@@ -314,7 +314,7 @@ export default function AdminConsultations() {
   };
 
   return (
-    <div className="page">
+    <div className="page admin-page">
       <Navigation
         title="Consultas"
         links={[

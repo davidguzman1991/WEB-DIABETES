@@ -222,7 +222,7 @@ export default function PatientGlucoseHistory() {
 
   if (authLoading) {
     return (
-      <div className="page">
+      <div className="page admin-page">
         <div className="card">
           <h1>Historial de glucosas</h1>
           <p className="muted">Cargando...</p>
@@ -232,7 +232,7 @@ export default function PatientGlucoseHistory() {
   }
 
   return (
-    <div className="page">
+    <div className="page admin-page">
       <div className="card">
         <div className="history-header">
           <div>

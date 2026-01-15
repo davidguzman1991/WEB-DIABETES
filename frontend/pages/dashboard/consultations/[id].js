@@ -102,7 +102,7 @@ export default function AdminConsultationDetail() {
 
   if (loading) {
     return (
-      <div className="page">
+      <div className="page admin-page">
         <div className="admin-shell">
           <div className="mx-auto w-full max-w-4xl px-4 pb-12 pt-6">
             <Card className="p-6 md:p-8">
@@ -121,7 +121,7 @@ export default function AdminConsultationDetail() {
   }
 
   return (
-    <div className="page">
+    <div className="page admin-page">
       <div className="admin-shell">
         <div className="mx-auto w-full max-w-4xl px-4 pb-12 pt-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

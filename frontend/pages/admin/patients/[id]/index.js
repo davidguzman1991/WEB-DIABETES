@@ -162,7 +162,7 @@ export default function EditPatient() {
 
   if (!form) {
     return (
-      <div className="page">
+      <div className="page admin-page">
         <Navigation
           title="Editar paciente"
           links={[
@@ -178,7 +178,7 @@ export default function EditPatient() {
   }
 
   return (
-    <div className="page">
+    <div className="page admin-page">
       <Navigation
         title="Editar paciente"
         links={[
@@ -223,7 +223,7 @@ export default function EditPatient() {
       </section>
       {showResetModal && (
         <div
-          className="page"
+          className="page admin-page"
           style={{
             position: "fixed",
             inset: 0,

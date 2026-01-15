@@ -612,6 +612,77 @@ button.ghost, .ghost {
   box-shadow: 0 10px 22px rgba(15, 23, 42, 0.04);
 }
 
+.admin-page {
+  --bg: var(--medical-bg);
+  --card: var(--medical-card);
+  --border: var(--medical-border);
+  --muted: var(--medical-text-muted);
+  --ink: var(--medical-text);
+  --accent: var(--medical-secondary);
+  --accent-2: var(--medical-primary);
+  --shadow: rgba(15, 23, 42, 0.06);
+  background: var(--medical-bg);
+}
+
+.admin-page .nav {
+  background: var(--medical-card);
+  border: 1px solid var(--medical-border);
+  border-radius: 14px;
+  box-shadow: var(--medical-shadow);
+}
+
+.admin-page .nav-title {
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  font-size: 18px;
+}
+
+.admin-page .nav-links a {
+  color: var(--medical-primary);
+}
+
+.admin-page .nav-toggle {
+  background: var(--medical-card);
+  border-color: var(--medical-border);
+  color: var(--medical-text);
+}
+
+.admin-page .panel,
+.admin-page .card {
+  border: 1px solid var(--medical-border);
+  border-radius: 16px;
+  box-shadow: var(--medical-shadow);
+}
+
+.admin-page .tile {
+  background: var(--medical-card);
+  border: 1px solid var(--medical-border);
+  box-shadow: var(--medical-shadow);
+  color: var(--medical-text);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.admin-page .tile:hover {
+  border-color: #cbd5e1;
+  box-shadow: var(--medical-shadow-lg);
+  transform: translateY(-2px);
+}
+
+.admin-page .admin-shell,
+.admin-page .admin-section {
+  border: 1px solid var(--medical-border);
+  border-radius: 16px;
+  background: var(--medical-card);
+  box-shadow: var(--medical-shadow);
+}
+
+.admin-page .admin-shell > .admin-header {
+  border: 1px solid var(--medical-border);
+  border-radius: 16px;
+  background: var(--medical-card);
+  box-shadow: var(--medical-shadow);
+  padding: 16px 20px;
+}
+
 .admin-header {
   display: flex;
   align-items: flex-start;

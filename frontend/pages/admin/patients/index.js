@@ -27,7 +27,7 @@ export default function AdminPatients() {
 
   if (loading) {
     return (
-      <div className="page">
+      <div className="page admin-page">
         <div className="card">
           <h1>Pacientes</h1>
           <p className="muted">Cargando...</p>
@@ -111,7 +111,7 @@ export default function AdminPatients() {
   };
 
   return (
-    <div className="page">
+    <div className="page admin-page">
       <Navigation
         title="Pacientes"
         links={[{ href: "/admin", label: "Dashboard" }]}

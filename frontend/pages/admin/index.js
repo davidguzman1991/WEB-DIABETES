@@ -7,7 +7,7 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="page">
+      <div className="page admin-page">
         <div className="card">
           <h1>Admin</h1>
           <p className="muted">Cargando...</p>
@@ -17,7 +17,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="page">
+    <div className="page admin-page">
       <Navigation
         title="Admin"
         links={[

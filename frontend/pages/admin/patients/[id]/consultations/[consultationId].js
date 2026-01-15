@@ -209,7 +209,7 @@ export default function ConsultationMedications() {
   }, []);
 
   return (
-    <div className="page">
+    <div className="page admin-page">
       <Navigation
         title="Medicamentos"
         links={[

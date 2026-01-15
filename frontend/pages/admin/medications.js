@@ -54,7 +54,7 @@ export default function AdminMedications() {
   };
 
   return (
-    <div className="page">
+    <div className="page admin-page">
       <Navigation
         title="Medicamentos"
         links={[

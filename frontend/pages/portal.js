@@ -137,6 +137,19 @@ export default function Portal() {
 
   const formatDate = (value) => {
     if (!value) return "";
+    // Si es una fecha sin hora (solo fecha, formato YYYY-MM-DD), parsearla directamente
+    // para evitar problemas de zona horaria
+    if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const [year, month, day] = value.split("-").map(Number);
+      const date = new Date(year, month - 1, day);
+      if (Number.isNaN(date.getTime())) return "";
+      return date.toLocaleDateString("es-EC", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    }
+    // Para fechas con hora (datetime), usar el constructor normal
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "";
     return date.toLocaleDateString("es-EC", {
@@ -569,6 +582,8 @@ export default function Portal() {
 
   const appointmentUrl =
     process.env.NEXT_PUBLIC_APPOINTMENT_URL || "https://example.com";
+  // Usar consultation_date si está disponible (fecha real de la consulta),
+  // de lo contrario usar created_at (fecha de registro)
   const lastConsultationDate = formatDate(
     current?.consultation_date || current?.created_at
   );

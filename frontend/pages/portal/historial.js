@@ -16,6 +16,19 @@ export default function PortalHistorial() {
 
   const formatDate = (value) => {
     if (!value) return "";
+    // Si es una fecha sin hora (solo fecha, formato YYYY-MM-DD), parsearla directamente
+    // para evitar problemas de zona horaria
+    if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const [year, month, day] = value.split("-").map(Number);
+      const date = new Date(year, month - 1, day);
+      if (Number.isNaN(date.getTime())) return "";
+      return date.toLocaleDateString("es-EC", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    }
+    // Para fechas con hora (datetime), usar el constructor normal
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "";
     return date.toLocaleDateString("es-EC", {
@@ -135,7 +148,7 @@ export default function PortalHistorial() {
                       >
                         <div>
                           <div className="text-xs font-medium text-slate-500">
-                            Consulta {formatDate(item.created_at)}
+                            Consulta {formatDate(item.consultation_date || item.created_at)}
                           </div>
                           <div className="mt-1 text-sm font-semibold text-slate-900">
                             {diagnosisText}

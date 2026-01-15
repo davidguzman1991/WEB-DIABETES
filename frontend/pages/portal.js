@@ -418,7 +418,8 @@ export default function Portal() {
           .slice()
           .sort((a, b) => new Date(b?.created_at || 0) - new Date(a?.created_at || 0));
         const limited = ordered.slice(0, 12).filter((item) => item?.id);
-        const labsMap = new Map();
+        const groups = [];
+        const importantLabs = ["HbA1c", "Glucosa ayunas", "Creatinina", "TFG", "UACR"];
         for (const consulta of limited) {
           if (!active) return;
           try {
@@ -432,32 +433,33 @@ export default function Portal() {
             }
             const detail = await detailRes.json().catch(() => null);
             const labs = Array.isArray(detail?.labs) ? detail.labs : [];
-            labs.forEach((lab) => {
-              if (!lab || !lab.lab_nombre) return;
-              const labName = lab.lab_nombre.trim();
-              if (!labsMap.has(labName)) {
-                labsMap.set(labName, {
-                  ...lab,
-                  consulta_id: consulta.id,
-                  consulta_date: detail?.consultation?.created_at || consulta.created_at,
-                });
-              }
+            if (!labs.length) continue;
+            const sortedLabs = labs.slice().sort((a, b) => {
+              const aName = (a?.lab_nombre || "").trim();
+              const bName = (b?.lab_nombre || "").trim();
+              const aIndex = importantLabs.indexOf(aName);
+              const bIndex = importantLabs.indexOf(bName);
+              if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+              if (aIndex !== -1) return -1;
+              if (bIndex !== -1) return 1;
+              return aName.localeCompare(bName);
+            });
+            groups.push({
+              consulta_id: consulta.id,
+              consulta_date: detail?.consultation?.created_at || consulta.created_at,
+              labs: sortedLabs,
             });
           } catch (err) {
             continue;
           }
         }
         if (!active) return;
-        const importantLabs = ["HbA1c", "Glucosa ayunas", "Creatinina", "TFG", "UACR"];
-        const sortedLabs = Array.from(labsMap.values()).sort((a, b) => {
-          const aIndex = importantLabs.indexOf(a.lab_nombre);
-          const bIndex = importantLabs.indexOf(b.lab_nombre);
-          if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
-          if (aIndex !== -1) return -1;
-          if (bIndex !== -1) return 1;
-          return (a.lab_nombre || "").localeCompare(b.lab_nombre || "");
+        const sortedGroups = groups.sort((a, b) => {
+          const aDate = new Date(a?.consulta_date || 0).getTime();
+          const bDate = new Date(b?.consulta_date || 0).getTime();
+          return bDate - aDate;
         });
-        if (active) setAllLabs(sortedLabs);
+        if (active) setAllLabs(sortedGroups);
       } catch (err) {
         if (active) setAllLabsError("No se pudo cargar laboratorios");
       } finally {
@@ -690,6 +692,12 @@ export default function Portal() {
     }
     return { primary: "Registra tu glucosa" };
   }, [lastGlucoseDateValue, orderedGlucoseLogs.length]);
+  const totalLabsCount = useMemo(() => {
+    return allLabs.reduce((sum, group) => {
+      const labs = Array.isArray(group?.labs) ? group.labs : [];
+      return sum + labs.length;
+    }, 0);
+  }, [allLabs]);
 
   if (authLoading) {
     return <PortalSkeleton />;
@@ -1186,7 +1194,8 @@ export default function Portal() {
                       <div className="portal-medical-summary-row">
                         <span className="portal-medical-summary-label">Resultados</span>
                         <span className="portal-medical-summary-value">
-                          {allLabs.length} disponibles
+                          {totalLabsCount} resultado{totalLabsCount === 1 ? "" : "s"} en{" "}
+                          {allLabs.length} consulta{allLabs.length === 1 ? "" : "s"}
                         </span>
                       </div>
                       <div className="portal-medical-summary-row">
@@ -1232,26 +1241,65 @@ export default function Portal() {
                   !allLabsError &&
                   !hba1cError &&
                   allLabs.length > 0 && (
-                    <div className="portal-medical-lab-list">
-                      {allLabs.map((lab, index) => {
-                        if (!lab || typeof lab !== "object") return null;
-                        const resultValue = lab.valor_num ?? lab.valor_texto ?? "";
-                        const resultLabel = resultValue !== "" ? resultValue : "Sin resultado";
-                        const unit = lab.unidad_snapshot ? ` ${lab.unidad_snapshot}` : "";
-                        const labKey = `${lab.lab_nombre || "lab"}-${index}`;
-                        const labDate = lab.consulta_date ? formatDate(lab.consulta_date) : "";
+                    <div className="portal-medical-lab-groups">
+                      {allLabs.map((group, groupIndex) => {
+                        if (!group || typeof group !== "object") return null;
+                        const groupDate = group.consulta_date
+                          ? formatDate(group.consulta_date)
+                          : "";
+                        const groupLabs = Array.isArray(group.labs) ? group.labs : [];
+                        const groupKey = group.consulta_id || `group-${groupIndex}`;
                         return (
-                          <div key={labKey} className="portal-medical-lab-item">
-                            <div className="portal-medical-lab-header">
-                              <div className="portal-medical-lab-name">{lab.lab_nombre || "Examen"}</div>
-                              <div className="portal-medical-lab-value">
-                                {resultLabel}
-                                {unit}
+                          <div key={groupKey} className="portal-medical-lab-group">
+                            <div className="portal-medical-lab-group-header">
+                              <div className="portal-medical-lab-group-title">
+                                Fecha de consulta{groupDate ? `: ${groupDate}` : ""}
                               </div>
+                              <Link
+                                href={
+                                  group.consulta_id
+                                    ? `/portal/consultas/${group.consulta_id}`
+                                    : "/portal/historial"
+                                }
+                                className="portal-medical-button portal-medical-button-secondary portal-medical-button-small"
+                              >
+                                Ver resumen
+                              </Link>
                             </div>
-                            <div className="portal-medical-lab-meta">
-                              {labDate && <span>Fecha: {labDate}</span>}
-                              {lab.rango_ref_snapshot && <span>Rango: {lab.rango_ref_snapshot}</span>}
+                            <div className="portal-medical-lab-list">
+                              {groupLabs.map((lab, index) => {
+                                if (!lab || typeof lab !== "object") return null;
+                                const resultValue = lab.valor_num ?? lab.valor_texto ?? "";
+                                const resultLabel = resultValue !== "" ? resultValue : "Sin resultado";
+                                const unit = lab.unidad_snapshot ? ` ${lab.unidad_snapshot}` : "";
+                                const labKey = `${lab.lab_nombre || "lab"}-${index}`;
+                                return (
+                                  <Link
+                                    key={labKey}
+                                    href={
+                                      group.consulta_id
+                                        ? `/portal/consultas/${group.consulta_id}`
+                                        : "/portal/historial"
+                                    }
+                                    className="portal-medical-lab-item"
+                                  >
+                                    <div className="portal-medical-lab-header">
+                                      <div className="portal-medical-lab-name">
+                                        {lab.lab_nombre || "Examen"}
+                                      </div>
+                                      <div className="portal-medical-lab-value">
+                                        {resultLabel}
+                                        {unit}
+                                      </div>
+                                    </div>
+                                    <div className="portal-medical-lab-meta">
+                                      {lab.rango_ref_snapshot && (
+                                        <span>Rango: {lab.rango_ref_snapshot}</span>
+                                      )}
+                                    </div>
+                                  </Link>
+                                );
+                              })}
                             </div>
                           </div>
                         );

@@ -349,6 +349,30 @@
   gap: 12px;
 }
 
+.portal-medical-lab-groups {
+  display: grid;
+  gap: 16px;
+}
+
+.portal-medical-lab-group {
+  display: grid;
+  gap: 12px;
+}
+
+.portal-medical-lab-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.portal-medical-lab-group-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--medical-text);
+}
+
 .portal-medical-lab-item {
   background: #f8fafc;
   border: 1px solid var(--medical-border);
@@ -356,6 +380,14 @@
   padding: 16px;
   display: grid;
   gap: 8px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.portal-medical-lab-item:hover {
+  border-color: var(--medical-primary);
+  box-shadow: var(--medical-shadow);
 }
 
 .portal-medical-lab-header {

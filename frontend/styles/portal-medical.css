@@ -1,0 +1,458 @@
+/* Estilos médicos-hospitalarios para el portal del paciente */
+
+/* Variables de color médico-hospitalario */
+:root {
+  --medical-primary: #2563eb;
+  --medical-primary-dark: #1e40af;
+  --medical-primary-light: #dbeafe;
+  --medical-secondary: #0f766e;
+  --medical-success: #10b981;
+  --medical-warning: #f59e0b;
+  --medical-danger: #ef4444;
+  --medical-bg: #f8fafc;
+  --medical-card: #ffffff;
+  --medical-border: #e2e8f0;
+  --medical-text: #1e293b;
+  --medical-text-muted: #64748b;
+  --medical-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --medical-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Portal médico - Header limpio */
+.portal-medical-header {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  color: white;
+  border-radius: 16px;
+  padding: 32px 24px;
+  margin-bottom: 32px;
+  box-shadow: var(--medical-shadow-lg);
+}
+
+.portal-medical-header h1 {
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: white;
+}
+
+.portal-medical-header-subtitle {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+.portal-medical-header-info {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.portal-medical-header-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.portal-medical-header-info-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+}
+
+.portal-medical-header-info-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+}
+
+/* Navegación simplificada */
+.portal-medical-nav {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  background: white;
+  padding: 12px;
+  border-radius: 12px;
+  box-shadow: var(--medical-shadow);
+  border: 1px solid var(--medical-border);
+}
+
+.portal-medical-nav-item {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--medical-text);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.portal-medical-nav-item:hover {
+  background: var(--medical-primary-light);
+  color: var(--medical-primary-dark);
+}
+
+.portal-medical-nav-item.active {
+  background: var(--medical-primary);
+  color: white;
+}
+
+/* Banner de próxima cita mejorado */
+.portal-medical-banner {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-left: 4px solid var(--medical-primary);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: var(--medical-shadow);
+}
+
+.portal-medical-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.portal-medical-banner-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--medical-primary);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.portal-medical-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.portal-medical-banner-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--medical-text-muted);
+  font-weight: 600;
+}
+
+.portal-medical-banner-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--medical-text);
+}
+
+/* Cards médicas mejoradas */
+.portal-medical-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--medical-shadow);
+  border: 1px solid var(--medical-border);
+  transition: all 0.3s ease;
+}
+
+.portal-medical-card:hover {
+  box-shadow: var(--medical-shadow-lg);
+  transform: translateY(-2px);
+}
+
+.portal-medical-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 16px;
+}
+
+.portal-medical-card-title-section {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex: 1;
+}
+
+.portal-medical-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.portal-medical-card-icon.treatment {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.portal-medical-card-icon.labs {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.portal-medical-card-icon.glucose {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.portal-medical-card-icon.history {
+  background: #e0e7ff;
+  color: #6366f1;
+}
+
+.portal-medical-card-title-group {
+  flex: 1;
+}
+
+.portal-medical-card-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--medical-text);
+  margin: 0 0 6px 0;
+}
+
+.portal-medical-card-subtitle {
+  font-size: 14px;
+  color: var(--medical-text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.portal-medical-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Contenido de cards */
+.portal-medical-card-content {
+  margin-top: 20px;
+}
+
+.portal-medical-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--medical-text-muted);
+}
+
+.portal-medical-empty-state-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.portal-medical-empty-state-text {
+  font-size: 15px;
+  margin: 0;
+}
+
+/* Lista de medicamentos mejorada */
+.portal-medical-medication-list {
+  display: grid;
+  gap: 12px;
+}
+
+.portal-medical-medication-item {
+  background: #f8fafc;
+  border: 1px solid var(--medical-border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  transition: all 0.2s ease;
+}
+
+.portal-medical-medication-item:hover {
+  background: #f1f5f9;
+  border-color: var(--medical-primary);
+}
+
+.portal-medical-medication-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--medical-text);
+  margin: 0 0 8px 0;
+}
+
+.portal-medical-medication-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.portal-medical-medication-badge {
+  background: white;
+  border: 1px solid var(--medical-border);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: var(--medical-text-muted);
+  font-weight: 500;
+}
+
+/* Lista de laboratorios mejorada */
+.portal-medical-lab-list {
+  display: grid;
+  gap: 12px;
+}
+
+.portal-medical-lab-item {
+  background: #f8fafc;
+  border: 1px solid var(--medical-border);
+  border-radius: 12px;
+  padding: 16px;
+  display: grid;
+  gap: 8px;
+}
+
+.portal-medical-lab-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.portal-medical-lab-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--medical-text);
+}
+
+.portal-medical-lab-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--medical-primary);
+}
+
+.portal-medical-lab-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--medical-text-muted);
+}
+
+/* Botones médicos */
+.portal-medical-button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.portal-medical-button-primary {
+  background: var(--medical-primary);
+  color: white;
+}
+
+.portal-medical-button-primary:hover {
+  background: var(--medical-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--medical-shadow);
+}
+
+.portal-medical-button-secondary {
+  background: white;
+  color: var(--medical-primary);
+  border: 1px solid var(--medical-border);
+}
+
+.portal-medical-button-secondary:hover {
+  background: var(--medical-primary-light);
+  border-color: var(--medical-primary);
+}
+
+.portal-medical-button-small {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+/* Indicaciones destacadas */
+.portal-medical-indications {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-left: 4px solid var(--medical-success);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.portal-medical-indications-title {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--medical-text-muted);
+  margin: 0 0 12px 0;
+}
+
+.portal-medical-indications-text {
+  font-size: 15px;
+  color: var(--medical-text);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .portal-medical-header {
+    padding: 24px 20px;
+  }
+
+  .portal-medical-header h1 {
+    font-size: 24px;
+  }
+
+  .portal-medical-header-info {
+    grid-template-columns: 1fr;
+  }
+
+  .portal-medical-card {
+    padding: 20px;
+  }
+
+  .portal-medical-card-header {
+    flex-direction: column;
+  }
+
+  .portal-medical-card-actions {
+    width: 100%;
+  }
+
+  .portal-medical-button {
+    width: 100%;
+    justify-content: center;
+  }
+}

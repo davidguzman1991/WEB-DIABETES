@@ -705,272 +705,229 @@ export default function Portal() {
   }
 
   return (
-    <div className="page portal-bg pb-24 bg-gradient-to-b from-slate-50 to-white">
-      <div className="portal-bg-overlay" aria-hidden="true" />
-      <div className="portal-bg-content mx-auto w-full max-w-5xl">
-        <div className="card portal-shell portal-main-card w-full !max-w-5xl !mt-6 sm:!mt-10">
-          <div className="portal-dashboard !gap-6 sm:!gap-8">
-          <header
-            id="inicio"
-            className="portal-header rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-6"
-          >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-2">
-                <h1 className="text-2xl font-semibold text-slate-900 sm:text-3xl">
-                  Hola, <span className="portal-name">{getDisplayName(user)}</span> 👋
-                </h1>
-                <p className="portal-subtitle">
-                  Revise su plan actual y su seguimiento
+    <div className="page" style={{ background: "#f8fafc", minHeight: "100vh" }}>
+      <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+        {/* Header médico limpio */}
+        <header id="inicio" className="portal-medical-header">
+          <h1>
+            Bienvenido, <span style={{ fontWeight: 700 }}>{getDisplayName(user)}</span>
+          </h1>
+          <p className="portal-medical-header-subtitle">
+            Portal de seguimiento médico - Revise su información de salud
+          </p>
+          <div className="portal-medical-header-info">
+            <div className="portal-medical-header-info-item">
+              <span className="portal-medical-header-info-label">Última consulta</span>
+              <span className="portal-medical-header-info-value">
+                {lastConsultationDate || "Sin registros"}
+              </span>
+            </div>
+            <div className="portal-medical-header-info-item">
+              <span className="portal-medical-header-info-label">Médico tratante</span>
+              <span className="portal-medical-header-info-value">Dr. David Guzmán</span>
+            </div>
+          </div>
+        </header>
+
+        {/* Navegación simplificada */}
+        <nav className="portal-medical-nav" aria-label="Navegación del portal">
+          <a href="#tratamiento" className="portal-medical-nav-item">
+            Tratamiento
+          </a>
+          <a href="#laboratorios" className="portal-medical-nav-item">
+            Laboratorios
+          </a>
+          <a href="#glucosas" className="portal-medical-nav-item">
+            Glucosas
+          </a>
+          <a href="#historial" className="portal-medical-nav-item">
+            Historial
+          </a>
+        </nav>
+
+        {/* Banner de próxima cita mejorado */}
+        {nextVisitSummary && (
+          <div className="portal-medical-banner">
+            <div className="portal-medical-banner-content">
+              <div className="portal-medical-banner-icon">📅</div>
+              <div className="portal-medical-banner-text">
+                <span className="portal-medical-banner-label">Próximo control</span>
+                <span className="portal-medical-banner-value">
+                  {nextVisitSummary.date} • {nextVisitSummary.days}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+        {error && (
+          <div className="error" style={{ marginBottom: "24px" }}>
+            {error}
+          </div>
+        )}
+        {message && (
+          <div className="muted" style={{ marginBottom: "24px" }}>
+            {message}
+          </div>
+        )}
+
+        {/* Sección de Tratamiento */}
+        <section id="tratamiento" className="portal-medical-card">
+          <div className="portal-medical-card-header">
+            <div className="portal-medical-card-title-section">
+              <div className="portal-medical-card-icon treatment">💊</div>
+              <div className="portal-medical-card-title-group">
+                <h2 className="portal-medical-card-title">Tratamiento actual</h2>
+                <p className="portal-medical-card-subtitle">
+                  Medicación vigente e indicaciones de su médico
                 </p>
               </div>
-              <div className="rounded-xl border border-slate-200/70 bg-slate-50 px-4 py-3 text-xs text-slate-600">
-                <div>
-                  <span className="font-semibold text-slate-700">
-                    Ultima consulta:
-                  </span>{" "}
-                  {lastConsultationDate || "Sin registros"}
-                </div>
-                <div>
-                  <span className="font-semibold text-slate-700">
-                    Medico tratante:
-                  </span>{" "}
-                  Dr. David Guzman
-                </div>
-              </div>
             </div>
-          </header>
-          <nav
-            className="flex flex-wrap gap-2 rounded-2xl border border-slate-200/80 bg-white/90 p-2 text-sm shadow-sm"
-            aria-label="Navegacion del portal"
-          >
-            <a
-              href="#inicio"
-              className="rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-600 transition hover:border-slate-300 hover:text-slate-800"
-            >
-              Inicio
-            </a>
-            <a
-              href="#tratamiento"
-              className="rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-600 transition hover:border-slate-300 hover:text-slate-800"
-            >
-              Tratamiento
-            </a>
-            <a
-              href="#glucosas"
-              className="rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-600 transition hover:border-slate-300 hover:text-slate-800"
-            >
-              Glucosas
-            </a>
-            <a
-              href="#laboratorios"
-              className="rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-600 transition hover:border-slate-300 hover:text-slate-800"
-            >
-              Laboratorios
-            </a>
-            <a
-              href="#historial"
-              className="rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-600 transition hover:border-slate-300 hover:text-slate-800"
-            >
-              Historial
-            </a>
-          </nav>
-          <div
-            className={`portal-banner portal-banner-${nextVisitStatus} flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between`}
-          >
-            <div className="text-sm font-semibold text-slate-700">Proximo control</div>
-            {nextVisitSummary ? (
-              <div className="text-sm">
-                <span>
-                  Fecha: <strong>{nextVisitSummary.date}</strong>
-                </span>
-                <span className="mx-2 hidden sm:inline">|</span>
-                <span>
-                  <strong>{nextVisitSummary.days}</strong>
-                </span>
-              </div>
-            ) : (
-              <div className="text-sm">{nextVisitText}</div>
-            )}
+            <div className="portal-medical-card-actions">
+              <Link
+                href={current ? `/portal/consultas/${current.id}` : "/portal/historial"}
+                className="portal-medical-button portal-medical-button-primary portal-medical-button-small"
+              >
+                Ver detalles
+              </Link>
+            </div>
           </div>
-          {error && <div className="error">{error}</div>}
-          {message && <div className="muted">{message}</div>}
-          <section
-            id="tratamiento"
-            className="portal-section rounded-2xl border border-slate-200/80 p-4 shadow-sm sm:p-6"
-          >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-sm font-semibold text-emerald-700">
-                  Rx
-                </div>
-                <div>
-                  <div className="text-base font-semibold text-slate-900">
-                    Tratamiento actual
-                  </div>
-                  <div className="text-sm text-slate-500">
-                    Medicacion vigente e indicaciones principales.
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Link
-                  className="button button-primary small"
-                  href={current ? `/portal/consultas/${current.id}` : "/portal/historial"}
-                >
-                  Ver
-                </Link>
-                {current ? (
-                  <Link
-                    className="button button-secondary small"
-                    href={`/portal/consultas/${current.id}`}
-                  >
-                    Ver historial de medicacion
-                  </Link>
-                ) : (
-                  <Link className="button button-secondary small" href="/portal/historial">
-                    Ver historial de medicacion
-                  </Link>
-                )}
-              </div>
-            </div>
+          <div className="portal-medical-card-content">
             {loadingCurrent ? (
-              <SkeletonCard style={{ marginTop: 8 }}>
-                <SkeletonLine width="70%" height={16} />
-                <SkeletonLine width="45%" height={12} />
-              </SkeletonCard>
+              <div className="portal-medical-empty-state">
+                <div className="portal-medical-empty-state-icon">⏳</div>
+                <p className="portal-medical-empty-state-text">Cargando información...</p>
+              </div>
             ) : current ? (
               <>
-                <div className="portal-card portal-card-highlight">
-                  <div className="portal-card-title">Indicaciones generales</div>
-                  <div className="portal-card-note">
-                    {current.indications ||
-                      current.notes ||
-                      `Registradas en la consulta del ${formatDate(
-                        current.consultation_date || current.created_at
-                      )}.`}
+                {(current.indications || current.notes) && (
+                  <div className="portal-medical-indications">
+                    <div className="portal-medical-indications-title">Indicaciones generales</div>
+                    <p className="portal-medical-indications-text">
+                      {current.indications ||
+                        current.notes ||
+                        `Registradas en la consulta del ${formatDate(
+                          current.consultation_date || current.created_at
+                        )}.`}
+                    </p>
                   </div>
-                </div>
-                {currentMedications.length ? (
-                  <div className="rounded-2xl border border-slate-200/80 bg-white">
-                    <ul className="divide-y divide-slate-200">
-                      {currentMedications.map((med, index) => {
-                        if (!med || typeof med !== "object") return null;
-                        const medId = med.id || `${med.drug_name}-${index}`;
-                        return (
-                          <li
-                            key={medId}
-                            className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-                          >
-                            <div>
-                              <div className="text-sm font-semibold text-slate-900">
-                                {med.drug_name}
-                              </div>
-                              {med.description && (
-                                <div className="text-xs text-slate-500">
-                                  {med.description}
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex flex-wrap gap-2 sm:justify-end">
-                              {med.quantity ? (
-                                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">
+                )}
+                {currentMedications.length > 0 ? (
+                  <div className="portal-medical-medication-list">
+                    {currentMedications.map((med, index) => {
+                      if (!med || typeof med !== "object") return null;
+                      const medId = med.id || `${med.drug_name}-${index}`;
+                      return (
+                        <div key={medId} className="portal-medical-medication-item">
+                          <div style={{ flex: 1 }}>
+                            <div className="portal-medical-medication-name">{med.drug_name}</div>
+                            {med.description && (
+                              <p style={{ fontSize: "14px", color: "#64748b", margin: "8px 0 0 0" }}>
+                                {med.description}
+                              </p>
+                            )}
+                            <div className="portal-medical-medication-details">
+                              {med.quantity && (
+                                <span className="portal-medical-medication-badge">
                                   Cantidad: {med.quantity}
                                 </span>
-                              ) : null}
-                              {med.duration_days ? (
-                                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">
-                                  Duracion: {med.duration_days} dias
+                              )}
+                              {med.duration_days && (
+                                <span className="portal-medical-medication-badge">
+                                  Duración: {med.duration_days} días
                                 </span>
-                              ) : null}
+                              )}
                             </div>
-                          </li>
-                        );
-                      })}
-                    </ul>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
-                  <div className="portal-card">
-                    <div className="portal-card-note">
-                      Aun no hay medicacion registrada.
-                    </div>
+                  <div className="portal-medical-empty-state">
+                    <div className="portal-medical-empty-state-icon">💊</div>
+                    <p className="portal-medical-empty-state-text">
+                      Aún no hay medicación registrada
+                    </p>
                   </div>
                 )}
               </>
             ) : (
-              <div className="portal-card">
-                <div className="portal-card-note">Aun no hay medicacion registrada.</div>
+              <div className="portal-medical-empty-state">
+                <div className="portal-medical-empty-state-icon">💊</div>
+                <p className="portal-medical-empty-state-text">Aún no hay medicación registrada</p>
               </div>
             )}
-          </section>
+          </div>
+        </section>
 
-          <section
-            id="glucosas"
-            ref={glucoseSectionRef}
-            className="portal-section rounded-2xl border border-slate-200/80 p-4 shadow-sm sm:p-6"
-          >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sm font-semibold text-sky-700">
-                  GL
-                </div>
-                <div>
-                  <div className="text-base font-semibold text-slate-900">
-                    Seguimiento indicado por su medico
-                  </div>
-                  <div className="text-sm text-slate-500">
-                    Registre su glucosa cuando su medico se lo solicite.
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => router.push("/portal/glucosas")}
-                >
-                  Ver
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={toggleGlucoseForm}
-                >
-                  {glucoseOpen ? "Cerrar formulario" : "Registrar control"}
-                </Button>
+        {/* Sección de Glucosas */}
+        <section id="glucosas" ref={glucoseSectionRef} className="portal-medical-card">
+          <div className="portal-medical-card-header">
+            <div className="portal-medical-card-title-section">
+              <div className="portal-medical-card-icon glucose">📊</div>
+              <div className="portal-medical-card-title-group">
+                <h2 className="portal-medical-card-title">Control de glucosa</h2>
+                <p className="portal-medical-card-subtitle">
+                  Registre sus controles cuando su médico se lo solicite
+                </p>
               </div>
             </div>
+            <div className="portal-medical-card-actions">
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => router.push("/portal/glucosas")}
+                style={{ marginRight: "8px" }}
+              >
+                Ver historial
+              </Button>
+              <Button type="button" variant="outline" size="sm" onClick={toggleGlucoseForm}>
+                {glucoseOpen ? "Cerrar" : "Registrar"}
+              </Button>
+            </div>
+          </div>
+          <div className="portal-medical-card-content">
+            {!glucoseOpen && (
+              <div
+                style={{
+                  background: "#f0f9ff",
+                  border: "1px solid #bae6fd",
+                  borderRadius: "12px",
+                  padding: "20px",
+                  marginTop: "16px",
+                }}
+              >
+                <div style={{ fontSize: "15px", fontWeight: 600, color: "#1e293b", marginBottom: "8px" }}>
+                  Último registro
+                </div>
+                {(lastGlucoseDate || lastGlucoseValue) ? (
+                  <div style={{ fontSize: "14px", color: "#64748b" }}>
+                    {[lastGlucoseDate, lastGlucoseType, lastGlucoseValue]
+                      .filter(Boolean)
+                      .join(" • ")}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: "14px", color: "#64748b" }}>
+                    Aún no hay registros
+                  </div>
+                )}
+              </div>
+            )}
             <div
               ref={glucoseFormRef}
-              className={`portal-card glucose-card border-l-4 border-blue-500 transition ${
-                glucoseHighlight
-                  ? "ring-2 ring-emerald-300 ring-offset-2 ring-offset-white"
-                  : ""
-              }`}
+              className={glucoseHighlight ? "ring-2 ring-emerald-300 ring-offset-2" : ""}
               aria-busy={glucoseLoading ? "true" : "false"}
             >
-              <div className="glucose-helper">
-                Registre su control de glucosa cuando su medico se lo solicite
-              </div>
-              {!glucoseOpen && (
-                <div className="mt-4 rounded-xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-600">
-                  <div className="font-medium text-slate-700">
-                    Formulario listo para registrar su control.
-                  </div>
-                  {(lastGlucoseDate || lastGlucoseValue) && (
-                    <div className="mt-2 text-xs text-slate-500">
-                      Ultimo registro:{" "}
-                      {[lastGlucoseDate, lastGlucoseType, lastGlucoseValue]
-                        .filter(Boolean)
-                        .join(" | ")}
-                    </div>
-                  )}
-                </div>
-              )}
               {glucoseOpen && (
                 <form
                   onSubmit={onGlucoseSubmit}
-                  className="form glucose-form mt-5 space-y-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6"
+                  style={{
+                    marginTop: "24px",
+                    padding: "24px",
+                    background: "#f8fafc",
+                    borderRadius: "12px",
+                    border: "1px solid #e2e8f0",
+                  }}
                 >
                   <div className="flex items-start gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-xs font-semibold text-blue-700">
@@ -1096,44 +1053,60 @@ export default function Portal() {
                 </form>
               )}
             </div>
-          </section>
+          </div>
+        </section>
 
-          <section
-            id="laboratorios"
-            className="portal-section rounded-2xl border border-slate-200/80 p-4 shadow-sm sm:p-6"
-          >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 text-sm font-semibold text-violet-700">
-                  LAB
-                </div>
-                <div>
-                  <div className="text-base font-semibold text-slate-900">
-                    Laboratorios
-                  </div>
-                  <div className="text-sm text-slate-500">
-                    Resultados recientes solicitados por su medico.
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Link className="button button-primary small" href="/portal/laboratorios/hba1c">
-                  Ver
-                </Link>
+        {/* Sección de Laboratorios */}
+        <section id="laboratorios" className="portal-medical-card">
+          <div className="portal-medical-card-header">
+            <div className="portal-medical-card-title-section">
+              <div className="portal-medical-card-icon labs">🔬</div>
+              <div className="portal-medical-card-title-group">
+                <h2 className="portal-medical-card-title">Resultados de laboratorio</h2>
+                <p className="portal-medical-card-subtitle">
+                  Resultados recientes de sus exámenes médicos
+                </p>
               </div>
             </div>
-            <div className="portal-card">
-              {(allLabsLoading || hba1cLoading) && (
-                <div className="muted">Cargando resultados de laboratorio...</div>
+            <div className="portal-medical-card-actions">
+              <Link
+                href="/portal/laboratorios/hba1c"
+                className="portal-medical-button portal-medical-button-primary portal-medical-button-small"
+              >
+                Ver historial
+              </Link>
+            </div>
+          </div>
+          <div className="portal-medical-card-content">
+            {(allLabsLoading || hba1cLoading) && (
+              <div className="portal-medical-empty-state">
+                <div className="portal-medical-empty-state-icon">⏳</div>
+                <p className="portal-medical-empty-state-text">Cargando resultados...</p>
+              </div>
+            )}
+            {(allLabsError || hba1cError) && (
+              <div className="error" style={{ marginTop: "16px" }}>
+                {allLabsError || hba1cError}
+              </div>
+            )}
+            {!allLabsLoading &&
+              !hba1cLoading &&
+              !allLabsError &&
+              !hba1cError &&
+              allLabs.length === 0 && (
+                <div className="portal-medical-empty-state">
+                  <div className="portal-medical-empty-state-icon">🔬</div>
+                  <p className="portal-medical-empty-state-text">
+                    Aún no hay resultados de laboratorio registrados
+                  </p>
+                </div>
               )}
-              {(allLabsError || hba1cError) && (
-                <div className="error">{allLabsError || hba1cError}</div>
-              )}
-              {!allLabsLoading && !hba1cLoading && !allLabsError && !hba1cError && allLabs.length === 0 && (
-                <div className="muted">Aún no hay resultados de laboratorio registrados.</div>
-              )}
-              {!allLabsLoading && !hba1cLoading && !allLabsError && !hba1cError && allLabs.length > 0 && (
-                <div className="list">
+            {!allLabsLoading &&
+              !hba1cLoading &&
+              !allLabsError &&
+              !hba1cError &&
+              allLabs.length > 0 && (
+                <div className="portal-medical-lab-list">
                   {allLabs.map((lab, index) => {
                     if (!lab || typeof lab !== "object") return null;
                     const resultValue = lab.valor_num ?? lab.valor_texto ?? "";
@@ -1142,182 +1115,131 @@ export default function Portal() {
                     const labKey = `${lab.lab_nombre || "lab"}-${index}`;
                     const labDate = lab.consulta_date ? formatDate(lab.consulta_date) : "";
                     return (
-                      <div key={labKey} className="list-item">
-                        <div className="list-title">{lab.lab_nombre || "Examen"}</div>
-                        <div className="list-meta">
-                          {resultLabel}
-                          {unit}
-                          {labDate && ` - ${labDate}`}
+                      <div key={labKey} className="portal-medical-lab-item">
+                        <div className="portal-medical-lab-header">
+                          <div className="portal-medical-lab-name">{lab.lab_nombre || "Examen"}</div>
+                          <div className="portal-medical-lab-value">
+                            {resultLabel}
+                            {unit}
+                          </div>
                         </div>
-                        {lab.rango_ref_snapshot && (
-                          <div className="list-meta">Rango: {lab.rango_ref_snapshot}</div>
-                        )}
+                        <div className="portal-medical-lab-meta">
+                          {labDate && <span>Fecha: {labDate}</span>}
+                          {lab.rango_ref_snapshot && <span>Rango: {lab.rango_ref_snapshot}</span>}
+                        </div>
                       </div>
                     );
                   })}
                 </div>
               )}
-              <div className="flex flex-wrap gap-2 mt-4">
-                <Link className="button button-secondary" href="/portal/laboratorios/hba1c">
-                  Ver historial de HbA1c
-                </Link>
-                {allLabs.length > 0 && (
-                  <Link
-                    className="button button-secondary"
-                    href={allLabs[0]?.consulta_id ? `/portal/consultas/${allLabs[0].consulta_id}/laboratorios` : "/portal/historial"}
-                  >
-                    Ver todos los laboratorios
-                  </Link>
-                )}
-              </div>
-            </div>
-          </section>
-
-          <section
-            id="historial"
-            className="portal-section rounded-2xl border border-slate-200/80 p-4 shadow-sm sm:p-6"
-          >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-sm font-semibold text-slate-700">
-                  HIS
-                </div>
-                <div>
-                  <div className="text-base font-semibold text-slate-900">Historial</div>
-                  <div className="text-sm text-slate-500">
-                    Revise sus consultas y controles previos.
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Link className="button button-primary small" href="/portal/historial">
-                  Ver
-                </Link>
-                <Link className="button button-secondary small" href="/portal/glucosas">
-                  Ver glucosas
-                </Link>
-              </div>
-            </div>
-            <div className="grid gap-4">
-              <div className="portal-card">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="portal-card-title">Controles recientes de glucosa</div>
-                  <Link className="button button-secondary small" href="/portal/glucosas">
-                    Ver historial de controles de glucosa
-                  </Link>
-                </div>
-                {glucoseLoading && (
-                  <div className="muted">Cargando historial de controles...</div>
-                )}
-                {glucoseError && <div className="error">{glucoseError}</div>}
-                {!glucoseLoading && !glucoseError && !glucoseSummaryLogs.length && (
-                  <div className="muted">No hay registros de controles de glucosa.</div>
-                )}
-                {!glucoseLoading && !glucoseError && glucoseSummaryLogs.length > 0 && (
-                  <div className="list">
-                    {glucoseSummaryLogs.map((log, index) => {
-                      if (!log || typeof log !== "object") return null;
-                      const logId =
-                        log.id ||
-                        `${log.taken_at || log.created_at || "glucose"}-${index}`;
-                      const logDate = formatShortDate(log.taken_at || log.created_at);
-                      const logType = formatGlucoseType(log.type);
-                      const logValue =
-                        log.value !== null && log.value !== undefined
-                          ? `${log.value} mg/dL`
-                          : "Sin valor registrado";
-                      return (
-                        <div key={logId} className="list-item">
-                          <div className="list-title">
-                            {logDate} - {logType} - <strong>{logValue}</strong>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-              <div className="portal-actions !gap-4 sm:!gap-5">
-                <Link className="portal-card portal-action" href="/portal/historial">
-                  <div className="portal-card-title">Historial de consultas medicas</div>
-                  <div className="portal-card-note">Solo lectura, sin cambios</div>
-                </Link>
-                <Link className="portal-card portal-action" href="/portal/glucosas">
-                  <div className="portal-card-title">Historial de controles de glucosa</div>
-                  <div className="portal-card-note">
-                    Aqui podra registrar y revisar sus controles de glucosa cuando su
-                    medico lo indique.
-                  </div>
-                </Link>
-                <div className="portal-card portal-action portal-card-muted">
-                  <div className="portal-card-title">Pendientes de seguimiento</div>
-                  <div className="portal-card-note">
-                    Cuestionarios o registros que su medico le solicite.
-                  </div>
-                </div>
-                <a
-                  className="portal-card portal-action"
-                  href={appointmentUrl}
-                  target="_blank"
-                  rel="noreferrer"
+            {allLabs.length > 0 && (
+              <div style={{ marginTop: "20px", display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                <Link
+                  href={allLabs[0]?.consulta_id ? `/portal/consultas/${allLabs[0].consulta_id}/laboratorios` : "/portal/historial"}
+                  className="portal-medical-button portal-medical-button-secondary portal-medical-button-small"
                 >
-                  <div className="portal-card-title">Solicitar cita</div>
-                  <div className="portal-card-note">
-                    Se abrira un enlace externo para coordinar su atencion.
-                  </div>
-                </a>
-              </div>
-            </div>
-          </section>
-
-          <div className="portal-footer pt-2 sm:pt-4">
-            <button
-              type="button"
-              className="logout-button"
-              onClick={() => logout(router)}
-            >
-              Cerrar sesion
-            </button>
-          </div>
-          </div>
-        </div>
-      </div>
-      <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-2">
-        {!glucoseOpen && (
-          <div className="max-w-[220px] rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 shadow-lg">
-            <div className="font-semibold">{glucoseBubbleLines.primary}</div>
-            {glucoseBubbleLines.secondary && (
-              <div className="mt-0.5 text-[11px] text-slate-500">
-                {glucoseBubbleLines.secondary}
+                  Ver todos los laboratorios
+                </Link>
               </div>
             )}
           </div>
-        )}
-        <button
-          type="button"
-          className="flex items-center gap-2 rounded-full bg-emerald-700 px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-800"
-          onClick={toggleGlucoseForm}
-          aria-label="Registra tu glucosa"
-        >
-          <span
-            className={`flex h-5 w-5 items-center justify-center rounded-full bg-white/20 ${
-              glucoseOpen ? "" : "animate-pulse"
-            }`}
-            aria-hidden="true"
-          >
-            <svg
-              viewBox="0 0 20 20"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className="h-3 w-3"
-              aria-hidden="true"
+        </section>
+
+        {/* Sección de Historial - Simplificada */}
+        <section id="historial" className="portal-medical-card">
+          <div className="portal-medical-card-header">
+            <div className="portal-medical-card-title-section">
+              <div className="portal-medical-card-icon history">📋</div>
+              <div className="portal-medical-card-title-group">
+                <h2 className="portal-medical-card-title">Historial y recursos</h2>
+                <p className="portal-medical-card-subtitle">
+                  Acceda a su historial médico y recursos adicionales
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="portal-medical-card-content">
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+                gap: "16px",
+              }}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10 4v12m6-6H4" />
-            </svg>
-          </span>
-          <span className="hidden sm:inline">Registra tu glucosa</span>
-        </button>
+              <Link
+                href="/portal/historial"
+                className="portal-medical-button portal-medical-button-secondary"
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                  padding: "20px",
+                  textAlign: "left",
+                }}
+              >
+                <div style={{ fontSize: "18px", marginBottom: "8px" }}>📄</div>
+                <div style={{ fontWeight: 600, marginBottom: "4px" }}>Historial de consultas</div>
+                <div style={{ fontSize: "13px", color: "#64748b" }}>Revise sus consultas anteriores</div>
+              </Link>
+              <Link
+                href="/portal/glucosas"
+                className="portal-medical-button portal-medical-button-secondary"
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                  padding: "20px",
+                  textAlign: "left",
+                }}
+              >
+                <div style={{ fontSize: "18px", marginBottom: "8px" }}>📊</div>
+                <div style={{ fontWeight: 600, marginBottom: "4px" }}>Controles de glucosa</div>
+                <div style={{ fontSize: "13px", color: "#64748b" }}>
+                  Registre y revise sus controles
+                </div>
+              </Link>
+              <a
+                href={appointmentUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="portal-medical-button portal-medical-button-secondary"
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                  padding: "20px",
+                  textAlign: "left",
+                }}
+              >
+                <div style={{ fontSize: "18px", marginBottom: "8px" }}>📅</div>
+                <div style={{ fontWeight: 600, marginBottom: "4px" }}>Solicitar cita</div>
+                <div style={{ fontSize: "13px", color: "#64748b" }}>
+                  Coordine su próxima atención
+                </div>
+              </a>
+            </div>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <div style={{ marginTop: "48px", paddingTop: "24px", borderTop: "1px solid #e2e8f0", textAlign: "center" }}>
+          <button
+            type="button"
+            onClick={() => logout(router)}
+            style={{
+              background: "#fee2e2",
+              color: "#b91c1c",
+              border: "1px solid #fecaca",
+              borderRadius: "8px",
+              padding: "10px 20px",
+              fontSize: "14px",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            Cerrar sesión
+          </button>
+        </div>
       </div>
     </div>
   );

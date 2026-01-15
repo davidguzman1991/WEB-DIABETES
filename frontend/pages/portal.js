@@ -94,6 +94,8 @@ export default function Portal() {
   const [glucoseLoading, setGlucoseLoading] = useState(false);
   const [glucoseError, setGlucoseError] = useState("");
   const [glucoseSaving, setGlucoseSaving] = useState(false);
+  const [treatmentOpen, setTreatmentOpen] = useState(false);
+  const [labsOpen, setLabsOpen] = useState(false);
   const [hba1cSummary, setHba1cSummary] = useState(null);
   const [hba1cLoading, setHba1cLoading] = useState(false);
   const [hba1cError, setHba1cError] = useState("");
@@ -783,16 +785,72 @@ export default function Portal() {
               </div>
             </div>
             <div className="portal-medical-card-actions">
-              <Link
-                href={current ? `/portal/consultas/${current.id}` : "/portal/historial"}
-                className="portal-medical-button portal-medical-button-primary portal-medical-button-small"
+              {treatmentOpen && (
+                <Link
+                  href={current ? `/portal/consultas/${current.id}` : "/portal/historial"}
+                  className="portal-medical-button portal-medical-button-primary portal-medical-button-small"
+                >
+                  Ver detalles
+                </Link>
+              )}
+              <button
+                type="button"
+                className="portal-medical-button portal-medical-button-secondary portal-medical-button-small"
+                onClick={() => setTreatmentOpen((prev) => !prev)}
+                aria-expanded={treatmentOpen}
+                aria-controls="tratamiento-content"
               >
-                Ver detalles
-              </Link>
+                {treatmentOpen ? "Ocultar tratamiento" : "Ver tratamiento"}
+              </button>
             </div>
           </div>
-          <div className="portal-medical-card-content">
-            {loadingCurrent ? (
+          <div id="tratamiento-content" className="portal-medical-card-content">
+            {!treatmentOpen ? (
+              <div className="portal-medical-summary">
+                {loadingCurrent ? (
+                  <div className="portal-medical-summary-row">
+                    <span className="portal-medical-summary-label">Estado</span>
+                    <span className="portal-medical-summary-value">
+                      Cargando tratamiento...
+                    </span>
+                  </div>
+                ) : current ? (
+                  <>
+                    <div className="portal-medical-summary-row">
+                      <span className="portal-medical-summary-label">Medicacion</span>
+                      <span className="portal-medical-summary-value">
+                        {currentMedications.length
+                          ? `${currentMedications.length} medicamento${
+                              currentMedications.length === 1 ? "" : "s"
+                            }`
+                          : "Sin medicacion"}
+                      </span>
+                    </div>
+                    <div className="portal-medical-summary-row">
+                      <span className="portal-medical-summary-label">Indicaciones</span>
+                      <span className="portal-medical-summary-value">
+                        {current.indications || current.notes
+                          ? "Disponibles"
+                          : "Sin indicaciones"}
+                      </span>
+                    </div>
+                    <div className="portal-medical-summary-row">
+                      <span className="portal-medical-summary-label">Ultima consulta</span>
+                      <span className="portal-medical-summary-value">
+                        {lastConsultationDate || "Sin registros"}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="portal-medical-summary-row">
+                    <span className="portal-medical-summary-label">Estado</span>
+                    <span className="portal-medical-summary-value">
+                      Sin tratamiento registrado
+                    </span>
+                  </div>
+                )}
+              </div>
+            ) : loadingCurrent ? (
               <div className="portal-medical-empty-state">
                 <div className="portal-medical-empty-state-icon">⏳</div>
                 <p className="portal-medical-empty-state-text">Cargando información...</p>
@@ -1069,78 +1127,148 @@ export default function Portal() {
               </div>
             </div>
             <div className="portal-medical-card-actions">
-              <Link
-                href="/portal/laboratorios/hba1c"
-                className="portal-medical-button portal-medical-button-primary portal-medical-button-small"
+              {labsOpen && (
+                <Link
+                  href="/portal/laboratorios/hba1c"
+                  className="portal-medical-button portal-medical-button-primary portal-medical-button-small"
+                >
+                  Historial de hemoglobina glicosilada (HbA1c)
+                </Link>
+              )}
+              <button
+                type="button"
+                className="portal-medical-button portal-medical-button-secondary portal-medical-button-small"
+                onClick={() => setLabsOpen((prev) => !prev)}
+                aria-expanded={labsOpen}
+                aria-controls="laboratorios-content"
               >
-                Ver historial
-              </Link>
+                {labsOpen ? "Ocultar laboratorios" : "Ver laboratorios"}
+              </button>
             </div>
           </div>
-          <div className="portal-medical-card-content">
-            {(allLabsLoading || hba1cLoading) && (
-              <div className="portal-medical-empty-state">
-                <div className="portal-medical-empty-state-icon">⏳</div>
-                <p className="portal-medical-empty-state-text">Cargando resultados...</p>
-              </div>
-            )}
-            {(allLabsError || hba1cError) && (
-              <div className="error" style={{ marginTop: "16px" }}>
-                {allLabsError || hba1cError}
-              </div>
-            )}
-            {!allLabsLoading &&
-              !hba1cLoading &&
-              !allLabsError &&
-              !hba1cError &&
-              allLabs.length === 0 && (
-                <div className="portal-medical-empty-state">
-                  <div className="portal-medical-empty-state-icon">🔬</div>
-                  <p className="portal-medical-empty-state-text">
-                    Aún no hay resultados de laboratorio registrados
-                  </p>
-                </div>
-              )}
-            {!allLabsLoading &&
-              !hba1cLoading &&
-              !allLabsError &&
-              !hba1cError &&
-              allLabs.length > 0 && (
-                <div className="portal-medical-lab-list">
-                  {allLabs.map((lab, index) => {
-                    if (!lab || typeof lab !== "object") return null;
-                    const resultValue = lab.valor_num ?? lab.valor_texto ?? "";
-                    const resultLabel = resultValue !== "" ? resultValue : "Sin resultado";
-                    const unit = lab.unidad_snapshot ? ` ${lab.unidad_snapshot}` : "";
-                    const labKey = `${lab.lab_nombre || "lab"}-${index}`;
-                    const labDate = lab.consulta_date ? formatDate(lab.consulta_date) : "";
-                    return (
-                      <div key={labKey} className="portal-medical-lab-item">
-                        <div className="portal-medical-lab-header">
-                          <div className="portal-medical-lab-name">{lab.lab_nombre || "Examen"}</div>
-                          <div className="portal-medical-lab-value">
-                            {resultLabel}
-                            {unit}
-                          </div>
-                        </div>
-                        <div className="portal-medical-lab-meta">
-                          {labDate && <span>Fecha: {labDate}</span>}
-                          {lab.rango_ref_snapshot && <span>Rango: {lab.rango_ref_snapshot}</span>}
-                        </div>
+          <div id="laboratorios-content" className="portal-medical-card-content">
+            {!labsOpen ? (
+              <div className="portal-medical-summary">
+                {(allLabsLoading || hba1cLoading) && (
+                  <div className="portal-medical-summary-row">
+                    <span className="portal-medical-summary-label">Estado</span>
+                    <span className="portal-medical-summary-value">
+                      Cargando resultados...
+                    </span>
+                  </div>
+                )}
+                {(allLabsError || hba1cError) && (
+                  <div className="portal-medical-summary-row">
+                    <span className="portal-medical-summary-label">Estado</span>
+                    <span className="portal-medical-summary-value">
+                      {allLabsError || hba1cError}
+                    </span>
+                  </div>
+                )}
+                {!allLabsLoading &&
+                  !hba1cLoading &&
+                  !allLabsError &&
+                  !hba1cError &&
+                  allLabs.length === 0 && (
+                    <div className="portal-medical-summary-row">
+                      <span className="portal-medical-summary-label">Estado</span>
+                      <span className="portal-medical-summary-value">
+                        Sin resultados registrados
+                      </span>
+                    </div>
+                  )}
+                {!allLabsLoading &&
+                  !hba1cLoading &&
+                  !allLabsError &&
+                  !hba1cError &&
+                  allLabs.length > 0 && (
+                    <>
+                      <div className="portal-medical-summary-row">
+                        <span className="portal-medical-summary-label">Resultados</span>
+                        <span className="portal-medical-summary-value">
+                          {allLabs.length} disponibles
+                        </span>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            {allLabs.length > 0 && (
-              <div style={{ marginTop: "20px", display: "flex", gap: "12px", flexWrap: "wrap" }}>
-                <Link
-                  href={allLabs[0]?.consulta_id ? `/portal/consultas/${allLabs[0].consulta_id}/laboratorios` : "/portal/historial"}
-                  className="portal-medical-button portal-medical-button-secondary portal-medical-button-small"
-                >
-                  Ver todos los laboratorios
-                </Link>
+                      <div className="portal-medical-summary-row">
+                        <span className="portal-medical-summary-label">HbA1c</span>
+                        <span className="portal-medical-summary-value">
+                          {hba1cSummary
+                            ? `${formatHbA1cValue(hba1cSummary.value)} (${formatShortDate(
+                                hba1cSummary.date
+                              )})`
+                            : "Sin datos"}
+                        </span>
+                      </div>
+                    </>
+                  )}
               </div>
+            ) : (
+              <>
+                {(allLabsLoading || hba1cLoading) && (
+                  <div className="portal-medical-empty-state">
+                    <div className="portal-medical-empty-state-icon">⏳</div>
+                    <p className="portal-medical-empty-state-text">Cargando resultados...</p>
+                  </div>
+                )}
+                {(allLabsError || hba1cError) && (
+                  <div className="error" style={{ marginTop: "16px" }}>
+                    {allLabsError || hba1cError}
+                  </div>
+                )}
+                {!allLabsLoading &&
+                  !hba1cLoading &&
+                  !allLabsError &&
+                  !hba1cError &&
+                  allLabs.length === 0 && (
+                    <div className="portal-medical-empty-state">
+                      <div className="portal-medical-empty-state-icon">🔬</div>
+                      <p className="portal-medical-empty-state-text">
+                        Aún no hay resultados de laboratorio registrados
+                      </p>
+                    </div>
+                  )}
+                {!allLabsLoading &&
+                  !hba1cLoading &&
+                  !allLabsError &&
+                  !hba1cError &&
+                  allLabs.length > 0 && (
+                    <div className="portal-medical-lab-list">
+                      {allLabs.map((lab, index) => {
+                        if (!lab || typeof lab !== "object") return null;
+                        const resultValue = lab.valor_num ?? lab.valor_texto ?? "";
+                        const resultLabel = resultValue !== "" ? resultValue : "Sin resultado";
+                        const unit = lab.unidad_snapshot ? ` ${lab.unidad_snapshot}` : "";
+                        const labKey = `${lab.lab_nombre || "lab"}-${index}`;
+                        const labDate = lab.consulta_date ? formatDate(lab.consulta_date) : "";
+                        return (
+                          <div key={labKey} className="portal-medical-lab-item">
+                            <div className="portal-medical-lab-header">
+                              <div className="portal-medical-lab-name">{lab.lab_nombre || "Examen"}</div>
+                              <div className="portal-medical-lab-value">
+                                {resultLabel}
+                                {unit}
+                              </div>
+                            </div>
+                            <div className="portal-medical-lab-meta">
+                              {labDate && <span>Fecha: {labDate}</span>}
+                              {lab.rango_ref_snapshot && <span>Rango: {lab.rango_ref_snapshot}</span>}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                {allLabs.length > 0 && (
+                  <div style={{ marginTop: "20px", display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                    <Link
+                      href={allLabs[0]?.consulta_id ? `/portal/consultas/${allLabs[0].consulta_id}/laboratorios` : "/portal/historial"}
+                      className="portal-medical-button portal-medical-button-secondary portal-medical-button-small"
+                    >
+                      Ver todos los laboratorios
+                    </Link>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </section>
@@ -1244,4 +1372,3 @@ export default function Portal() {
     </div>
   );
 }
-

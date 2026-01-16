@@ -1,7 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-if (!API_BASE) {
-  throw new Error("NEXT_PUBLIC_API_URL is not set");
-}
+import { API_URL } from "./config";
 
 const ADMIN_TOKEN_KEY = "token";
 
@@ -33,10 +30,11 @@ export async function adminRequest(
   path,
   { method = "GET", body, token, router, headers } = {}
 ) {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(`${API_URL}${path}`, {
     method,
     headers: buildHeaders(token, headers),
     body: body ? JSON.stringify(body) : undefined,
+    credentials: "include",
   });
 
   if (res.status === 401 || res.status === 403) {
@@ -60,9 +58,10 @@ export async function adminRequest(
 }
 
 export async function adminRequestHtml(path, { token, router } = {}) {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(`${API_URL}${path}`, {
     method: "GET",
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    credentials: "include",
   });
 
   if (res.status === 401 || res.status === 403) {

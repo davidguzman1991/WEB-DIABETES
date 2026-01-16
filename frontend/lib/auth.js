@@ -1,7 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-if (!API_URL) {
-  throw new Error("NEXT_PUBLIC_API_URL is not set");
-}
+import { API_URL } from "./config";
 const TOKEN_KEY = "token";
 
 export function getToken() {
@@ -47,6 +44,7 @@ export async function apiFetch(path, options = {}) {
     ...options,
     headers,
     body,
+    credentials: options.credentials || "include",
   });
 }
 

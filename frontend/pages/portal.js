@@ -4,11 +4,7 @@ import { useRouter } from "next/router";
 import { getToken, logout } from "../lib/auth";
 import Button from "../components/ui/Button";
 import SectionTitle from "../components/ui/SectionTitle";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-if (!API_URL) {
-  throw new Error("NEXT_PUBLIC_API_URL is not set");
-}
+import { API_URL } from "../lib/config";
 const SKELETON_BASE = {
   backgroundColor: "#e5e7eb",
   borderRadius: "8px",
@@ -134,6 +130,7 @@ export default function Portal() {
       ...options,
       headers,
       body,
+      credentials: options.credentials || "include",
     });
   };
 

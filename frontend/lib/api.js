@@ -1,7 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-if (!API_URL) {
-  throw new Error("NEXT_PUBLIC_API_URL is not set");
-}
+import { API_URL } from "./config";
 const BASE_URL = API_URL.replace(/\/$/, "");
 const TOKEN_KEY = "token";
 
@@ -28,7 +25,8 @@ async function request(path, { method = "GET", body, token } = {}) {
   const res = await fetch(`${BASE_URL}${path}`, {
     method,
     headers,
-    body: body ? JSON.stringify(body) : undefined
+    body: body ? JSON.stringify(body) : undefined,
+    credentials: "include",
   });
 
   if (!res.ok) {

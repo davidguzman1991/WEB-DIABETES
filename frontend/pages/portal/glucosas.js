@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
+import { API_URL } from "../../lib/config";
 
-// ✅ Ajusta esto SOLO si tu frontend ya usa otra base URL
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://web-diabetes-production.up.railway.app";
 
 // =============================
 // Helpers
@@ -107,6 +105,7 @@ export default function GlucosasPage() {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        credentials: "include",
       });
 
       if (!res.ok) {
@@ -168,6 +167,7 @@ export default function GlucosasPage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
+        credentials: "include",
       });
 
       if (!res.ok) {

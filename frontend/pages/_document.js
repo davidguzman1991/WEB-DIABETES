@@ -1,6 +1,6 @@
 import { Head, Html, Main, NextScript } from "next/document";
 
-const SITE_URL = "https://web-diabetes-production.up.railway.app";
+const SITE_URL = "https://portal.medicodiabetes.com";
 const OG_IMAGE_URL = `${SITE_URL}/og-image.webp`;
 const OG_TITLE = "Portal del Paciente - Dr. David Guzman";
 const OG_DESCRIPTION = "Acceso seguro a su informacion medica y tratamiento";

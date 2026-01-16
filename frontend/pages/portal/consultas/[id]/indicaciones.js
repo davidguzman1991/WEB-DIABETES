@@ -81,7 +81,7 @@ export default function IndicacionesConsulta() {
             <div className="portal-medical-card-title-section">
               <div className="portal-medical-card-icon history">IN</div>
               <div className="portal-medical-card-title-group">
-                <h2 className="portal-medical-card-title">Indicaciones medicas</h2>
+                <h2 className="portal-medical-card-title">Indicaciones médicas</h2>
                 <p className="portal-medical-card-subtitle">
                   Revise las recomendaciones del especialista.
                 </p>

@@ -42,11 +42,11 @@ const MedicationRow = memo(function MedicationRow({ item, onSave, onDelete }) {
           />
         </label>
         <label>
-          Descripcion
+          Descripción
           <textarea name="description" value={form.description || ""} onChange={onChange} />
         </label>
         <label>
-          Duracion (dias)
+          Duración (días)
           <input
             type="number"
             name="duration_days"
@@ -98,7 +98,7 @@ export default function ConsultationMedications() {
         setMessage("No existen medicamentos registrados");
       }
     } catch (err) {
-      setError(err.message || "No se pudo cargar la informacion");
+      setError(err.message || "No se pudo cargar la información");
     }
   }, [consultationId, id]);
 
@@ -134,7 +134,7 @@ export default function ConsultationMedications() {
     }
     const quantity = Number(quantityText);
     if (!Number.isInteger(quantity) || quantity <= 0) {
-      setError("Cantidad debe ser un numero entero positivo");
+      setError("Cantidad debe ser un número entero positivo");
       return;
     }
     let durationDays = null;
@@ -142,7 +142,7 @@ export default function ConsultationMedications() {
     if (durationText) {
       const durationValue = Number(durationText);
       if (!Number.isInteger(durationValue) || durationValue <= 0) {
-        setError("Duracion debe ser un numero entero positivo");
+        setError("Duración debe ser un número entero positivo");
         return;
       }
       durationDays = durationValue;

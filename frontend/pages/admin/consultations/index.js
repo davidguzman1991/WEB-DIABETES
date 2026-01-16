@@ -233,7 +233,7 @@ export default function AdminConsultations() {
   };
 
   const validatePayload = () => {
-    if (!form.cedula.trim()) return "Cedula requerida";
+    if (!form.cedula.trim()) return "Cédula requerida";
     const cleaned = medications
       .map((med) => ({
         ...med,
@@ -251,12 +251,12 @@ export default function AdminConsultations() {
       if (!med.quantity) return "Cantidad es obligatoria";
       const quantity = Number(med.quantity);
       if (!Number.isInteger(quantity) || quantity <= 0) {
-        return "Cantidad debe ser un numero entero positivo";
+        return "Cantidad debe ser un número entero positivo";
       }
       if (med.duration_days) {
         const duration = Number(med.duration_days);
         if (!Number.isInteger(duration) || duration <= 0) {
-          return "Duracion debe ser un numero entero positivo";
+          return "Duración debe ser un número entero positivo";
         }
       }
     }
@@ -328,7 +328,7 @@ export default function AdminConsultations() {
         {success && <div className="muted">{success}</div>}
         <form onSubmit={onSubmit} className="form">
           <label>
-            Cedula
+            Cédula
             <input name="cedula" value={form.cedula} onChange={onFormChange} required />
           </label>
           <label>
@@ -431,14 +431,14 @@ export default function AdminConsultations() {
                     />
                   </label>
                   <label>
-                    Descripcion
+                    Descripción
                     <textarea
                       value={med.description}
                       onChange={(e) => updateMedication(med.id, "description", e.target.value)}
                     />
                   </label>
                   <label>
-                    Duracion (dias)
+                    Duración (días)
                     <input
                       type="number"
                       value={med.duration_days}

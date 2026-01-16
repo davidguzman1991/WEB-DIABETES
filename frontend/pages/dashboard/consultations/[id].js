@@ -153,7 +153,7 @@ export default function AdminConsultationDetail() {
             <div className="mt-6">
               <EmptyState
                 title="Consulta"
-                description="No hay informacion para mostrar."
+                description="No hay información para mostrar."
               />
             </div>
           )}
@@ -167,7 +167,7 @@ export default function AdminConsultationDetail() {
                     {patientName || "-"}
                   </div>
                   <div className="text-sm text-slate-500">
-                    Cedula: {patientCedula || "-"}
+                    Cédula: {patientCedula || "-"}
                   </div>
                   {formattedDate && (
                     <div className="text-sm text-slate-600">
@@ -178,7 +178,7 @@ export default function AdminConsultationDetail() {
               </Card>
 
               <Card className="p-5">
-                <SectionTitle title="Diagnostico" />
+                <SectionTitle title="Diagnóstico" />
                 <div className="mt-3 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 whitespace-pre-wrap">
                   {diagnosisText || "Sin registro"}
                 </div>
@@ -238,7 +238,7 @@ export default function AdminConsultationDetail() {
               </Card>
 
               <Card className="p-5">
-                <SectionTitle title="Examen fisico" />
+                <SectionTitle title="Examen físico" />
                 <div className="mt-3 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 whitespace-pre-wrap">
                   {physicalExamText || "Sin registro"}
                 </div>
@@ -267,10 +267,10 @@ export default function AdminConsultationDetail() {
               </Card>
 
               <Card className="p-5">
-                <SectionTitle title="Medicacion" />
+                <SectionTitle title="Medicación" />
                 <div className="mt-4 space-y-3">
                   {medications.length === 0 && (
-                    <EmptyState title="No hay medicacion registrada." />
+                    <EmptyState title="No hay medicación registrada." />
                   )}
                   {medications.map((med, index) => {
                     if (!med || typeof med !== "object") return null;
@@ -280,7 +280,7 @@ export default function AdminConsultationDetail() {
                     const medKey = `${med.drug_name || "med"}-${index}`;
                     const chips = [];
                     if (quantityValue !== "") chips.push(`Cantidad: ${quantityValue}`);
-                    if (durationValue !== "") chips.push(`Duracion: ${durationValue} dias`);
+                    if (durationValue !== "") chips.push(`Duración: ${durationValue} días`);
                     return (
                       <details
                         key={medKey}

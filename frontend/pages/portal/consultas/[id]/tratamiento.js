@@ -59,7 +59,7 @@ export default function TratamientoConsulta() {
       <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
         <header className="portal-medical-header">
           <h1>Tratamiento</h1>
-          <p className="portal-medical-header-subtitle">Como tomar sus medicamentos.</p>
+          <p className="portal-medical-header-subtitle">Cómo tomar sus medicamentos.</p>
           <div className="portal-medical-header-info">
             <div className="portal-medical-header-info-item">
               <span className="portal-medical-header-info-label">Medicamentos</span>
@@ -86,7 +86,7 @@ export default function TratamientoConsulta() {
             <div className="portal-medical-card-title-section">
               <div className="portal-medical-card-icon treatment">TR</div>
               <div className="portal-medical-card-title-group">
-                <h2 className="portal-medical-card-title">Medicacion</h2>
+                <h2 className="portal-medical-card-title">Medicación</h2>
                 <p className="portal-medical-card-subtitle">
                   Detalle de medicamentos prescritos.
                 </p>
@@ -104,7 +104,7 @@ export default function TratamientoConsulta() {
               <div className="portal-medical-empty-state">
                 <div className="portal-medical-empty-state-icon">TR</div>
                 <p className="portal-medical-empty-state-text">
-                  No hay medicacion registrada.
+                  No hay medicación registrada.
                 </p>
               </div>
             )}
@@ -120,9 +120,9 @@ export default function TratamientoConsulta() {
                   const chipItems = [];
                   if (quantityValue !== "") chipItems.push(`Dosis: ${quantityValue}`);
                   if (med.horario) chipItems.push(`Horario: ${med.horario}`);
-                  if (med.via) chipItems.push(`Via: ${med.via}`);
+                  if (med.via) chipItems.push(`Vía: ${med.via}`);
                   if (durationValue !== "") {
-                    chipItems.push(`Duracion: ${durationValue} dias`);
+                    chipItems.push(`Duración: ${durationValue} días`);
                   }
                   return (
                     <div key={medKey} className="portal-medical-medication-item">

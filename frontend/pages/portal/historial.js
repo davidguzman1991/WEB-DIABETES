@@ -51,7 +51,7 @@ export default function PortalHistorial() {
         }
         if (!res.ok) {
           setItems([]);
-          setError("No se pudo cargar la informacion");
+          setError("No se pudo cargar la información");
           return;
         }
         const data = await res.json();
@@ -63,7 +63,7 @@ export default function PortalHistorial() {
       })
       .catch(() => {
         setItems([]);
-        setError("No se pudo cargar la informacion");
+        setError("No se pudo cargar la información");
       });
   }, [router, user]);
 
@@ -91,7 +91,7 @@ export default function PortalHistorial() {
     <div className="page" style={{ background: "#f8fafc", minHeight: "100vh" }}>
       <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
         <header className="portal-medical-header">
-          <h1>Historial clinico</h1>
+          <h1>Historial clínico</h1>
           <p className="portal-medical-header-subtitle">
             Revise sus consultas anteriores.
           </p>

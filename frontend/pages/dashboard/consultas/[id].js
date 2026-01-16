@@ -190,7 +190,7 @@ export default function AdminConsultationDetail() {
               {diagnosisText && (
                 <details className="accordion">
                   <summary className="accordion-title">
-                    <span className="medication-name">Diagnostico</span>
+                    <span className="medication-name">Diagnóstico</span>
                   </summary>
                   <div className="accordion-content">
                     <div className="detail-row detail-block">
@@ -225,7 +225,7 @@ export default function AdminConsultationDetail() {
               {examText && (
                 <details className="accordion">
                   <summary className="accordion-title">
-                    <span className="medication-name">Examen fisico</span>
+                    <span className="medication-name">Examen físico</span>
                   </summary>
                   <div className="accordion-content">
                     <div className="detail-row detail-block">
@@ -264,10 +264,10 @@ export default function AdminConsultationDetail() {
                 </details>
               )}
 
-              <div className="section-title">Medicacion</div>
+              <div className="section-title">Medicación</div>
               <div className="medications-list">
                 {medications.length === 0 && (
-                  <div className="muted">No hay medicacion registrada.</div>
+                  <div className="muted">No hay medicación registrada.</div>
                 )}
                 {medications.map((med, index) => {
                   if (!med || typeof med !== "object") return null;
@@ -289,13 +289,13 @@ export default function AdminConsultationDetail() {
                         )}
                         {durationValue !== "" && (
                           <div className="detail-row">
-                            <span className="detail-label">Duracion</span>
-                            <span className="detail-value">{durationValue} dias</span>
+                            <span className="detail-label">Duración</span>
+                            <span className="detail-value">{durationValue} días</span>
                           </div>
                         )}
                         {descriptionValue && (
                           <div className="detail-row detail-block">
-                            <span className="detail-label">Descripcion</span>
+                            <span className="detail-label">Descripción</span>
                             <span className="detail-value">{descriptionValue}</span>
                           </div>
                         )}

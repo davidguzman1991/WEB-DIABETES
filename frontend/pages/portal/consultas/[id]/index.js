@@ -57,7 +57,7 @@ export default function ConsultaDetalle() {
   const patientName = patient
     ? [patient.nombres, patient.apellidos].filter(Boolean).join(" ")
     : "";
-  const headerDiagnosis = diagnosisText || "Diagnostico no registrado";
+  const headerDiagnosis = diagnosisText || "Diagnóstico no registrado";
   // Función para formatear fecha, manejando correctamente fechas sin hora
   const formatDate = (value) => {
     if (!value) return "";
@@ -123,7 +123,7 @@ export default function ConsultaDetalle() {
             <div className="portal-medical-header-info-item">
               <span className="portal-medical-header-info-label">Edad</span>
               <span className="portal-medical-header-info-value">
-                {age !== null ? `${age} anos` : "No disponible"}
+                {age !== null ? `${age} años` : "No disponible"}
               </span>
             </div>
             <div className="portal-medical-header-info-item">
@@ -159,7 +159,7 @@ export default function ConsultaDetalle() {
             <div className="portal-medical-empty-state">
               <div className="portal-medical-empty-state-icon">CS</div>
               <p className="portal-medical-empty-state-text">
-                No se encontro informacion de la consulta.
+                No se encontró información de la consulta.
               </p>
             </div>
           </section>
@@ -172,16 +172,16 @@ export default function ConsultaDetalle() {
                 <div className="portal-medical-card-title-section">
                   <div className="portal-medical-card-icon history">DX</div>
                   <div className="portal-medical-card-title-group">
-                    <h2 className="portal-medical-card-title">Diagnostico / Motivo</h2>
+                    <h2 className="portal-medical-card-title">Diagnóstico / Motivo</h2>
                     <p className="portal-medical-card-subtitle">
-                      Resumen clinico de la consulta.
+                      Resumen clínico de la consulta.
                     </p>
                   </div>
                 </div>
               </div>
               <div className="portal-medical-card-content">
                 <div className="portal-medical-note">
-                  {diagnosisText || "Diagnostico no registrado."}
+                  {diagnosisText || "Diagnóstico no registrado."}
                 </div>
               </div>
             </section>
@@ -225,7 +225,7 @@ export default function ConsultaDetalle() {
                     <div className="portal-medical-card-content">
                       <div className="portal-medical-card-title">Indicaciones</div>
                       <p className="portal-medical-card-subtitle">
-                        Recomendaciones medicas.
+                        Recomendaciones médicas.
                       </p>
                       <button
                         type="button"

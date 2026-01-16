@@ -75,8 +75,8 @@ export default function Login() {
       if (res.status === 401) {
         setError(
           isAdmin
-            ? "Credenciales incorrectas. Verifique su usuario y contrasena."
-            : "Credenciales incorrectas. Verifique su cedula y contrasena."
+            ? "Credenciales incorrectas. Verifique su usuario y contraseña."
+            : "Credenciales incorrectas. Verifique su cédula y contraseña."
         );
         setFailedAttempts((prev) => {
           const next = prev + 1;
@@ -93,7 +93,7 @@ export default function Login() {
         return;
       }
       if (!data?.access_token) {
-        setError("No se pudo iniciar sesion. Intente nuevamente.");
+        setError("No se pudo iniciar sesión. Intente nuevamente.");
         return;
       }
       setToken(data.access_token);
@@ -115,7 +115,7 @@ export default function Login() {
         router.push(role === "admin" ? "/dashboard" : "/portal");
       } catch (err) {
         clearToken();
-        setError("No se pudo validar la sesion. Intente nuevamente.");
+        setError("No se pudo validar la sesión. Intente nuevamente.");
       }
     } catch (err) {
       setError("No se pudo conectar con el servidor. Intente nuevamente.");
@@ -148,7 +148,7 @@ export default function Login() {
                     Acceso Administrador
                   </h1>
                   <p className="text-sm text-slate-500">
-                    Portal Administrativo Clinico
+                    Portal Administrativo Clínico
                   </p>
                 </div>
               </div>
@@ -156,32 +156,32 @@ export default function Login() {
           ) : (
             <>
               <h1 className="login-title">
-                Bienvenido al portal de gestion medica del Dr. David Guzman
+                Bienvenido al portal de gestión médica del Dr. David Guzmán
               </h1>
               <p className="login-subtitle">
-                Acceda de forma segura a su informacion medica
+                Acceda de forma segura a su información médica
               </p>
             </>
           )}
           <form onSubmit={onSubmit} className={formClassName}>
             <label>
-              {isAdmin ? "Usuario" : "Cedula"}
+              {isAdmin ? "Usuario" : "Cédula"}
               <input
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                placeholder={isAdmin ? "Usuario" : "Ingrese su cedula"}
+                placeholder={isAdmin ? "Usuario" : "Ingrese su cédula"}
                 disabled={isDisabled}
                 required
               />
             </label>
             <label>
-              Contrasena
+              Contraseña
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Ingrese su contrasena"
+                  placeholder="Ingrese su contraseña"
                   disabled={isDisabled}
                   required
                 />
@@ -228,9 +228,9 @@ export default function Login() {
           {!isAdmin && (
             <p className="login-disclaimer">
               <span className="login-disclaimer-title">Aviso importante:</span>
-              La informacion disponible en este portal corresponde a indicaciones
-              medicas registradas durante su consulta. No sustituye una valoracion
-              medica presencial ni debe utilizarse para emergencias.
+              La información disponible en este portal corresponde a indicaciones
+              médicas registradas durante su consulta. No sustituye una valoración
+              médica presencial ni debe utilizarse para emergencias.
             </p>
           )}
           {isAdmin ? (

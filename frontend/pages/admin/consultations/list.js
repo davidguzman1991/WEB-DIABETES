@@ -225,11 +225,11 @@ export default function AdminConsultationsList() {
               />
             </label>
             <label className="flex flex-col gap-1 text-sm text-slate-600 lg:col-span-4">
-              Nombre o cedula
+              Nombre o cédula
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Ej: Maria Perez o 0102030405"
+                placeholder="Ej: María Pérez o 0102030405"
                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-200"
               />
             </label>
@@ -288,9 +288,9 @@ export default function AdminConsultationsList() {
                   <tr>
                     <th className="py-2">Fecha</th>
                     <th className="py-2">Paciente</th>
-                    <th className="py-2">Cedula</th>
-                    <th className="py-2">Diagnostico</th>
-                    <th className="py-2 text-right">Accion</th>
+                    <th className="py-2">Cédula</th>
+                    <th className="py-2">Diagnóstico</th>
+                    <th className="py-2 text-right">Acción</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -312,7 +312,7 @@ export default function AdminConsultationsList() {
                           {diagnosis ? (
                             <span className="text-slate-600">{diagnosis}</span>
                           ) : (
-                            <span className="text-slate-400">Sin diagnostico</span>
+                            <span className="text-slate-400">Sin diagnóstico</span>
                           )}
                         </td>
                         <td className="py-3 text-right">

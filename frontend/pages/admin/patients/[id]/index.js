@@ -141,7 +141,7 @@ export default function EditPatient() {
     setResetSuccess("");
     const value = resetPassword.trim();
     if (value.length < 8) {
-      setResetError("La nueva contrasena debe tener al menos 8 caracteres");
+      setResetError("La nueva contraseña debe tener al menos 8 caracteres");
       return;
     }
     setResetLoading(true);
@@ -151,10 +151,10 @@ export default function EditPatient() {
         token: api.getToken("admin"),
         body: { new_password: value }
       });
-      setResetSuccess("Contrasena actualizada correctamente");
+      setResetSuccess("Contraseña actualizada correctamente");
       setResetPassword("");
     } catch (err) {
-      setResetError(err.message || "No se pudo actualizar la contrasena");
+      setResetError(err.message || "No se pudo actualizar la contraseña");
     } finally {
       setResetLoading(false);
     }
@@ -190,12 +190,12 @@ export default function EditPatient() {
         {error && <div className="error">{error}</div>}
         <div className="row-actions">
           <button type="button" className="button" onClick={onOpenResetModal}>
-            Resetear contrasena
+            Resetear contraseña
           </button>
         </div>
         <form onSubmit={onSubmit} className="form two">
           <label>
-            Cedula
+            Cédula
             <input value={form.cedula} disabled />
           </label>
           <label>
@@ -235,12 +235,12 @@ export default function EditPatient() {
           }}
         >
           <div className="card" style={{ maxWidth: 480, width: "100%" }}>
-            <h2>Resetear contrasena</h2>
+            <h2>Resetear contraseña</h2>
             {resetError && <div className="error">{resetError}</div>}
             {resetSuccess && <div className="success">{resetSuccess}</div>}
             <form onSubmit={onResetPassword} className="form">
               <label>
-                Nueva contrasena
+                Nueva contraseña
                 <input
                   type="password"
                   value={resetPassword}

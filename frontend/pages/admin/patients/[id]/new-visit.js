@@ -105,7 +105,7 @@ export default function NewVisit() {
             />
           </label>
           <label>
-            Diagnostico
+            Diagnóstico
             <textarea
               value={visit.diagnostico}
               onChange={(e) => setVisit({ ...visit, diagnostico: e.target.value })}
@@ -113,7 +113,7 @@ export default function NewVisit() {
             />
           </label>
           <label>
-            Notas medicas
+            Notas médicas
             <textarea
               value={visit.notas_medico}
               onChange={(e) => setVisit({ ...visit, notas_medico: e.target.value })}
@@ -156,7 +156,7 @@ export default function NewVisit() {
                 <input value={item.via} onChange={(e) => updateItem(index, "via", e.target.value)} required />
               </label>
               <label>
-                Duracion
+                Duración
                 <input value={item.duracion} onChange={(e) => updateItem(index, "duracion", e.target.value)} required />
               </label>
               <label>

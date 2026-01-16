@@ -59,7 +59,7 @@ export default function PatientLogin() {
         {error && <div className="error">{error}</div>}
         <form className="form" onSubmit={onSubmit}>
           <label>
-            Cedula
+            Cédula
             <input name="cedula" value={form.cedula} onChange={onChange} required />
           </label>
           <label>

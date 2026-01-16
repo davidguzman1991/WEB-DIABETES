@@ -6,8 +6,8 @@ import { apiFetch, logout } from "../../../lib/auth";
 import { useAuthGuard } from "../../../hooks/useAuthGuard";
 
 const FILTERS = [
-  { key: "6m", label: "Ultimos 6 meses", months: 6 },
-  { key: "1y", label: "Ultimo ano", months: 12 },
+  { key: "6m", label: "Últimos 6 meses", months: 6 },
+  { key: "1y", label: "Último año", months: 12 },
   { key: "all", label: "Todos", months: null },
 ];
 
@@ -216,10 +216,10 @@ export default function HbA1cHistory() {
       <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
         <header className="portal-medical-header">
           <h1>HbA1c</h1>
-          <p className="portal-medical-header-subtitle">Evolucion en el tiempo.</p>
+          <p className="portal-medical-header-subtitle">Evolución en el tiempo.</p>
           <div className="portal-medical-header-info">
             <div className="portal-medical-header-info-item">
-              <span className="portal-medical-header-info-label">Ultimo resultado</span>
+              <span className="portal-medical-header-info-label">Último resultado</span>
               <span className="portal-medical-header-info-value">
                 {latestEntry
                   ? `${formatHbA1cValue(latestEntry.value)} - ${formatDate(
@@ -288,7 +288,7 @@ export default function HbA1cHistory() {
 
             <div className="chart-card">
               <div className="chart-header">
-                <div className="section-title">Evolucion HbA1c</div>
+                <div className="section-title">Evolución HbA1c</div>
                 <div className="chart-legend">
                   <span className="legend-item">
                     <span className="legend-swatch target" />
@@ -407,7 +407,7 @@ export default function HbA1cHistory() {
             </div>
 
             <div className="chart-disclaimer">
-              Esta visualizacion es informativa y no reemplaza la evaluacion medica.
+              Esta visualización es informativa y no reemplaza la evaluación médica.
             </div>
           </div>
         </section>
@@ -420,7 +420,7 @@ export default function HbA1cHistory() {
                 <div className="portal-medical-card-title-group">
                   <h2 className="portal-medical-card-title">Resultados</h2>
                   <p className="portal-medical-card-subtitle">
-                    Valores historicos de HbA1c.
+                    Valores históricos de HbA1c.
                   </p>
                 </div>
               </div>

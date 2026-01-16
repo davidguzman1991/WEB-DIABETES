@@ -27,11 +27,11 @@ export default function AdminDashboard() {
       />
       <section className="panel">
         <h1>Dashboard</h1>
-        <p className="muted">Seleccione un modulo para comenzar.</p>
+        <p className="muted">Seleccione un módulo para comenzar.</p>
         <div className="grid">
           <Link className="tile" href="/admin/patients">Pacientes</Link>
           <Link className="tile" href="/admin/consultations">Nueva consulta</Link>
-          <Link className="tile" href="/admin/consultations/list">Consultas por cedula</Link>
+          <Link className="tile" href="/admin/consultations/list">Consultas por cédula</Link>
         </div>
       </section>
     </div>

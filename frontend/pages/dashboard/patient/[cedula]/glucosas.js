@@ -6,9 +6,9 @@ import { apiFetch, logout } from "../../../../lib/auth";
 import { useAuthGuard } from "../../../../hooks/useAuthGuard";
 
 const FILTERS = [
-  { key: "7", label: "Ultimos 7 dias", days: 7 },
-  { key: "30", label: "Ultimos 30 dias", days: 30 },
-  { key: "90", label: "Ultimos 90 dias", days: 90 },
+  { key: "7", label: "Últimos 7 días", days: 7 },
+  { key: "30", label: "Últimos 30 días", days: 30 },
+  { key: "90", label: "Últimos 90 días", days: 90 },
   { key: "all", label: "Todos", days: null },
 ];
 
@@ -241,7 +241,7 @@ export default function PatientGlucoseHistory() {
               {patient?.nombres || patient?.apellidos
                 ? `${patient?.nombres || ""} ${patient?.apellidos || ""}`.trim()
                 : "Paciente"}
-              {cedula ? ` | Cedula ${cedula}` : ""}
+              {cedula ? ` | Cédula ${cedula}` : ""}
             </div>
           </div>
           <Link className="button button-secondary" href="/dashboard">

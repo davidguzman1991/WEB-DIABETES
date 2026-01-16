@@ -4,8 +4,8 @@ import { useRouter } from "next/router";
 import { apiFetch, logout } from "../../../lib/auth";
 
 const CLINIC_NAME = "WEB DIABETES";
-const CLINIC_SPECIALTY = "Clinica de Diabetes";
-const CLINIC_LOCATION = "Ciudad, Pais";
+const CLINIC_SPECIALTY = "Clínica de Diabetes";
+const CLINIC_LOCATION = "Ciudad, País";
 
 function computeAge(dateStr) {
   if (!dateStr) return null;
@@ -109,7 +109,7 @@ export default function ConsultationPrint() {
                 </div>
               </div>
               <div>
-                <div className="print-label">Cedula</div>
+                <div className="print-label">Cédula</div>
                 <div className="print-text">{data.patient.cedula}</div>
               </div>
               <div>
@@ -120,7 +120,7 @@ export default function ConsultationPrint() {
               </div>
               <div>
                 <div className="print-label">Edad</div>
-                <div className="print-text">{age === null ? "--" : `${age} anos`}</div>
+                <div className="print-text">{age === null ? "--" : `${age} años`}</div>
               </div>
             </div>
           </section>
@@ -128,11 +128,11 @@ export default function ConsultationPrint() {
           <section className="print-section">
             <h2>Consulta</h2>
             <div className="print-text">
-              <span className="print-label">Diagnostico: </span>
+              <span className="print-label">Diagnóstico: </span>
               {data.consultation.diagnosis || "--"}
             </div>
             <div className="print-text">
-              <span className="print-label">Notas medicas: </span>
+              <span className="print-label">Notas médicas: </span>
               {data.consultation.notes || "--"}
             </div>
             <div className="print-text">
@@ -142,7 +142,7 @@ export default function ConsultationPrint() {
           </section>
 
           <section className="print-section">
-            <h2>Receta medica</h2>
+            <h2>Receta médica</h2>
             {medications.length === 0 ? (
               <div className="print-empty">Sin medicamentos registrados</div>
             ) : (
@@ -151,8 +151,8 @@ export default function ConsultationPrint() {
                   <tr>
                     <th>Medicamento</th>
                     <th>Cantidad</th>
-                    <th>Descripcion</th>
-                    <th>Duracion (dias)</th>
+                    <th>Descripción</th>
+                    <th>Duración (días)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -208,7 +208,7 @@ export default function ConsultationPrint() {
           <div>{CLINIC_NAME}</div>
         </div>
         <div>
-          Este documento contiene informacion confidencial destinada exclusivamente al
+          Este documento contiene información confidencial destinada exclusivamente al
           paciente.
         </div>
       </footer>

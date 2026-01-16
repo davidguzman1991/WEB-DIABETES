@@ -63,7 +63,7 @@ export default function PatientVisit() {
             </div>
             {visit.notas_medico && (
               <div className="note">
-                <h3>Notas medicas</h3>
+                <h3>Notas médicas</h3>
                 <p>{visit.notas_medico}</p>
               </div>
             )}

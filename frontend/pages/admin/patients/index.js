@@ -63,7 +63,7 @@ export default function AdminPatients() {
     setSearchError("");
     setCurrentConsultation(null);
     if (!searchCedula.trim()) {
-      setSearchError("Cedula requerida");
+      setSearchError("Cédula requerida");
       return;
     }
     setSearchLoading(true);
@@ -74,7 +74,7 @@ export default function AdminPatients() {
       );
       setCurrentConsultation(data);
     } catch (err) {
-      setSearchError(err.message || "No se pudo cargar medicacion actual");
+      setSearchError(err.message || "No se pudo cargar medicación actual");
     } finally {
       setSearchLoading(false);
     }
@@ -86,7 +86,7 @@ export default function AdminPatients() {
     setTempPassword("");
     const cedula = resetCedula.trim();
     if (!cedula) {
-      setResetError("Cedula requerida");
+      setResetError("Cédula requerida");
       return;
     }
     const confirmed = window.confirm(
@@ -122,7 +122,7 @@ export default function AdminPatients() {
         {success && <div className="muted">{success}</div>}
         <form onSubmit={onSubmit} className="form two">
           <label>
-            Cedula
+            Cédula
             <input name="cedula" value={form.cedula} onChange={onChange} required />
           </label>
           <label>
@@ -152,10 +152,10 @@ export default function AdminPatients() {
       </section>
 
       <section className="panel">
-        <h2>Medicacion actual</h2>
+        <h2>Medicación actual</h2>
         <form onSubmit={onSearch} className="form">
           <label>
-            Cedula
+            Cédula
             <input value={searchCedula} onChange={(e) => setSearchCedula(e.target.value)} />
           </label>
           <button type="submit" disabled={searchLoading}>
@@ -181,10 +181,10 @@ export default function AdminPatients() {
                     <div className="list-meta">Cantidad: {med.quantity}</div>
                   )}
                   {med.description && (
-                    <div className="list-meta">Descripcion: {med.description}</div>
+                    <div className="list-meta">Descripción: {med.description}</div>
                   )}
                   {med.duration_days !== null && med.duration_days !== undefined && (
-                    <div className="list-meta">Duracion: {med.duration_days} dias</div>
+                    <div className="list-meta">Duración: {med.duration_days} días</div>
                   )}
                 </div>
               ))}
@@ -201,7 +201,7 @@ export default function AdminPatients() {
         )}
         <form onSubmit={onResetPassword} className="form">
           <label>
-            Cedula
+            Cédula
             <input value={resetCedula} onChange={(e) => setResetCedula(e.target.value)} />
           </label>
           <button type="submit" disabled={resetLoading}>

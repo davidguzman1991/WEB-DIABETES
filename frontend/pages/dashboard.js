@@ -1094,7 +1094,7 @@ export default function Dashboard() {
                   <div className="list-title">
                     {patient.apellidos || ""} {patient.nombres || ""}
                   </div>
-                  <div className="list-meta">Cedula: {patient.cedula}</div>
+                  <div className="list-meta">Cédula: {patient.cedula}</div>
                 </div>
               );
             })}
@@ -1248,7 +1248,7 @@ export default function Dashboard() {
     setLabRowErrors({});
     const patientUsername = consultaForm.patient_username.trim();
     if (!patientUsername) {
-      setConsultaError("Cedula requerida");
+      setConsultaError("Cédula requerida");
       return;
     }
     if (patientLookupStatus !== "found") {
@@ -1280,7 +1280,7 @@ export default function Dashboard() {
       return !Number.isInteger(quantity) || quantity <= 0;
     });
     if (invalidQuantity) {
-      setConsultaError("Cantidad debe ser un numero entero positivo");
+      setConsultaError("Cantidad debe ser un número entero positivo");
       return;
     }
     const invalidDuration = touchedMeds.find((med) => {
@@ -1289,7 +1289,7 @@ export default function Dashboard() {
       return !Number.isInteger(duration) || duration <= 0;
     });
     if (invalidDuration) {
-      setConsultaError("Duracion debe ser un numero entero positivo");
+      setConsultaError("Duración debe ser un número entero positivo");
       return;
     }
     try {
@@ -1544,11 +1544,11 @@ export default function Dashboard() {
               </div>
               <div className="space-y-1">
                 <h1 className="text-xl font-semibold text-slate-900">
-                  Portal administrativo clinico
+                  Portal administrativo clínico
                 </h1>
-                <p className="muted text-sm">Sesion activa: {user.username}</p>
+                <p className="muted text-sm">Sesión activa: {user.username}</p>
                 <div className="admin-meta text-sm">
-                  Rol: {user.role} | Activo: {user.activo ? "Si" : "No"}
+                  Rol: {user.role} | Activo: {user.activo ? "Sí" : "No"}
                 </div>
               </div>
             </div>
@@ -1557,7 +1557,7 @@ export default function Dashboard() {
               onClick={() => logout(router)}
               className="inline-flex items-center justify-center rounded-full border border-teal-200 bg-white px-4 py-2 text-sm font-semibold text-teal-700 transition hover:border-teal-300 hover:bg-teal-50 hover:text-teal-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200"
             >
-              Cerrar sesion
+              Cerrar sesión
             </button>
           </header>
         </div>
@@ -1610,7 +1610,7 @@ export default function Dashboard() {
             className="admin-toggle flex-1 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-200"
             onClick={() => router.push("/audit")}
           >
-            Auditoria
+            Auditoría
           </button>
         </div>
         <div className="consultation-card !rounded-2xl !border-slate-200/70 !bg-slate-50/70 !shadow-sm">
@@ -1727,13 +1727,13 @@ export default function Dashboard() {
           )}
           <form onSubmit={onSubmit} className="form grid grid-cols-1 gap-4 md:grid-cols-2">
             <label className="text-sm font-medium text-slate-700">
-              Cedula
+              Cédula
               <input
                 name="cedula"
                 value={form.cedula}
                 onChange={onChange}
                 required
-                placeholder="Ingrese la cedula"
+                placeholder="Ingrese la cédula"
                 className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-300/60"
               />
             </label>
@@ -1796,7 +1796,7 @@ export default function Dashboard() {
               </div>
             )}
             {!dateError && age !== null && (
-              <div className="muted text-sm md:col-span-2">Edad: {age} anos</div>
+              <div className="muted text-sm md:col-span-2">Edad: {age} años</div>
             )}
             {!dateError && age === null && form.fecha_nacimiento && (
               <div className="muted text-sm md:col-span-2">Edad: -</div>
@@ -1834,11 +1834,11 @@ export default function Dashboard() {
                 </div>
                 <div className="mt-4 grid gap-4 md:grid-cols-2">
                   <Input
-                    label="Cedula paciente"
+                    label="Cédula paciente"
                     name="patient_username"
                     value={consultaForm.patient_username}
                     onChange={onConsultaChange}
-                    placeholder="Ingrese la cedula"
+                placeholder="Ingrese la cédula"
                   />
                   <Input
                     label="Buscar por nombre o apellido (opcional)"
@@ -2026,7 +2026,7 @@ export default function Dashboard() {
       {sectionsOpen.createConsultation && (
         <section className="card admin-section !rounded-2xl !border !border-slate-200/70 !bg-white !shadow-sm !p-6 md:!p-8">
           <h2 className="text-2xl font-semibold text-slate-900 md:text-3xl">
-            Nueva consulta clinica
+            Nueva consulta clínica
           </h2>
           {consultaError && (
             <div className="error border border-red-200 text-sm">{consultaError}</div>
@@ -2056,7 +2056,7 @@ export default function Dashboard() {
                 )}
               </div>
               <label className="text-sm font-medium text-slate-700">
-                Cedula paciente
+                Cédula paciente
                 <input
                   name="patient_username"
                   value={consultaForm.patient_username}
@@ -2233,11 +2233,11 @@ export default function Dashboard() {
 
             <details className="admin-section-group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
               <summary className="admin-section-title flex cursor-pointer items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50">
-                Examen fisico
+                Examen físico
               </summary>
               <div className="admin-section-content px-4 pb-4 pt-2">
                 <label className="text-sm font-medium text-slate-700">
-                  Examen fisico
+                  Examen físico
                   <textarea
                     name="physical_exam"
                     value={consultaForm.physical_exam}
@@ -2250,11 +2250,11 @@ export default function Dashboard() {
 
             <details className="admin-section-group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm" open>
               <summary className="admin-section-title flex cursor-pointer items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50">
-                Diagnostico
+                Diagnóstico
               </summary>
               <div className="admin-section-content px-4 pb-4 pt-2">
                 <label className="text-sm font-medium text-slate-700">
-                  Diagnostico
+                  Diagnóstico
                   <textarea
                     name="diagnostico"
                     value={consultaForm.diagnostico}
@@ -2263,7 +2263,7 @@ export default function Dashboard() {
                   />
                 </label>
                 <label className="text-sm font-medium text-slate-700">
-                  Notas medicas
+                  Notas médicas
                   <textarea
                     name="notas_medicas"
                     value={consultaForm.notas_medicas}
@@ -2395,7 +2395,7 @@ export default function Dashboard() {
                             />
                           </label>
                           <label className="text-sm font-medium text-slate-700">
-                            Descripcion
+                            Descripción
                             <textarea
                               name="descripcion"
                               value={med.descripcion || ""}
@@ -2404,7 +2404,7 @@ export default function Dashboard() {
                             />
                           </label>
                           <label className="text-sm font-medium text-slate-700">
-                            Duracion (dias)
+                            Duración (días)
                             <input
                               type="number"
                               name="duracion_dias"
@@ -2576,7 +2576,7 @@ export default function Dashboard() {
                 Crear en catalogo
               </h3>
               <p className="text-sm text-slate-500">
-                Completa la informacion del medicamento.
+                Completa la información del medicamento.
               </p>
             </div>
             <form onSubmit={submitCatalogForm} className="space-y-3">

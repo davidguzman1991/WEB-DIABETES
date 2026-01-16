@@ -36,7 +36,7 @@ export default function PatientDashboard() {
         const data = await res.json().catch(() => null);
         if (!res.ok) {
           if (!active) return;
-          setError(data?.detail || "No se pudo validar la sesion");
+          setError(data?.detail || "No se pudo validar la sesión");
           setLoading(false);
           return;
         }
@@ -52,7 +52,7 @@ export default function PatientDashboard() {
       })
       .catch(() => {
         if (!active) return;
-        setError("No se pudo validar la sesion");
+        setError("No se pudo validar la sesión");
         setLoading(false);
       });
 
@@ -75,7 +75,7 @@ export default function PatientDashboard() {
         const data = await res.json().catch(() => null);
         if (!res.ok) {
           if (!active) return;
-          setMedsError(data?.detail || "No se pudo cargar la medicacion actual");
+          setMedsError(data?.detail || "No se pudo cargar la medicación actual");
           setMedsLoading(false);
           return;
         }
@@ -86,7 +86,7 @@ export default function PatientDashboard() {
       })
       .catch(() => {
         if (!active) return;
-        setMedsError("No se pudo cargar la medicacion actual");
+        setMedsError("No se pudo cargar la medicación actual");
         setMedsLoading(false);
       });
 
@@ -165,15 +165,15 @@ export default function PatientDashboard() {
         <div>Rol: {user.role}</div>
         <div>Activo: {user.activo ? "Si" : "No"}</div>
         <button type="button" onClick={() => logout(router, "/patient/login")}>
-          Cerrar sesion
+          Cerrar sesión
         </button>
       </div>
       <div className="card">
-        <h2>Medicacion actual</h2>
-        {medsLoading && <p className="muted">Cargando medicacion actual...</p>}
+        <h2>Medicación actual</h2>
+        {medsLoading && <p className="muted">Cargando medicación actual...</p>}
         {!medsLoading && medsError && <div className="error">{medsError}</div>}
         {!medsLoading && !medsError && (!medication || !medication.medications?.length) && (
-          <p className="muted">Aun no tienes medicacion registrada.</p>
+          <p className="muted">Aún no tienes medicación registrada.</p>
         )}
         {!medsLoading && !medsError && medication?.medications?.length ? (
           <div className="list">
@@ -184,10 +184,10 @@ export default function PatientDashboard() {
                   <div className="list-meta">Cantidad: {med.quantity}</div>
                 )}
                 {med.description && (
-                  <div className="list-meta">Descripcion: {med.description}</div>
+                  <div className="list-meta">Descripción: {med.description}</div>
                 )}
                 {med.duration_days !== null && med.duration_days !== undefined && (
-                  <div className="list-meta">Duracion: {med.duration_days} dias</div>
+                  <div className="list-meta">Duración: {med.duration_days} días</div>
                 )}
               </div>
             ))}
@@ -201,7 +201,7 @@ export default function PatientDashboard() {
           <div className="error">{consultationsError}</div>
         )}
         {!consultationsLoading && !consultationsError && consultations.length === 0 && (
-          <p className="muted">Aun no tienes consultas registradas.</p>
+          <p className="muted">Aún no tienes consultas registradas.</p>
         )}
         {!consultationsLoading && !consultationsError && consultations.length > 0 && (
           <div className="list">

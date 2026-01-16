@@ -70,7 +70,7 @@ export default function AuditMedications() {
       }
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data.detail || "No se pudo cargar la auditoria");
+        setError(data.detail || "No se pudo cargar la auditoría");
         setItems([]);
         setStatus("error");
         return;
@@ -80,7 +80,7 @@ export default function AuditMedications() {
       setItems(list);
       setStatus("ready");
     } catch {
-      setError("No se pudo cargar la auditoria");
+      setError("No se pudo cargar la auditoría");
       setItems([]);
       setStatus("error");
     }
@@ -123,9 +123,9 @@ export default function AuditMedications() {
         <header className="admin-header flex flex-col gap-3 md:flex-row md:items-center md:justify-between !bg-white !border-slate-200/70 !shadow-sm !rounded-2xl">
           <div className="space-y-1">
             <h1 className="text-xl font-semibold text-slate-900">
-              Auditoria de medicamentos
+              Auditoría de medicamentos
             </h1>
-            <p className="muted text-sm">Mostrando los mas prescritos</p>
+            <p className="muted text-sm">Mostrando los más prescritos</p>
           </div>
           <Button
             variant="outline"
@@ -143,7 +143,7 @@ export default function AuditMedications() {
               variant="outline"
               onClick={() => applyQuickRange(getDaysAgo(30), getToday())}
             >
-              Ultimos 30 dias
+              Últimos 30 días
             </Button>
             <Button
               size="sm"
@@ -157,7 +157,7 @@ export default function AuditMedications() {
               variant="outline"
               onClick={() => applyQuickRange(getYearStart(), getToday())}
             >
-              Ano actual
+              Año actual
             </Button>
           </div>
 

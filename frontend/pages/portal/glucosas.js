@@ -221,9 +221,9 @@ export default function GlucosasPage() {
               <div className="portal-medical-card-title-section">
                 <div className="portal-medical-card-icon glucose">GL</div>
                 <div className="portal-medical-card-title-group">
-                  <h1 className="portal-medical-card-title">Sesion no iniciada</h1>
+                  <h1 className="portal-medical-card-title">Sesión no iniciada</h1>
                   <p className="portal-medical-card-subtitle">
-                    No se encontro token de paciente. Inicie sesion nuevamente.
+                    No se encontró token de paciente. Inicie sesión nuevamente.
                   </p>
                 </div>
               </div>
@@ -249,11 +249,11 @@ export default function GlucosasPage() {
         <header className="portal-medical-header">
           <h1>Control de glucosa</h1>
           <p className="portal-medical-header-subtitle">
-            Seguimiento de glucosa indicado por su medico.
+            Seguimiento de glucosa indicado por su médico.
           </p>
           <div className="portal-medical-header-info">
             <div className="portal-medical-header-info-item">
-              <span className="portal-medical-header-info-label">Ultimo registro</span>
+              <span className="portal-medical-header-info-label">Último registro</span>
               <span className="portal-medical-header-info-value">
                 {lastRecordDate || "Sin registros"}
               </span>
@@ -312,7 +312,7 @@ export default function GlucosasPage() {
               <div className="portal-medical-card-title-group">
                 <h2 className="portal-medical-card-title">Estado del seguimiento</h2>
                 <p className="portal-medical-card-subtitle">
-                  Revise su ultimo control y el estado del registro.
+                  Revise su último control y el estado del registro.
                 </p>
               </div>
             </div>
@@ -328,7 +328,7 @@ export default function GlucosasPage() {
                 </span>
               </div>
               <div className="portal-medical-summary-row">
-                <span className="portal-medical-summary-label">Ultimo registro</span>
+                <span className="portal-medical-summary-label">Último registro</span>
                 <span className="portal-medical-summary-value">
                   {lastRecord
                     ? `${lastRecordDate || "Sin fecha"} - ${
@@ -350,7 +350,7 @@ export default function GlucosasPage() {
                 <div className="portal-medical-card-title-group">
                   <h3 className="portal-medical-card-title">Registrar control de glucosa</h3>
                   <p className="portal-medical-card-subtitle">
-                    Ingrese el control solicitado por su medico.
+                    Ingrese el control solicitado por su médico.
                   </p>
                 </div>
               </div>
@@ -517,7 +517,7 @@ export default function GlucosasPage() {
                       </div>
 
                       <div className="portal-medical-record-note">
-                        {noteText ? String(noteText) : "Sin observacion"}
+                        {noteText ? String(noteText) : "Sin observación"}
                       </div>
                     </div>
                   );

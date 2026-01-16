@@ -31,7 +31,7 @@ export default function PatientHome() {
         ]}
       />
       <section className="panel">
-        <h1>Medicacion actual</h1>
+        <h1>Medicación actual</h1>
         {error && <div className="error">{error}</div>}
         {!visit && <p className="muted">No hay visitas registradas.</p>}
         {visit && (

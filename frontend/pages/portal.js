@@ -220,7 +220,7 @@ export default function Portal() {
         }
         const data = await res.json().catch(() => null);
         if (!res.ok || !data) {
-          if (active) setAuthError("No se pudo validar la sesion");
+          if (active) setAuthError("No se pudo validar la sesión");
           logout(router, "/login");
           return;
         }
@@ -235,7 +235,7 @@ export default function Portal() {
         }
       })
       .catch(() => {
-        if (active) setAuthError("No se pudo validar la sesion");
+        if (active) setAuthError("No se pudo validar la sesión");
         logout(router, "/login");
       })
       .finally(() => {
@@ -260,7 +260,7 @@ export default function Portal() {
           return;
         }
         if (!res.ok) {
-          if (active) setError("No se pudo cargar la informacion");
+          if (active) setError("No se pudo cargar la información");
           return;
         }
         const data = await res.json().catch(() => null);
@@ -274,7 +274,7 @@ export default function Portal() {
         if (active) setCurrent(data);
       })
       .catch(() => {
-        if (active) setError("No se pudo cargar la informacion");
+        if (active) setError("No se pudo cargar la información");
       })
       .finally(() => {
         if (active) setLoadingCurrent(false);
@@ -522,7 +522,7 @@ export default function Portal() {
     event.preventDefault();
     setGlucoseError("");
     if (!token || !user?.id) {
-      setGlucoseError("Sesion no valida");
+      setGlucoseError("Sesión no válida");
       return;
     }
     if (!glucoseForm.type) {
@@ -603,7 +603,7 @@ export default function Portal() {
   const diffMs = normalizedNext ? normalizedNext.getTime() - normalizedToday.getTime() : null;
   const diffDays = diffMs === null ? null : Math.ceil(diffMs / 86400000);
   let nextVisitStatus = "neutral";
-  let nextVisitText = "Su medico aun no ha programado la proxima cita de control.";
+  let nextVisitText = "Su médico aún no ha programado la próxima cita de control.";
   let nextVisitSummary = null;
   if (diffDays !== null) {
     if (diffDays >= 0) {
@@ -616,13 +616,13 @@ export default function Portal() {
       }
       nextVisitSummary = {
         date: formatDate(nextVisitDate),
-        days: `Faltan ${diffDays} dias`,
+        days: `Faltan ${diffDays} días`,
       };
     } else {
       nextVisitStatus = "overdue";
       nextVisitSummary = {
         date: formatDate(nextVisitDate),
-        days: `Retraso de ${Math.abs(diffDays)} dias`,
+        days: `Retraso de ${Math.abs(diffDays)} días`,
       };
     }
   }
@@ -657,7 +657,7 @@ export default function Portal() {
     : "";
   const glucoseBubbleLines = useMemo(() => {
     if (!orderedGlucoseLogs.length) {
-      return { primary: "Primera vez aqui?", secondary: "Registra tu glucosa" };
+      return { primary: "Primera vez aquí?", secondary: "Registra tu glucosa" };
     }
     if (!lastGlucoseDateValue) {
       return { primary: "Registra tu glucosa" };
@@ -683,7 +683,7 @@ export default function Portal() {
     }
     if (diffDays >= 2) {
       return {
-        primary: `Han pasado ${diffDays} dias.`,
+        primary: `Han pasado ${diffDays} días.`,
         secondary: "Registra tu glucosa",
       };
     }
@@ -822,13 +822,13 @@ export default function Portal() {
                 ) : current ? (
                   <>
                     <div className="portal-medical-summary-row">
-                      <span className="portal-medical-summary-label">Medicacion</span>
+                      <span className="portal-medical-summary-label">Medicación</span>
                       <span className="portal-medical-summary-value">
                         {currentMedications.length
                           ? `${currentMedications.length} medicamento${
                               currentMedications.length === 1 ? "" : "s"
                             }`
-                          : "Sin medicacion"}
+                          : "Sin medicación"}
                       </span>
                     </div>
                     <div className="portal-medical-summary-row">
@@ -840,7 +840,7 @@ export default function Portal() {
                       </span>
                     </div>
                     <div className="portal-medical-summary-row">
-                      <span className="portal-medical-summary-label">Ultima consulta</span>
+                      <span className="portal-medical-summary-label">Última consulta</span>
                       <span className="portal-medical-summary-value">
                         {lastConsultationDate || "Sin registros"}
                       </span>
@@ -998,7 +998,7 @@ export default function Portal() {
                     </div>
                     <SectionTitle
                       title="Registro de glucosa"
-                      subtitle="Ingrese el control solicitado por su medico"
+                      subtitle="Ingrese el control solicitado por su médico"
                       className="flex-1"
                     />
                   </div>
